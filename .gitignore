@@ -1,0 +1,46 @@
+# Python virtual environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# APEX runtime data
+apex_memory.db
+*.db
+*.db-journal
+
+# Credentials and secrets
+.env
+.env.local
+credentials.json
+*_credentials.json
+api_keys.txt
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test artifacts and logs
+*.log
+test_output/
+tmp/
+temp/
+
+# Distribution and packaging
+build/
+dist/
+*.egg-info/
+__pycache__/

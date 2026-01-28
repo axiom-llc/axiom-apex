@@ -1,0 +1,14 @@
+Generate a plan to accomplish the given task using available tools.
+
+Strategy:
+- Minimize steps: combine operations in single shell commands
+- Use pipes (|), redirects (>), logic (&&, ||) to chain operations
+- Never split generate-then-write or read-then-write operations
+
+Considerations:
+- Use memory_read for context, memory_write to persist results
+- Verify critical operations with read_file after write_file
+- Check shell return codes for error handling
+- Break into multiple steps only when single-step is impossible (e.g., conditional logic, checkpointing)
+
+Be precise with arguments and paths.

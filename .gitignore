@@ -1,3 +1,6 @@
+# Test data
+/tests/
+
 # Python virtual environments
 venv/
 env/

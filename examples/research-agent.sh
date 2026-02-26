@@ -15,18 +15,17 @@ STATE="$OUTDIR/state.txt"
 ACTIONFILE="$OUTDIR/action.txt"
 REPORT="$OUTDIR/report.md"
 
+safe_state() { cat "$STATE" | tr '"' "'"; }
+
 # ── Available search tools (no keys required) ─────────────────────────────────
-# Wikipedia summary : https://en.wikipedia.org/api/rest_v1/page/summary/TOPIC
-# Wikipedia search  : https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=TERM&format=json
-# HackerNews        : https://hn.algolia.com/api/v1/search?query=TERM
-# DDG instant answer: https://api.duckduckgo.com/?q=TERM&format=json
-# Reddit            : https://www.reddit.com/r/all/search.json?q=TERM&sort=relevance
+# HackerNews : https://hn.algolia.com/api/v1/search?query=TERM
+# Reddit     : https://www.reddit.com/r/all/search.json?q=TERM&sort=relevance
 
 cd "$APEX_ROOT"
 mkdir -p "$OUTDIR"
 
 # ── Bootstrap: let agent define its own goal if none given ────────────────────
-FREEFORM_TRIGGERS=("self.directed" "free" "whatever" "your choice" "as you see fit" "do your own" "anything" "")
+FREEFORM_TRIGGERS=("self.directed" "free" "whatever" "your choice" "as you see fit" "do your own" "anything")
 NORMALIZED=$(echo "$GOAL" | tr '[:upper:]' '[:lower:]' | tr -d '[:punct:]')
 IS_FREEFORM=false
 for trigger in "${FREEFORM_TRIGGERS[@]}"; do
@@ -74,7 +73,7 @@ for i in $(seq 1 "$MAX_ITER"); do
 ${GOAL}
 
 Current knowledge state:
-$(cat "$STATE")
+$(safe_state)
 
 ---
 Decide your next action. You have full freedom to act as needed to achieve the goal.
@@ -83,11 +82,8 @@ followed by your content:
 
 ACTION: SEARCH
 [URL to fetch using one of these APIs — pick the most useful one for what you need]
-  Wikipedia summary : https://en.wikipedia.org/api/rest_v1/page/summary/TOPIC
-  Wikipedia search  : https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=TERM&format=json
-  HackerNews        : https://hn.algolia.com/api/v1/search?query=TERM
-  DDG               : https://api.duckduckgo.com/?q=TERM&format=json
-  Reddit            : https://www.reddit.com/r/all/search.json?q=TERM&sort=relevance
+  HackerNews : https://hn.algolia.com/api/v1/search?query=TERM
+  Reddit     : https://www.reddit.com/r/all/search.json?q=TERM&sort=relevance
 [One sentence: why this search, what gap it fills]
 
 ACTION: THINK
@@ -134,7 +130,7 @@ Write the raw response to ${FETCH} using write_file"
             apex "Research goal: ${GOAL}
 
 Current knowledge state:
-$(cat "$STATE")
+$(safe_state)
 
 Raw API response:
 $(cat "$FETCH")
@@ -143,7 +139,7 @@ Extract only what is genuinely useful toward the goal.
 Ignore metadata, formatting artifacts, boilerplate.
 Pull out: key facts, definitions, mechanisms, names, dates, useful leads.
 Note sub-topics worth investigating further.
-100–200 words max, dense and specific.
+100-200 words max, dense and specific.
 
 Write to ${EXTRACT} using write_file"
 
@@ -164,14 +160,14 @@ Write to ${EXTRACT} using write_file"
             apex "Research goal: ${GOAL}
 
 Current knowledge state:
-$(cat "$STATE")
+$(safe_state)
 
 Your action was THINK. Write your reasoning here:
 - Synthesise what you know so far
 - Identify contradictions or gaps
 - Decide what still needs to be found
 - Note any conclusions you can draw now
-150–250 words. Write to ${THOUGHT} using write_file"
+150-250 words. Write to ${THOUGHT} using write_file"
 
             if [[ -f "$THOUGHT" ]]; then
                 {
@@ -203,7 +199,7 @@ apex "You are a research agent that has completed its work. The original goal:
 ${GOAL}
 
 Complete knowledge state accumulated:
-$(cat "$STATE")
+$(safe_state)
 
 Write a comprehensive Markdown report that fully satisfies the original goal.
 Structure it logically for the content — choose appropriate headers and sections

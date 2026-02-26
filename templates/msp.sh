@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — IT MSP / MANAGED SERVICES
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Your MSP Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/msp/

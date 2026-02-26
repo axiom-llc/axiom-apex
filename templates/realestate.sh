@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — REAL ESTATE AGENCY
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Agency Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/realestate/

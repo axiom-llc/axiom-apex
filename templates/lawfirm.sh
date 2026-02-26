@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — LAW FIRM
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Firm Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/firm/

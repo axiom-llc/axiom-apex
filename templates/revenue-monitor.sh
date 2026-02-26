@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX REVENUE TEMPLATE 3 — MICRO-SAAS MONITORING SERVICE
 # Model: Sell automated uptime/security reports as a service

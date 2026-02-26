@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX REVENUE TEMPLATE 2 — NICHE CONTENT & AFFILIATE ENGINE
 # Model: Content farm → SEO traffic → affiliate commissions

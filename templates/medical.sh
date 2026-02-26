@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — MEDICAL / DENTAL PRACTICE
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Practice Name]
+# Axiom LLC
 # ============================================================
 # IMPORTANT: All data stays LOCAL. No cloud transmission.
 # This template is designed for on-premise deployment only.

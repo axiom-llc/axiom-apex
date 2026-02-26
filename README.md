@@ -173,7 +173,7 @@ See [`templates/`](./templates/) for ready-to-deploy business automation workflo
 
 | Template | Use case |
 |---|---|
-| `morning-automation.sh` | Daily dev morning brief + audio |
+| `morning.sh` | Daily dev morning brief + audio |
 | `msp.sh` | IT managed services: health, tickets, SLA, reports |
 | `lawfirm.sh` | Matter tracking, billing, deadlines, weekly review |
 | `medical.sh` | Practice operations, scheduling, compliance |

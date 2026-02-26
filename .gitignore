@@ -46,4 +46,3 @@ temp/
 build/
 dist/
 *.egg-info/
-__pycache__/

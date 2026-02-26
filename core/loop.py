@@ -8,13 +8,13 @@ from core.planner import generate_plan
 from core.types import Halt, ToolCall, ToolExecution, Ok, Err
 from tools.registry import REGISTRY
 
-class TimeoutError(Exception):
+class ApexTimeoutError(Exception):
     pass
 
 @contextmanager
 def timeout(seconds: int):
     def handler(signum, frame):
-        raise TimeoutError()
+        raise ApexTimeoutError()
     
     old_handler = signal.signal(signal.SIGALRM, handler)
     signal.alarm(seconds)
@@ -47,7 +47,7 @@ def run(input_str: str) -> State:
                         result = Err("ToolExecutionError", "Output exceeds 10MB")
                     else:
                         result = Ok(output) if isinstance(output, dict) else Ok({'output': output})
-            except TimeoutError:
+            except ApexTimeoutError:
                 result = Err("ToolTimeout", f"{step.name} exceeded 300s")
             except Exception as e:
                 result = Err("ToolExecutionError", str(e))

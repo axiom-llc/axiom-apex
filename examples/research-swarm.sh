@@ -11,7 +11,7 @@ GOAL="${1:-free}"
 AGENTS="${2:-4}"
 ITER="${3:-8}"
 
-APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 AGENT_SCRIPT="${AGENT_SCRIPT:-$(dirname "$0")/research-agent.sh}"
 OUTDIR="$HOME/swarm/$(date +%Y%m%d_%H%M%S)"
 GOALSFILE="$OUTDIR/subgoals.txt"

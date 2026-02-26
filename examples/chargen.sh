@@ -10,7 +10,7 @@ set -euo pipefail
 CONCEPT="${1:-"a seasoned operative with divided loyalties"}"
 ITERATIONS="${2:-6}"
 
-APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 OUTDIR="$HOME/chargen/$(date +%Y%m%d_%H%M%S)"
 PROFILE="$OUTDIR/profile.txt"
 SHEET_MD="$OUTDIR/character_sheet.md"

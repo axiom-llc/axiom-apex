@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — E-COMMERCE / DROPSHIPPING
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Store Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/ecom/

@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — FREELANCE CREATIVE AGENCY
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Agency Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/agency/
@@ -67,7 +66,7 @@ new_project() {
     TYPE=$4        # branding, web, social, campaign, video
     BUDGET=$5
     DEADLINE=$6
-    SLUG="${CLIENT}-${PROJECT}" | tr ' ' '-' | tr '[:upper:]' '[:lower:]'
+    SLUG=$(echo "${CLIENT}-${PROJECT}" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
 
     mkdir -p ~/agency/projects/${SLUG}
 

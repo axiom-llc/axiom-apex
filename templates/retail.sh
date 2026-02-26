@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — RETAIL / E-COMMERCE
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Business Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/retail/

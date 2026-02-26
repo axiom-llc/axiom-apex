@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — PERSONAL TRAINER / GYM
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Trainer/Gym Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/fitness/

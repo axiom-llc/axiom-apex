@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX INTEGRATION TEMPLATE — RESTAURANT / FOOD SERVICE
 # Version: 1.0
-# Author: [Your Name] — Independent IT Consultant
-# Client: [Restaurant Name]
+# Axiom LLC
 # ============================================================
 # DIRECTORY STRUCTURE:
 #   ~/restaurant/

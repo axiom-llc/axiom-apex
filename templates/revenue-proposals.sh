@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ============================================================
 # APEX REVENUE TEMPLATE 1 — AUTOMATED PROPOSAL ENGINE
 # Model: Freelance / Consulting lead generation

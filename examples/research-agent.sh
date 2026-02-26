@@ -9,7 +9,7 @@ set -euo pipefail
 GOAL="${1:-"research and explain the topic thoroughly"}"
 MAX_ITER="${2:-20}"
 
-APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 OUTDIR="${OUTDIR_OVERRIDE:-$HOME/agent/$(date +%Y%m%d_%H%M%S)}"
 STATE="$OUTDIR/state.txt"
 ACTIONFILE="$OUTDIR/action.txt"

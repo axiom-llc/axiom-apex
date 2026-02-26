@@ -9,7 +9,7 @@ set -euo pipefail
 
 ITERATIONS="${1:-3}"
 
-APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 OUTDIR="$HOME/generative-3d/$(date +%Y%m%d_%H%M%S)"
 SCAD="$OUTDIR/enclosure.scad"
 LOG="$OUTDIR/build.log"

@@ -2,10 +2,16 @@
 import os
 import google.genai as genai
 
+_client: genai.Client | None = None
+
+def _get_client() -> genai.Client:
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+    return _client
+
 def gemini_complete(prompt: str) -> dict:
-    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
-    
-    response = client.models.generate_content(
+    response = _get_client().models.generate_content(
         model='gemini-2.5-flash',
         contents=prompt,
         config={
@@ -13,7 +19,6 @@ def gemini_complete(prompt: str) -> dict:
             'max_output_tokens': 8192,
         }
     )
-    
     return {
         'text': response.text,
         'tokens': response.usage_metadata.total_token_count

@@ -27,11 +27,10 @@ core/           ← loop.py, planner.py, state.py, types.py
 llm/            ← Gemini API integration
 memory/         ← SQLite KV store
 prompts/        ← system.txt, planner.txt
-templates/      ← business process workflows (medical, dental, retail, logistics…)
+templates/      ← business process workflows (medical, legal, retail, MSP…)
 tools/          ← basic.py (shell, file I/O, HTTP), registry.py
-examples/       ← research-agent.sh, research-swarm.sh
-docs/
-tests/
+examples/       ← research-agent.sh, research-swarm.sh, chargen.sh, generative-3d.sh
+tests/          ← validated integration commands
 ```
 
 ---
@@ -156,13 +155,37 @@ See [`examples/`](./examples/) for:
 
 - **`research-agent.sh`** — autonomous SEARCH/THINK/DONE research loop with self-directed action selection
 - **`research-swarm.sh`** — parallel swarm orchestration: N agents research sub-goals, parent synthesises
+- **`chargen.sh`** — iterative AI-driven character profile generator with multi-pass refinement
+- **`generative-3d.sh`** — compile-test-fix loop for AI-generated OpenSCAD models
 
 ```bash
 ./examples/research-agent.sh "how does RAFT consensus work" 15
 ./examples/research-swarm.sh "quantum computing" 4 8
+./examples/chargen.sh "disgraced intelligence analyst turned whistleblower" 6
+./examples/generative-3d.sh 3
 ```
 
-Validated production runs: swarm orchestration with 3 parallel agents, iterative 3D asset generation (OpenSCAD → STL, 32K → 88K across 2 iterations).
+---
+
+## Templates
+
+See [`templates/`](./templates/) for ready-to-deploy business automation workflows:
+
+| Template | Use case |
+|---|---|
+| `morning-automation.sh` | Daily dev morning brief + audio |
+| `msp.sh` | IT managed services: health, tickets, SLA, reports |
+| `lawfirm.sh` | Matter tracking, billing, deadlines, weekly review |
+| `medical.sh` | Practice operations, scheduling, compliance |
+| `retail.sh` | POS integration, inventory, daily/weekly P&L |
+| `ecom.sh` | Shopify/WooCommerce reporting, ad performance |
+| `restaurant.sh` | Covers, inventory, specials, EOD summary |
+| `realestate.sh` | Listings, leads, viewings, market snapshot |
+| `agency.sh` | Project intake, copy generation, invoicing |
+| `fitness.sh` | Client programs, session logging, invoicing |
+| `revenue-proposals.sh` | Automated freelance proposal engine |
+| `revenue-monitor.sh` | Micro-SaaS uptime monitoring service |
+| `revenue-content.sh` | Niche content + affiliate engine |
 
 ---
 
@@ -196,7 +219,6 @@ Validated production runs: swarm orchestration with 3 parallel agents, iterative
 | File read/write | < 100ms |
 | SQLite read/write | < 10ms |
 | HTTP GET | Network-dependent |
-| OpenSCAD compile | 1–30s |
 
 Token consumption: ~1,000–4,000 per call depending on task complexity.
 

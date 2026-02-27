@@ -173,19 +173,19 @@ See [`templates/`](./templates/) for ready-to-deploy business automation workflo
 
 | Template | Use case |
 |---|---|
-| `morning.sh` | Daily dev morning brief + audio |
-| `msp.sh` | IT managed services: health, tickets, SLA, reports |
+| `agency.sh` | Project intake, copy generation, invoicing |
+| `ecom.sh` | Shopify/WooCommerce reporting, ad performance |
+| `fitness.sh` | Client programs, session logging, invoicing |
 | `lawfirm.sh` | Matter tracking, billing, deadlines, weekly review |
 | `medical.sh` | Practice operations, scheduling, compliance |
-| `retail.sh` | POS integration, inventory, daily/weekly P&L |
-| `ecom.sh` | Shopify/WooCommerce reporting, ad performance |
-| `restaurant.sh` | Covers, inventory, specials, EOD summary |
+| `morning.sh` | Daily dev morning brief + audio |
+| `msp.sh` | IT managed services: health, tickets, SLA, reports |
 | `realestate.sh` | Listings, leads, viewings, market snapshot |
-| `agency.sh` | Project intake, copy generation, invoicing |
-| `fitness.sh` | Client programs, session logging, invoicing |
-| `revenue-proposals.sh` | Automated freelance proposal engine |
-| `revenue-monitor.sh` | Micro-SaaS uptime monitoring service |
+| `restaurant.sh` | Covers, inventory, specials, EOD summary |
+| `retail.sh` | POS integration, inventory, daily/weekly P&L |
 | `revenue-content.sh` | Niche content + affiliate engine |
+| `revenue-monitor.sh` | Micro-SaaS uptime monitoring service |
+| `revenue-proposals.sh` | Automated freelance proposal engine |
 
 ---
 

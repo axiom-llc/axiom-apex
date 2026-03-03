@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "apex"
+version = "1.3.0"
+requires-python = ">=3.11"
+dependencies = [
+    "requests",
+    "google-genai",
+]
+
+[project.scripts]
+apex = "apex.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apex*"]
+
+[tool.setuptools.package-data]
+"apex" = ["*.txt"]

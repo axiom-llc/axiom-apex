@@ -1,5 +1,6 @@
 # APEX — Agent Process Executor
-**v1.2** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows.
+
+Pure-functional CLI framework for deterministic, reproducible AI-driven workflows.
 
 ```bash
 export GEMINI_API_KEY=your-key
@@ -8,124 +9,153 @@ apex "analyse this codebase and produce a refactoring plan"
 
 ---
 
-## Design
-
-- **Pure-functional core** — immutable state, no side effects in the execution loop
-- **JSON-plan orchestration** — structured, inspectable execution traces
-- **SQLite KV memory** — persistent agent state across sessions
-- **Zero runtime config** — one environment variable, no plugin system
-- **395 LOC** — readable, auditable, forkable
-- **Bash-composable** — designed to be orchestrated from wrapper scripts
-
----
-
-## Structure
-
-```
-bin/            ← CLI entry point
-core/           ← loop.py, planner.py, state.py, types.py
-llm/            ← Gemini API integration
-memory/         ← SQLite KV store
-prompts/        ← system.txt, planner.txt
-templates/      ← business process workflows (medical, legal, retail, MSP…)
-tools/          ← basic.py (shell, file I/O, HTTP), registry.py
-examples/       ← research-agent.sh, research-swarm.sh, chargen.sh, generative-3d.sh
-tests/          ← validated integration commands
-```
-
----
-
 ## Installation
 
-Requires Python 3.11 or 3.12. Python 3.14 is not supported (pydantic/google-genai compatibility).
+Requires Python 3.11–3.13.
 
 ```bash
-git clone https://github.com/axiom-llc/apex.git
-cd apex
+git clone https://github.com/axiom-llc/apex.git ~/code/apps/apex
+cd ~/code/apps/apex
 python3.12 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-export GEMINI_API_KEY=your-key
-export PATH="$PATH:$(pwd)/bin"
+pip install -e .
 ```
 
-**Always run apex from the repo root** — the planner resolves `prompts/system.txt` relative to the working directory.
-
-```bash
-# Correct
-cd ~/apex && apex "task"
-
-# Wrong — FileNotFoundError: prompts/system.txt
-~/apex/bin/apex "task"
-```
-
----
-
-## Tools
-
-| Tool | Purpose |
-|---|---|
-| `shell` | Execute arbitrary shell commands |
-| `read_file` | Read file contents |
-| `write_file` | Write content to file |
-| `http_get` | HTTP GET via curl |
-| `memory_read` | Read from SQLite store |
-| `memory_write` | Write to SQLite store |
-
-Force tool selection when the planner chooses suboptimally:
-
-```bash
-apex "write content to ~/file.txt using write_file"
-apex "read ~/file.txt using read_file and summarize"
-```
+`apex` is available as a command anywhere after install. No PATH configuration required.
 
 ---
 
 ## Usage
 
 ```bash
-# File operations
 apex "write system info and today's date to ~/report.txt"
-
-# HTTP — works on static pages, REST APIs, RSS feeds
-# Does NOT work on JS-rendered pages (React, Vue, SPAs)
 apex "fetch https://wttr.in/London using curl and save to ~/weather.txt"
-apex "fetch https://api.github.com/users/torvalds using curl and save to ~/user.json"
-
-# Data processing
 apex "analyse ~/logs/app.log for ERROR lines and count them"
-
-# Memory
 apex "save current git branch to memory as active_branch"
-apex "read from memory the active_branch value"
+apex "read from memory the key active_branch"
 ```
 
-### Reliable public APIs (no keys required)
+### Flags
 
-| API | Use |
-|---|---|
-| `https://hn.algolia.com/api/v1/search?query=TERM` | HackerNews search |
-| `https://en.wikipedia.org/api/rest_v1/page/summary/TOPIC` | Wikipedia summary |
-| `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=TERM&format=json` | Wikipedia search |
-| `https://wttr.in/CITY?format=j1` | Weather JSON |
-| `https://api.github.com/repos/OWNER/REPO` | GitHub repo info |
+**`--dry-run`** — Generate and print the execution plan as JSON without running any tools.
 
-**Avoid:** DuckDuckGo API (returns empty body under load), Wikipedia HTML pages (403 without user-agent). Replace spaces with `+` in all URLs.
+```bash
+apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
+```
+
+```json
+{
+  "goal": "Fetch weather data for London and save to ~/weather.txt",
+  "steps": [
+    {"type": "tool", "name": "shell", "args": {"cmd": "curl -s https://wttr.in/London > /home/user/weather.txt"}},
+    {"type": "halt", "reason": "done"}
+  ]
+}
+```
+
+**`--trace`** — Stream each step's result to stderr as execution proceeds.
+
+```bash
+apex --trace "write the current date to ~/date.txt"
+# [plan] goal=Write current date to ~/date.txt status=RUNNING
+# [tool] shell args={'cmd': 'date > /home/user/date.txt'}
+# [result] ok
+# [halt] done
+```
+
+**`--version`** — Print version and exit.
 
 ---
 
-## Scripting Patterns
+## Tools
 
-**Never inject file contents into apex commands:**
+**`shell`** `cmd: str` — Execute a shell command. Returns stdout, stderr, and exit code. Prefer this for any operation expressible as a single command; use pipes, redirects, and `&&`/`||` to combine steps.
+
+**`read_file`** `path: str` — Read the contents of a file.
+
+**`write_file`** `path: str, content: str` — Write content to a file. Creates parent directories as needed.
+
+**`http_get`** `url: str, headers?: dict` — HTTP GET via requests. Returns body and status code. Does not support JS-rendered pages.
+
+**`memory_read`** `key?: str` — Read a named value from persistent memory. Omit `key` to return all entries.
+
+**`memory_write`** `key: str, value: any` — Write a named value to persistent memory. Accepts any JSON-serialisable value.
+
+### Memory
+
+Memory is backed by a local SQLite database (`~/.apex/memory.db` by default) and persists across invocations and across parallel processes.
 
 ```bash
-# ✗ Breaks on quotes, backslashes — causes JSON parse errors
-apex "here is the file: $(cat file.scad) improve it"
-
-# ✓ Tell apex to read the file itself
-apex "read file.scad using read_file then improve it and write back"
+apex "save current git branch to memory as active_branch"
+apex "read from memory the key active_branch"
 ```
 
-### Parallel execution
+---
+
+## Configuration
+
+**`GEMINI_API_KEY`** *(required)* — Gemini API key. APEX will not start without it.
+
+**`APEX_DB_PATH`** *(optional, default: `~/.apex/memory.db`)* — Path to the SQLite memory database.
+
+---
+
+## Architecture
+
+APEX is a pure-functional pipeline. Every stage is a transformation over immutable frozen dataclasses — no shared mutable state, no hidden side-channels.
+
+```
+apex/
+  __main__.py     ← CLI entry; builds registry, calls run()
+  config.py       ← Frozen Config dataclass, resolved once at startup
+  llm.py          ← Gemini adapter (no global state)
+  memory.py       ← make_memory_tools(db_path) → (memory_read, memory_write)
+  tools.py        ← shell, read_file, write_file, http_get
+  prompt.txt      ← System + planner prompt
+  core/
+    types.py      ← Frozen dataclasses: Plan, Step, Result, Tool, Event
+    state.py      ← Immutable State; format_output
+    planner.py    ← Prompt rendering, JSON plan parsing, plan validation
+    loop.py       ← Pure run(input, config, registry) → State
+```
+
+### Design axioms
+
+**Immutability.** All core types are frozen dataclasses. `State` is never mutated in place — every operation returns a new `State` via `dataclasses.replace`.
+
+**Pure execution loop.** `run()` in `core/loop.py` is a pure function: given the same plan and config it produces the same sequence of tool calls. Side effects are isolated to tool `effect` functions.
+
+**Bash is the concurrency primitive.** APEX does not use threads or async. Parallelism is achieved by running multiple `apex` processes concurrently under bash. Each invocation is a fully isolated process with its own LLM context and state.
+
+**Zero implicit configuration.** Config is resolved once at startup from environment variables, validated immediately, and passed explicitly to every function that needs it. No globals, no module-level singletons.
+
+**Memory tools are closures, not globals.** `make_memory_tools(db_path)` returns tool instances whose effect functions close over `db_path`. The database path is bound at construction time — no startup ordering dependency possible.
+
+### Data flow
+
+```
+argv
+ └─ main()
+      ├─ load_config()           → Config
+      ├─ make_memory_tools()     → Tool, Tool
+      ├─ {shell, read_file, ...} → registry: dict[str, Tool]
+      └─ run(task, config, registry)
+           ├─ generate_plan()    → State (plan attached)
+           └─ loop over steps
+                ├─ ToolCall → tool.effect(args) → Ok | Err → State
+                └─ Halt    → State(status=HALTED)
+```
+
+### Exit codes
+
+`0` — plan completed (`HALTED`). `1` — execution error (`ERROR`). `2` — unexpected terminal state.
+
+---
+
+## Scripting & Parallelism
+
+### Parallel tasks
+
+Each `apex` invocation is an isolated process. Run them concurrently with bash `&` and `wait`:
 
 ```bash
 apex "write planet report for Mars to ~/mars.txt" &
@@ -133,102 +163,46 @@ apex "write planet report for Jupiter to ~/jupiter.txt" &
 wait
 ```
 
-### Compile-test-fix loop
+### Iterative fix loop
 
 ```bash
+OUTPUT=~/solution.py
+LOG=~/build.log
+
 for i in $(seq 1 "$ITERATIONS"); do
-    if compile_or_test "$OUTPUT" 2>"$LOG"; then
-        apex "read ${OUTPUT} using read_file, read ${LOG} using read_file,
-              improve output and write back to ${OUTPUT} using write_file"
+    if python3 "$OUTPUT" 2>"$LOG"; then
+        break
     else
-        apex "read ${OUTPUT} using read_file, read ${LOG} using read_file,
-              fix all errors and write corrected output to ${OUTPUT} using write_file"
+        apex "read ${OUTPUT}, read ${LOG}, fix all errors and write back to ${OUTPUT}"
     fi
 done
 ```
 
----
-
-## Examples
-
-See [`examples/`](./examples/) for:
-
-- **`research-agent.sh`** — autonomous SEARCH/THINK/DONE research loop with self-directed action selection
-- **`research-swarm.sh`** — parallel swarm orchestration: N agents research sub-goals, parent synthesises
-- **`chargen.sh`** — iterative AI-driven character profile generator with multi-pass refinement
-- **`generative-3d.sh`** — compile-test-fix loop for AI-generated OpenSCAD models
+### Research swarm
 
 ```bash
-./examples/research-agent.sh "how does RAFT consensus work" 15
-./examples/research-swarm.sh "quantum computing" 4 8
-./examples/chargen.sh "disgraced intelligence analyst turned whistleblower" 6
-./examples/generative-3d.sh 3
+TOPIC="quantum computing"
+AGENTS=4
+
+for i in $(seq 1 "$AGENTS"); do
+    apex "research aspect $i of '$TOPIC', write findings to ~/research-$i.txt" &
+done
+wait
+
+apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, synthesise into ~/report.txt"
 ```
-
----
-
-## Templates
-
-See [`templates/`](./templates/) for ready-to-deploy business automation workflows:
-
-| Template | Use case |
-|---|---|
-| `agency.sh` | Project intake, copy generation, invoicing |
-| `ecom.sh` | Shopify/WooCommerce reporting, ad performance |
-| `fitness.sh` | Client programs, session logging, invoicing |
-| `lawfirm.sh` | Matter tracking, billing, deadlines, weekly review |
-| `medical.sh` | Practice operations, scheduling, compliance |
-| `morning.sh` | Daily dev morning brief + audio |
-| `msp.sh` | IT managed services: health, tickets, SLA, reports |
-| `realestate.sh` | Listings, leads, viewings, market snapshot |
-| `restaurant.sh` | Covers, inventory, specials, EOD summary |
-| `retail.sh` | POS integration, inventory, daily/weekly P&L |
-| `revenue-content.sh` | Niche content + affiliate engine |
-| `revenue-monitor.sh` | Micro-SaaS uptime monitoring service |
-| `revenue-proposals.sh` | Automated freelance proposal engine |
 
 ---
 
 ## Constraints
 
-| Constraint | Value |
-|---|---|
-| Max plan steps | 32 |
-| Tool timeout | 300s |
-| Max tool output | 10MB |
-| Inter-step state passing | Via flat files only |
-| Conditional branching | Via bash, not plans |
-| Browser/JS-rendered pages | Not supported |
-
----
-
-## Known Planner Behaviors
-
-- **Inline Python errors** — always use `write_file` explicitly for scripts
-- **Cascading failures** — if step 1 fails to write a file, step 2 fails to read it; guard with `[[ -f "$FILE" ]]`
-- **Empty API responses** — guard all fetch steps; DDG is unreliable under load
-- **Agent looping** — restrict to known-reliable APIs to prevent repeated failed queries
-
----
-
-## Performance
-
-| Operation | Typical |
-|---|---|
-| Plan generation | 100–500ms |
-| File read/write | < 100ms |
-| SQLite read/write | < 10ms |
-| HTTP GET | Network-dependent |
-
-Token consumption: ~1,000–4,000 per call depending on task complexity.
-
----
-
-## Design Philosophy
-
-Functional purity in the core. All effects isolated to tools. Immutable state via `dataclasses.replace()`. No dynamic configuration. No plugin discovery.
-
-Inspired by [suckless](https://suckless.org/) and [Arch Linux](https://archlinux.org/) philosophy: do one thing well, expose everything, hide nothing.
+- Max plan steps: 32
+- Tool timeout: 300 seconds
+- Max tool output: 10 MB
+- LLM provider: Gemini 2.5 Flash
+- Concurrency: bash (`&` / `wait`) only
+- Platform: Unix (timeout is SIGALRM-based)
+- JS-rendered pages: not supported
 
 ---
 

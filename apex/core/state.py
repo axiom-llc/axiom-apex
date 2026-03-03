@@ -1,43 +1,41 @@
-"""State management for APEX"""
-from dataclasses import dataclass, replace
+"""Immutable execution state."""
+from dataclasses import dataclass
 from typing import Literal
-from core.types import Plan, Event
+
+from apex.core.types import Plan, Event, ToolExecution, ErrorEvent, Ok
+
 
 @dataclass(frozen=True)
 class State:
     input: str
     plan: Plan | None
-    memory: tuple[dict, ...]
     history: tuple[Event, ...]
     status: Literal["RUNNING", "HALTED", "ERROR"]
     token_count: int
+
 
 def create_initial_state(input_str: str) -> State:
     return State(
         input=input_str,
         plan=None,
-        memory=(),
         history=(),
         status="RUNNING",
-        token_count=0
+        token_count=0,
     )
 
+
 def format_output(state: State) -> str:
-    lines = [f"Status: {state.status}"]
-    lines.append(f"Tokens: {state.token_count}")
-    
+    lines = [f"Status: {state.status}", f"Tokens: {state.token_count}"]
     if state.plan:
-        lines.append(f"\nGoal: {state.plan.goal}")
-        lines.append(f"Steps executed: {len([e for e in state.history if hasattr(e, 'tool')])}")
-    
+        executed = sum(1 for e in state.history if isinstance(e, ToolExecution))
+        lines += [f"\nGoal: {state.plan.goal}", f"Steps executed: {executed}"]
     for event in state.history:
-        if hasattr(event, 'tool'):
+        if isinstance(event, ToolExecution):
             lines.append(f"\n[{event.tool}]")
-            if hasattr(event.result, 'value'):
+            if isinstance(event.result, Ok):
                 lines.append(f"  Success: {event.result.value}")
             else:
                 lines.append(f"  Error: {event.result.message}")
-        elif hasattr(event, 'error_type'):
+        elif isinstance(event, ErrorEvent):
             lines.append(f"\nError: {event.message}")
-    
-    return '\n'.join(lines)
+    return "\n".join(lines)

@@ -1,32 +1,38 @@
 # APEX — Agent Process Executor
 
-Pure-functional CLI framework for deterministic, reproducible AI-driven workflows.
+> Pure-functional CLI framework for deterministic, reproducible AI-driven workflows.
 
-```bash
+**v2.0** · Python 3.11–3.13 · Gemini 2.5 Flash · MIT
+
+```
 export GEMINI_API_KEY=your-key
 apex "analyse this codebase and produce a refactoring plan"
 ```
 
 ---
 
+## What It Does
+
+APEX translates natural language tasks into validated JSON execution plans and runs them as a deterministic sequence of isolated tool invocations. Identical input always produces identical tool calls. Every step is logged to SQLite. No hidden state, no runtime configuration, no framework magic.
+
+---
+
 ## Installation
 
-Requires Python 3.11–3.13.
-
-```bash
-git clone https://github.com/axiom-llc/apex.git ~/code/apps/apex
-cd ~/code/apps/apex
+```
+git clone https://github.com/axiom-llc/apex-cli.git ~/code/apps/apex-cli
+cd ~/code/apps/apex-cli
 python3.12 -m venv venv && source venv/bin/activate
 pip install -e .
 ```
 
-`apex` is available as a command anywhere after install. No PATH configuration required.
+`apex` is available globally after install. No PATH configuration required.
 
 ---
 
 ## Usage
 
-```bash
+```
 apex "write system info and today's date to ~/report.txt"
 apex "fetch https://wttr.in/London using curl and save to ~/weather.txt"
 apex "analyse ~/logs/app.log for ERROR lines and count them"
@@ -36,9 +42,9 @@ apex "read from memory the key active_branch"
 
 ### Flags
 
-**`--dry-run`** — Generate and print the execution plan as JSON without running any tools.
+**`--dry-run`** — Generate and print the execution plan as JSON. No tools are invoked.
 
-```bash
+```
 apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
 ```
 
@@ -46,18 +52,18 @@ apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
 {
   "goal": "Fetch weather data for London and save to ~/weather.txt",
   "steps": [
-    {"type": "tool", "name": "shell", "args": {"cmd": "curl -s https://wttr.in/London > /home/user/weather.txt"}},
+    {"type": "tool", "name": "shell", "args": {"cmd": "curl -s https://wttr.in/London > ~/weather.txt"}},
     {"type": "halt", "reason": "done"}
   ]
 }
 ```
 
-**`--trace`** — Stream each step's result to stderr as execution proceeds.
+**`--trace`** — Stream each step's result to stderr during execution.
 
-```bash
+```
 apex --trace "write the current date to ~/date.txt"
 # [plan] goal=Write current date to ~/date.txt status=RUNNING
-# [tool] shell args={'cmd': 'date > /home/user/date.txt'}
+# [tool] shell args={'cmd': 'date > ~/date.txt'}
 # [result] ok
 # [halt] done
 ```
@@ -68,94 +74,89 @@ apex --trace "write the current date to ~/date.txt"
 
 ## Tools
 
-**`shell`** `cmd: str` — Execute a shell command. Returns stdout, stderr, and exit code. Prefer this for any operation expressible as a single command; use pipes, redirects, and `&&`/`||` to combine steps.
+| Tool | Args | Purpose |
+|---|---|---|
+| `shell` | `cmd: str` | Execute a shell command. Returns stdout, stderr, exit code. Use pipes, `&&`, `\|\|` to compose. |
+| `read_file` | `path: str` | Read file contents. |
+| `write_file` | `path: str, content: str` | Write to file. Creates parent directories. |
+| `http_get` | `url: str, headers?: dict` | HTTP GET. Returns body and status. No JS rendering. |
+| `memory_read` | `key?: str` | Read from persistent memory. Omit key to list all entries. |
+| `memory_write` | `key: str, value: any` | Write JSON-serialisable value to persistent memory. |
 
-**`read_file`** `path: str` — Read the contents of a file.
-
-**`write_file`** `path: str, content: str` — Write content to a file. Creates parent directories as needed.
-
-**`http_get`** `url: str, headers?: dict` — HTTP GET via requests. Returns body and status code. Does not support JS-rendered pages.
-
-**`memory_read`** `key?: str` — Read a named value from persistent memory. Omit `key` to return all entries.
-
-**`memory_write`** `key: str, value: any` — Write a named value to persistent memory. Accepts any JSON-serialisable value.
-
-### Memory
-
-Memory is backed by a local SQLite database (`~/.apex/memory.db` by default) and persists across invocations and across parallel processes.
-
-```bash
-apex "save current git branch to memory as active_branch"
-apex "read from memory the key active_branch"
-```
+Memory is backed by SQLite at `~/.apex/memory.db` and persists across invocations and concurrent processes.
 
 ---
 
 ## Configuration
 
-**`GEMINI_API_KEY`** *(required)* — Gemini API key. APEX will not start without it.
-
-**`APEX_DB_PATH`** *(optional, default: `~/.apex/memory.db`)* — Path to the SQLite memory database.
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `GEMINI_API_KEY` | Yes | — | Gemini API key. APEX exits immediately without it. |
+| `APEX_DB_PATH` | No | `~/.apex/memory.db` | SQLite memory database path. |
 
 ---
 
 ## Architecture
 
-APEX is a pure-functional pipeline. Every stage is a transformation over immutable frozen dataclasses — no shared mutable state, no hidden side-channels.
+APEX is a pure-functional pipeline over immutable frozen dataclasses. No shared mutable state. No globals. No module-level singletons.
 
 ```
 apex/
   __main__.py     ← CLI entry; builds registry, calls run()
   config.py       ← Frozen Config dataclass, resolved once at startup
-  llm.py          ← Gemini adapter (no global state)
+  llm.py          ← Gemini adapter (stateless)
   memory.py       ← make_memory_tools(db_path) → (memory_read, memory_write)
   tools.py        ← shell, read_file, write_file, http_get
   prompt.txt      ← System + planner prompt
   core/
     types.py      ← Frozen dataclasses: Plan, Step, Result, Tool, Event
     state.py      ← Immutable State; format_output
-    planner.py    ← Prompt rendering, JSON plan parsing, plan validation
-    loop.py       ← Pure run(input, config, registry) → State
+    planner.py    ← Prompt rendering, JSON plan parsing, schema validation
+    loop.py       ← Pure run(task, config, registry) → State
 ```
 
-### Design axioms
+### Design Axioms
 
-**Immutability.** All core types are frozen dataclasses. `State` is never mutated in place — every operation returns a new `State` via `dataclasses.replace`.
+**Immutability.** All core types are frozen dataclasses. `State` is updated via `dataclasses.replace()` — never mutated in place.
 
-**Pure execution loop.** `run()` in `core/loop.py` is a pure function: given the same plan and config it produces the same sequence of tool calls. Side effects are isolated to tool `effect` functions.
+**Pure execution loop.** `run()` in `core/loop.py` is a pure function: same plan + same config → same tool call sequence. Side effects are isolated to tool `effect` functions.
 
-**Bash is the concurrency primitive.** APEX does not use threads or async. Parallelism is achieved by running multiple `apex` processes concurrently under bash. Each invocation is a fully isolated process with its own LLM context and state.
+**Schema-validated plans.** Every plan generated by the LLM is validated against a defined schema before any tool is invoked. Malformed plans are rejected at the boundary — execution never begins on an invalid plan.
 
-**Zero implicit configuration.** Config is resolved once at startup from environment variables, validated immediately, and passed explicitly to every function that needs it. No globals, no module-level singletons.
+**Bash is the concurrency primitive.** No threads. No async. Parallelism is achieved by running multiple `apex` processes concurrently under bash. Each invocation is a fully isolated process with its own LLM context and state.
 
-**Memory tools are closures, not globals.** `make_memory_tools(db_path)` returns tool instances whose effect functions close over `db_path`. The database path is bound at construction time — no startup ordering dependency possible.
+**Zero implicit configuration.** `Config` is resolved once at startup from environment variables, validated immediately, and passed explicitly to every function. No globals, no startup ordering dependencies.
 
-### Data flow
+**Memory tools are closures.** `make_memory_tools(db_path)` returns tool instances whose effects close over `db_path`. Database path is bound at construction — no ordering dependency possible.
+
+### Data Flow
 
 ```
 argv
  └─ main()
-      ├─ load_config()           → Config
-      ├─ make_memory_tools()     → Tool, Tool
-      ├─ {shell, read_file, ...} → registry: dict[str, Tool]
+      ├─ load_config()            → Config
+      ├─ make_memory_tools()      → Tool, Tool
+      ├─ {shell, read_file, ...}  → registry: dict[str, Tool]
       └─ run(task, config, registry)
-           ├─ generate_plan()    → State (plan attached)
+           ├─ generate_plan()     → State (plan attached, schema-validated)
            └─ loop over steps
                 ├─ ToolCall → tool.effect(args) → Ok | Err → State
                 └─ Halt    → State(status=HALTED)
 ```
 
-### Exit codes
+### Exit Codes
 
-`0` — plan completed (`HALTED`). `1` — execution error (`ERROR`). `2` — unexpected terminal state.
+| Code | Meaning |
+|---|---|
+| `0` | Plan completed (`HALTED`) |
+| `1` | Execution error (`ERROR`) |
+| `2` | Unexpected terminal state |
 
 ---
 
 ## Scripting & Parallelism
 
-### Parallel tasks
-
-Each `apex` invocation is an isolated process. Run them concurrently with bash `&` and `wait`:
+### Parallel Tasks
 
 ```bash
 apex "write planet report for Mars to ~/mars.txt" &
@@ -163,25 +164,22 @@ apex "write planet report for Jupiter to ~/jupiter.txt" &
 wait
 ```
 
-### Iterative fix loop
+### Iterative Fix Loop
 
 ```bash
 OUTPUT=~/solution.py
 LOG=~/build.log
 
 for i in $(seq 1 "$ITERATIONS"); do
-    if python3 "$OUTPUT" 2>"$LOG"; then
-        break
-    else
-        apex "read ${OUTPUT}, read ${LOG}, fix all errors and write back to ${OUTPUT}"
-    fi
+    python3 "$OUTPUT" 2>"$LOG" && break
+    apex "read ${OUTPUT}, read ${LOG}, fix all errors and write back to ${OUTPUT}"
 done
 ```
 
-### Research swarm
+### Research Swarm
 
 ```bash
-TOPIC="quantum computing"
+TOPIC="distributed systems consistency models"
 AGENTS=4
 
 for i in $(seq 1 "$AGENTS"); do
@@ -189,20 +187,57 @@ for i in $(seq 1 "$AGENTS"); do
 done
 wait
 
-apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, synthesise into ~/report.txt"
+apex "read ~/research-{1..4}.txt, synthesise into ~/report.txt"
 ```
 
 ---
 
 ## Constraints
 
-- Max plan steps: 32
-- Tool timeout: 300 seconds
-- Max tool output: 10 MB
-- LLM provider: Gemini 2.5 Flash
-- Concurrency: bash (`&` / `wait`) only
-- Platform: Unix (timeout is SIGALRM-based)
-- JS-rendered pages: not supported
+| Constraint | Value |
+|---|---|
+| Max plan steps | 32 |
+| Tool timeout | 300 seconds |
+| Max tool output | 10 MB |
+| LLM provider | Gemini 2.5 Flash |
+| Concurrency model | Bash process isolation |
+| Platform | Unix (SIGALRM-based timeout) |
+| JS-rendered pages | Not supported |
+
+---
+
+## Extending APEX
+
+Add a tool by editing three files:
+
+**1. Define in `apex/tools.py`:**
+```python
+def list_dir_effect(args: dict) -> dict:
+    from pathlib import Path
+    items = list(Path(args["path"]).iterdir())
+    return {"items": [str(i) for i in items], "count": len(items)}
+
+LIST_DIR = Tool(
+    name="list_dir",
+    input_spec={"path": str},
+    output_spec={"items": list, "count": int},
+    effect=list_dir_effect,
+)
+```
+
+**2. Register in `apex/__main__.py`:**
+```python
+registry = {
+    "shell": SHELL,
+    "list_dir": LIST_DIR,
+    # ...
+}
+```
+
+**3. Document in `apex/prompt.txt`:**
+```
+- list_dir: enumerate directory contents. args: {path}. returns: {items, count}
+```
 
 ---
 

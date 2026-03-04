@@ -200,26 +200,16 @@ apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, 
 
 ## Examples
 
-Runnable demonstrations in `examples/`:
+Runnable demonstrations in `examples/` covering single-agent loops, iterative
+refinement, and multi-agent parallel swarms. Each script is self-contained and
+requires only `apex` and `GEMINI_API_KEY`. See `examples/README.md` for full
+usage and output details.
 
-**`research-agent.sh`** — Autonomous goal-driven research agent. Self-directs across a SEARCH/THINK/DONE loop, pulling from public APIs (Wikipedia, HackerNews, Reddit), and produces a final Markdown report.
 ```bash
-./examples/research-agent.sh "explain how transformer attention mechanisms work" 15
-```
-
-**`research-swarm.sh`** — Parallel swarm orchestration. Decomposes a topic into N sub-goals, spawns parallel `research-agent.sh` instances, and synthesises a unified final report.
-```bash
+./examples/research-agent.sh "how does RAFT consensus work" 15
 ./examples/research-swarm.sh "quantum computing" 4 8
-```
-
-**`chargen.sh`** — Iterative character profile generator. Cycles through background, personality, and skills dimensions across N passes, synthesising a final Markdown character sheet.
-```bash
 ./examples/chargen.sh "disgraced intelligence analyst turned whistleblower" 6
-```
-
-**`generative-3d.sh`** — AI-driven OpenSCAD model generator. Generates a parametric enclosure, compiles to STL, feeds compile results back to the agent for refinement. Requires `openscad`.
-```bash
-./examples/generative-3d.sh 5
+./examples/generative-3d.sh 5 "a parametric wall-mount cable organizer"
 ```
 
 ---

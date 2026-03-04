@@ -1,7 +1,6 @@
 # APEX — Agent Process Executor
 
 **v2.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
-
 ```bash
 export GEMINI_API_KEY=your-key
 apex "analyse this codebase and produce a refactoring plan"
@@ -18,7 +17,6 @@ APEX translates natural language tasks into validated JSON execution plans and r
 ## Installation
 
 Requires Python 3.11+.
-
 ```bash
 git clone https://github.com/axiom-llc/apex-cli.git ~/code/apps/apex-cli
 cd ~/code/apps/apex-cli
@@ -31,7 +29,6 @@ pip install -e .
 ---
 
 ## Usage
-
 ```bash
 apex "write system info and today's date to ~/report.txt"
 apex "fetch https://wttr.in/London using curl and save to ~/weather.txt"
@@ -42,12 +39,21 @@ apex "read from memory the key active_branch"
 
 ### Flags
 
-**`--dry-run`** — Generate and print the execution plan as JSON. No tools are invoked.
+**`--interactive`**, **`-i`** — Enter interactive prompt mode. Accept tasks one at a time without re-invoking the CLI. `exit` or Ctrl-D to quit.
+```bash
+apex -i
+# APEX 2.0.0 — interactive mode. Ctrl-D or 'exit' to quit.
+# apex> write today's date to ~/date.txt
+# apex> fetch https://wttr.in/London and save to ~/weather.txt
+# apex> exit
+```
 
+Each prompt runs a full independent plan-generate → execute cycle. Sessions are stateless across prompts — consistent with single-shot invocation behaviour.
+
+**`--dry-run`** — Generate and print the execution plan as JSON. No tools are invoked.
 ```bash
 apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
 ```
-
 ```json
 {
   "goal": "Fetch weather data for London and save to ~/weather.txt",
@@ -59,7 +65,6 @@ apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
 ```
 
 **`--trace`** — Stream each step's result to stderr during execution.
-
 ```bash
 apex --trace "write the current date to ~/date.txt"
 # [plan] goal=Write current date to ~/date.txt status=RUNNING
@@ -89,7 +94,6 @@ apex --trace "write the current date to ~/date.txt"
 ### Memory
 
 Memory is backed by SQLite at `~/.apex/memory.db` and persists across invocations and concurrent processes.
-
 ```bash
 apex "save current git branch to memory as active_branch"
 apex "read from memory the key active_branch"
@@ -108,7 +112,6 @@ apex "read from memory the key active_branch"
 ## Architecture
 
 APEX is a pure-functional pipeline over immutable frozen dataclasses. No shared mutable state. No globals. No module-level singletons.
-
 ```
 apex/
   __main__.py     ← CLI entry; builds registry, calls run()
@@ -139,7 +142,6 @@ apex/
 **Memory tools are closures.** `make_memory_tools(db_path)` returns tool instances whose effects close over `db_path`. Database path is bound at construction — no ordering dependency possible.
 
 ### Data Flow
-
 ```
 argv
  └─ main()
@@ -164,7 +166,6 @@ argv
 ### Parallel Tasks
 
 Each `apex` invocation is an isolated process. Run concurrently with bash `&` and `wait`:
-
 ```bash
 apex "write planet report for Mars to ~/mars.txt" &
 apex "write planet report for Jupiter to ~/jupiter.txt" &
@@ -172,7 +173,6 @@ wait
 ```
 
 ### Iterative Fix Loop
-
 ```bash
 OUTPUT=~/solution.py
 LOG=~/build.log
@@ -184,7 +184,6 @@ done
 ```
 
 ### Research Swarm
-
 ```bash
 TOPIC="distributed systems consistency models"
 AGENTS=4
@@ -204,25 +203,21 @@ apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, 
 Runnable demonstrations in `examples/`:
 
 **`research-agent.sh`** — Autonomous goal-driven research agent. Self-directs across a SEARCH/THINK/DONE loop, pulling from public APIs (Wikipedia, HackerNews, Reddit), and produces a final Markdown report.
-
 ```bash
 ./examples/research-agent.sh "explain how transformer attention mechanisms work" 15
 ```
 
 **`research-swarm.sh`** — Parallel swarm orchestration. Decomposes a topic into N sub-goals, spawns parallel `research-agent.sh` instances, and synthesises a unified final report.
-
 ```bash
 ./examples/research-swarm.sh "quantum computing" 4 8
 ```
 
 **`chargen.sh`** — Iterative character profile generator. Cycles through background, personality, and skills dimensions across N passes, synthesising a final Markdown character sheet.
-
 ```bash
 ./examples/chargen.sh "disgraced intelligence analyst turned whistleblower" 6
 ```
 
 **`generative-3d.sh`** — AI-driven OpenSCAD model generator. Generates a parametric enclosure, compiles to STL, feeds compile results back to the agent for refinement. Requires `openscad`.
-
 ```bash
 ./examples/generative-3d.sh 5
 ```
@@ -266,7 +261,6 @@ Production-ready integration templates in `templates/` for common operational co
 Add a tool by touching three files:
 
 **1. Define the effect in `apex/tools.py`:**
-
 ```python
 def list_dir_effect(args: dict) -> dict:
     from pathlib import Path
@@ -282,7 +276,6 @@ LIST_DIR = Tool(
 ```
 
 **2. Register in `apex/__main__.py`:**
-
 ```python
 from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET, LIST_DIR
 
@@ -294,7 +287,6 @@ registry: dict[str, Tool] = {
 ```
 
 **3. Document in `apex/prompt.txt`:**
-
 ```
 - list_dir: list directory contents. args: {path}. returns: {items, count}
 ```

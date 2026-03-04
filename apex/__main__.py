@@ -16,9 +16,10 @@ def main() -> None:
         prog="apex",
         description="APEX — Agent Process Executor",
     )
-    parser.add_argument("task", nargs="+", help="Task description")
+    parser.add_argument("task", nargs="*", help="Task description")
     parser.add_argument("--dry-run", action="store_true", help="Print plan JSON without executing")
     parser.add_argument("--trace", action="store_true", help="Log each step result to stderr")
+    parser.add_argument("--interactive", "-i", action="store_true", help="Enter interactive prompt mode")
     parser.add_argument("--version", action="version", version=f"apex {version('apex')}")
 
     args = parser.parse_args()
@@ -38,6 +39,26 @@ def main() -> None:
         "memory_read": memory_read,
         "memory_write": memory_write,
     }
+
+    if args.interactive:
+        print(f"APEX {version('apex')} — interactive mode. Ctrl-D or 'exit' to quit.")
+        while True:
+            try:
+                task = input("apex> ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                break
+            if not task:
+                continue
+            if task.lower() in ("exit", "quit"):
+                break
+            state = run(task, config=config, registry=registry)
+            print(format_output(state))
+        sys.exit(0)
+
+    if not args.task:
+        parser.print_help()
+        sys.exit(1)
 
     task = " ".join(args.task)
     final_state = run(task, config=config, registry=registry)

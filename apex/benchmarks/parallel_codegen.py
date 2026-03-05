@@ -18,6 +18,9 @@ Usage:
     # Custom task count:
     python benchmarks/parallel_codegen.py --tasks 6
 
+    # Cap concurrent processes (default: 4):
+    python benchmarks/parallel_codegen.py --tasks 8 --concurrency 4
+
 Output:
     JSON to stdout  — machine-readable result
     Summary to stderr — human-readable
@@ -111,45 +114,50 @@ def run_sequential(tasks, work_dir, run_fn) -> tuple[list[TaskResult], float]:
 # ---------------------------------------------------------------------------
 
 
-def run_parallel_bash(tasks, work_dir, mock: bool, latency: float) -> tuple[list[TaskResult], float]:
+def run_parallel_bash(
+    tasks, work_dir, mock: bool, latency: float, concurrency: int
+) -> tuple[list[TaskResult], float]:
     """
-    Spawns N apex processes concurrently using subprocess.Popen,
+    Spawns apex processes concurrently in batches of `concurrency`,
     mirroring the bash `cmd & wait` pattern documented in APEX.
+    Batching avoids API rate-limit contention beyond the effective
+    concurrency ceiling (~4 for Gemini 2.5 Flash).
     """
     output_paths = [str(Path(work_dir) / f"task_parallel_{i:02d}.py") for i in range(len(tasks))]
-    procs = []
-    start_times = []
-
+    all_results = []
     start_wall = time.perf_counter()
 
-    for i, task in enumerate(tasks):
-        out = output_paths[i]
-        if mock:
-            # In mock mode, spawn a subprocess that sleeps to simulate latency
-            variance = (hash(task) % 100) / 100
-            sleep_time = latency + variance
-            cmd = [
-                "python3", "-c",
-                f"import time, pathlib; time.sleep({sleep_time}); "
-                f"pathlib.Path('{out}').write_text('# mock\\ndef stub(): pass\\n')"
-            ]
-        else:
-            prompt = f"{task}. Write only the function to {out}"
-            cmd = ["apex", prompt]
+    for batch_start in range(0, len(tasks), concurrency):
+        batch_tasks = tasks[batch_start:batch_start + concurrency]
+        batch_paths = output_paths[batch_start:batch_start + concurrency]
+        procs = []
+        start_times = []
 
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        procs.append((proc, out, task))
-        start_times.append(time.perf_counter())
+        for task, out in zip(batch_tasks, batch_paths):
+            if mock:
+                variance = (hash(task) % 100) / 100
+                sleep_time = latency + variance
+                cmd = [
+                    "python3", "-c",
+                    f"import time, pathlib; time.sleep({sleep_time}); "
+                    f"pathlib.Path('{out}').write_text('# mock\\ndef stub(): pass\\n')"
+                ]
+            else:
+                prompt = f"{task}. Write only the function to {out}"
+                cmd = ["apex", prompt]
 
-    results = []
-    for (proc, out, task), t_start in zip(procs, start_times):
-        proc.wait()
-        elapsed = time.perf_counter() - t_start
-        label = Path(out).name
-        results.append(TaskResult(label, elapsed, proc.returncode, out))
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            procs.append((proc, out, task))
+            start_times.append(time.perf_counter())
+
+        for (proc, out, task), t_start in zip(procs, start_times):
+            proc.wait()
+            elapsed = time.perf_counter() - t_start
+            label = Path(out).name
+            all_results.append(TaskResult(label, elapsed, proc.returncode, out))
 
     total_wall = time.perf_counter() - start_wall
-    return results, total_wall
+    return all_results, total_wall
 
 
 # ---------------------------------------------------------------------------
@@ -181,11 +189,13 @@ def main():
     parser.add_argument("--mock", action="store_true", help="Simulate tasks with sleep (no API)")
     parser.add_argument("--tasks", type=int, default=4, help="Number of tasks (1–8, default 4)")
     parser.add_argument("--mock-latency", type=float, default=2.5, help="Simulated task latency in seconds")
+    parser.add_argument("--concurrency", type=int, default=4, help="Max parallel processes per batch (default 4)")
     args = parser.parse_args()
 
     n = max(1, min(args.tasks, len(TASKS)))
     tasks = TASKS[:n]
     mock = args.mock
+    concurrency = max(1, args.concurrency)
 
     if not mock:
         if not os.environ.get("GEMINI_API_KEY"):
@@ -197,7 +207,7 @@ def main():
 
     run_fn = (lambda task, out: run_mock_task(task, out, args.mock_latency)) if mock else run_real_task
 
-    print(f"[benchmark] mode={'mock' if mock else 'real'} tasks={n}", file=sys.stderr)
+    print(f"[benchmark] mode={'mock' if mock else 'real'} tasks={n} concurrency={concurrency}", file=sys.stderr)
 
     with tempfile.TemporaryDirectory(prefix="apex-bench-") as work_dir:
         # Sequential
@@ -206,8 +216,8 @@ def main():
         seq_validation = validate_outputs(seq_results)
 
         # Parallel
-        print(f"[benchmark] running {n} tasks in parallel...", file=sys.stderr)
-        par_results, par_total = run_parallel_bash(tasks, work_dir, mock, args.mock_latency)
+        print(f"[benchmark] running {n} tasks in parallel (batch_size={concurrency})...", file=sys.stderr)
+        par_results, par_total = run_parallel_bash(tasks, work_dir, mock, args.mock_latency, concurrency)
         par_validation = validate_outputs(par_results)
 
     # Compute speedup
@@ -218,6 +228,7 @@ def main():
         "benchmark": "apex_parallel_codegen",
         "mode": "mock" if mock else "real",
         "task_count": n,
+        "concurrency": concurrency,
         "sequential": {
             "wall_seconds": round(seq_total, 3),
             "per_task_seconds": [round(r.duration_seconds, 3) for r in seq_results],

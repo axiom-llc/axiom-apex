@@ -28,3 +28,8 @@ markers = [
 filterwarnings = [
     "ignore::DeprecationWarning:google.*",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]

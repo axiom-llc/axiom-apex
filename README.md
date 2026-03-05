@@ -185,6 +185,16 @@ apex "write planet report for Jupiter to ~/jupiter.txt" &
 wait
 ```
 
+**Concurrency ceiling — Gemini 2.5 Flash:** Empirical benchmarking (see `apex/benchmarks/`) shows a practical ceiling of **4 concurrent processes**. Beyond this, Gemini API request queuing degrades returns significantly.
+
+| tasks | concurrency | sequential | parallel | speedup | efficiency |
+|-------|-------------|-----------|----------|---------|------------|
+| 4 | 4 (uncapped) | 22.64s | 7.60s | 2.98× | 0.75 |
+| 8 | uncapped | 45.08s | 12.07s | 3.74× | 0.47 |
+| 8 | 4 (batched) | 44.23s | 22.36s | 1.98× | 0.25 |
+
+For workloads with ≤4 tasks, run uncapped. For >4 tasks, batching to 4 enforces rate-limit safety at the cost of wall-clock time — choose based on whether throughput or compliance is the priority.
+
 ### Iterative Fix Loop
 ```bash
 OUTPUT=~/solution.py
@@ -213,16 +223,21 @@ apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, 
 
 ## Examples
 
-Runnable demonstrations in `examples/` covering single-agent loops, iterative
-refinement, and multi-agent parallel swarms. Each script is self-contained and
-requires only `apex` and `GEMINI_API_KEY`. See `examples/README.md` for full
-usage and output details.
+Runnable demonstrations in `examples/` covering single-agent loops, iterative refinement, and multi-agent parallel swarms. Each script is self-contained and requires only `apex` and `GEMINI_API_KEY`. See `examples/README.md` for full usage and output details.
 
+### Agents
 ```bash
+./examples/autonomous-business.sh ~/.config/apex/business_profile.txt
+./examples/code-review.sh ~/myproject "*.py"
+./examples/iterative-coder.sh "write a script that finds prime numbers up to N" 8
 ./examples/research-agent.sh "how does RAFT consensus work" 15
-./examples/research-swarm.sh "quantum computing" 4 8
-./examples/chargen.sh "disgraced intelligence analyst turned whistleblower" 6
-./examples/generative-3d.sh 5 "a parametric wall-mount cable organizer"
+```
+
+### Swarms
+```bash
+./examples/competitive-intelligence-swarm.sh "Vercel" 5 6
+./examples/parallel-swarm.sh "the current state of fusion energy" 5 8
+./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/apex-cli
 ```
 
 ---
@@ -231,31 +246,29 @@ usage and output details.
 
 Production-ready integration templates in `templates/` for common operational contexts. Each is a self-contained bash script with a command router and cron schedule. Configure the variables at the top and run.
 
-**`agency.sh`** — Freelance creative agency. Morning briefs, project intake, copy generation, social content packs, invoicing.
+**`compliance-audit.sh`** — Automated compliance audit pipeline. Policy checks, evidence collection, gap analysis, and audit report generation.
 
-**`ecom.sh`** — E-commerce / dropshipping. Order processing, product copy, ad performance checks, customer segmentation, supplier reorder.
+**`cybersecurity.sh`** — Security operations. Threat monitoring, log analysis, vulnerability triage, and incident response drafts.
 
-**`fitness.sh`** — Personal trainer / gym. Client onboarding, session logging, progress tracking, weekly program refresh, invoicing.
+**`due-diligence.sh`** — Investment due diligence. Company research, financial signal extraction, risk scoring, and summary report generation.
 
-**`lawfirm.sh`** — Law firm. Matter intake, billing entry, deadline tracking, daily briefs, weekly reviews.
+**`healthcare-rcm.sh`** — Healthcare revenue cycle management. Claims processing, denial triage, follow-up scheduling, and billing summaries. Local only — no cloud transmission.
 
-**`medical.sh`** — Medical / dental practice. Appointment scheduling, recall letters, billing, supply reorder, compliance audit. Local only — no cloud transmission.
+**`hedge-fund.sh`** — Hedge fund operations. Market data ingestion, signal generation, portfolio snapshots, and daily briefings.
 
-**`morning.sh`** — Developer morning brief. System snapshot, weather, task list, narrated audio sequence via espeak.
+**`insurance-claims.sh`** — Insurance claims processing. Intake classification, fraud signal detection, adjuster notes, and status tracking.
+
+**`law-firm.sh`** — Law firm. Matter intake, billing entry, deadline tracking, daily briefs, weekly reviews.
 
 **`msp.sh`** — IT managed services. Per-client health checks, incident management, SLA tracking, nightly security audits, client reports.
 
-**`realestate.sh`** — Real estate agency. Listing intake, lead management, follow-up tracking, market snapshots, weekly pipeline review.
-
-**`restaurant.sh`** — Restaurant / food service. Morning briefs, pre-service prep, daily specials generation, EOD summaries, inventory reorder.
-
-**`retail.sh`** — Retail / point of sale. Daily briefs, inventory alerts, EOD summaries, weekly P&L, customer notes.
-
-**`revenue-content.sh`** — Niche content and affiliate engine. SEO article generation, social snippets, affiliate link insertion, static site publishing.
+**`recruiter.sh`** — Recruiting operations. Candidate intake, screening summaries, pipeline tracking, and outreach drafts.
 
 **`revenue-monitor.sh`** — Micro-SaaS uptime monitoring service. Per-client health pulses, downtime alerts, weekly reports, monthly invoicing.
 
-**`revenue-proposals.sh`** — Automated freelance proposal engine. Job feed scanning, scoring against skills profile, proposal generation and outcome tracking.
+**`solo-agency.sh`** — Solo freelance agency. Project intake, proposal generation, client follow-ups, and invoicing.
+
+**`supply-chain.sh`** — Supply chain operations. Supplier monitoring, inventory alerts, reorder triggers, and risk summaries.
 
 ---
 
@@ -304,7 +317,7 @@ The LLM uses the prompt entry to plan with the tool; the registry entry makes it
 - Tool timeout: 300 seconds
 - Max tool output: 10 MB
 - LLM provider: Gemini 2.5 Flash
-- Concurrency: bash process isolation (`&` / `wait`)
+- Concurrency: bash process isolation (`&` / `wait`); recommended ceiling: **4 concurrent processes** (Gemini 2.5 Flash rate limit)
 - Platform: Unix (SIGALRM-based timeout)
 - JS-rendered pages: not supported
 

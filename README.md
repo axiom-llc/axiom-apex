@@ -1,6 +1,9 @@
 # APEX — Agent Process Executor
 
 **v2.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
+
+![CI](https://github.com/axiom-llc/apex-cli/actions/workflows/ci.yml/badge.svg)
+
 ```bash
 export GEMINI_API_KEY=your-key
 apex "analyse this codebase and produce a refactoring plan"
@@ -158,6 +161,16 @@ argv
 ### Exit Codes
 
 `0` — plan completed (`HALTED`). `1` — execution error (`ERROR`). `2` — unexpected terminal state.
+
+---
+
+## Tests
+
+```bash
+pytest tests/ -q -m "not live"
+```
+
+Tests marked `live` require a valid `GEMINI_API_KEY` and make real API calls. All other tests run without network access. CI runs the non-live suite on Python 3.11 and 3.12 on every push.
 
 ---
 

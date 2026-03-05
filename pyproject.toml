@@ -20,3 +20,11 @@ include = ["apex*"]
 
 [tool.setuptools.package-data]
 "apex" = ["*.txt"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: end-to-end tests requiring GEMINI_API_KEY",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:google.*",
+]

@@ -59,27 +59,11 @@ integration = pytest.mark.integration
 # ---------------------------------------------------------------------------
 
 class TestConfig:
-    @pytest.mark.xfail(
-        reason=(
-            "APEX bug: genai.Client(api_key='') falls back to ADC via "
-            "~/.config/gcloud/ when api_key is empty, bypassing APEX's own "
-            "ValueError guard in load_config(). The README guarantee "
-            "'APEX exits immediately without GEMINI_API_KEY' only holds on "
-            "a machine with no Google credentials configured. "
-            "Fix: validate api_key is non-empty before constructing the client, "
-            "or raise before reaching llm.py."
-        ),
-        strict=True,
-    )
     def test_missing_api_key_exits_nonzero(self):
         env = {k: v for k, v in os.environ.items() if k != "GEMINI_API_KEY"}
         result = run_apex("hello", env=env)
         assert result.returncode != 0
 
-    @pytest.mark.xfail(
-        reason="Same ADC bypass as test_missing_api_key_exits_nonzero.",
-        strict=True,
-    )
     def test_missing_api_key_error_message(self):
         env = {k: v for k, v in os.environ.items() if k != "GEMINI_API_KEY"}
         result = run_apex("hello", env=env)

@@ -1,0 +1,2 @@
+apex/examples/*.sh linguist-detectable=false
+apex/templates/*.sh linguist-detectable=false

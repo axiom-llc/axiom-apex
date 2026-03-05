@@ -4,7 +4,7 @@ import google.genai as genai
 
 def gemini_complete(prompt: str, *, api_key: str) -> dict:
     """Call Gemini and return text + token count. No global state."""
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key or None)
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,

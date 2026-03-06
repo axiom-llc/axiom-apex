@@ -1,6 +1,6 @@
 # APEX — Agent Process Executor
 
-**v2.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
+**v1.0.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
 
 ![CI](https://github.com/axiom-llc/apex-cli/actions/workflows/ci.yml/badge.svg)
 
@@ -45,7 +45,7 @@ apex "read from memory the key active_branch"
 **`--interactive`**, **`-i`** — Enter interactive prompt mode. Accept tasks one at a time without re-invoking the CLI. `exit` or Ctrl-D to quit.
 ```bash
 apex -i
-# APEX 2.0.0 — interactive mode. Ctrl-D or 'exit' to quit.
+# APEX 1.0.0 — interactive mode. Ctrl-D or 'exit' to quit.
 # apex> write today's date to ~/date.txt
 # apex> fetch https://wttr.in/London and save to ~/weather.txt
 # apex> exit

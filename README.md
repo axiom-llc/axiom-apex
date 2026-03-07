@@ -1,6 +1,6 @@
 # APEX — Agent Process Executor
 
-**v1.0.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
+**v2.0.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
 
 ![CI](https://github.com/axiom-llc/apex-cli/actions/workflows/ci.yml/badge.svg)
 

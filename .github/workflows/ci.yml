@@ -9,18 +9,15 @@ on:
 
 jobs:
   test:
-    runs-on:
-  workflow_dispatch: ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version:
-  workflow_dispatch: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version:
-  workflow_dispatch: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pip install -e ".[dev]" pytest-cov
       - name: Run tests

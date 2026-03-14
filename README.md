@@ -19,7 +19,11 @@ APEX translates natural language tasks into validated JSON execution plans and r
 
 ## Installation
 
-Requires Python 3.11+.
+```bash
+pip install axiom-apex
+```
+
+Or from source (requires Python 3.11+):
 ```bash
 git clone https://github.com/axiom-llc/apex-cli.git ~/code/apps/apex-cli
 cd ~/code/apps/apex-cli

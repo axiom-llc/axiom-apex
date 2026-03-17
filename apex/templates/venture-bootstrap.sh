@@ -6,6 +6,7 @@
 # Output:   ~/ventures/<slug>/
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 OPPORTUNITY="${1:-$(cat ~/business/thesis/brief-$(date +%Y-%m-%d).txt | head -1)}"
 DATE=$(date +%Y-%m-%d)

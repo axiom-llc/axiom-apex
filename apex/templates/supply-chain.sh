@@ -7,6 +7,7 @@
 # Cron:     0 8 * * 1-5 ~/path/to/supply-chain.sh >> ~/supply/logs/supply.log 2>&1
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 VENDOR_FILE="${1:-${HOME}/.config/apex/vendors}"
 CONTEXT=$(cat ~/.config/apex/supply_context 2>/dev/null || echo "technology services")
@@ -34,9 +35,9 @@ for vendor in "${VENDORS[@]}"; do
         extract stories mentioning ${vendor} from the last 30 days \
         write to ~/supply/signals/${slug}-hn-${DATE}.txt"
 
-        apex "fetch https://www.google.com/search?q=${query}+news+risk+outage+breach+lawsuit+bankruptcy+2024+2025 \
+        apex "fetch https://api.gdeltproject.org/api/v2/doc/doc?query=${query}\&mode=artlist\&maxrecords=10\&format=json \
         using http_get \
-        extract news headlines and summaries mentioning ${vendor} \
+        extract news articles mentioning ${vendor} from the last 30 days \
         write to ~/supply/signals/${slug}-news-${DATE}.txt"
     ) &
     PIDS+=($!)
@@ -98,7 +99,7 @@ RECOMMENDED ACTIONS (prioritised, specific) \
 write to ~/supply/reports/report-${DATE}.md"
 
 # ── PHASE 5: DELTA FROM YESTERDAY ─────────────────────────
-YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
+YESTERDAY=$(date_yesterday)
 PREV_REPORT=~/supply/reports/report-${YESTERDAY}.md
 
 if [[ -f "$PREV_REPORT" ]]; then

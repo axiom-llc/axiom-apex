@@ -13,6 +13,7 @@
 #           0 9  1 * *    ./law-firm.sh invoice-all
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 FIRM="${FIRM:-$(cat ~/.config/apex/firm_name 2>/dev/null || echo "Your Law Firm")}"
 PRACTICE_AREAS=$(cat ~/.config/apex/practice_areas 2>/dev/null || echo "contracts, employment, business formation")

@@ -6,6 +6,7 @@
 # Example:  ./recruiter.sh ~/jobs/backend-eng.txt ~/resumes/ 5
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 JD_FILE="${1:-}"
 RESUME_DIR="${2:-}"

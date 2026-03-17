@@ -10,6 +10,7 @@
 #           0 6  1 * *   ./compliance-audit.sh monthly
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 ORG="${ORG_NAME:-$(cat ~/.config/apex/compliance_org 2>/dev/null || echo "Your Organization")}"
 FRAMEWORKS="${FRAMEWORKS:-SOC2 HIPAA}"

@@ -7,6 +7,7 @@
 # Cron:     0 6 * * 1-5 ~/path/to/hedge-fund.sh >> ~/hedge/logs/hedge.log 2>&1
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 DATE=$(date +%Y-%m-%d)
 DAY=$(date +%A)
@@ -74,7 +75,7 @@ write to ~/hedge/thesis/brief-${DATE}.txt"
 cat ~/hedge/thesis/brief-${DATE}.txt
 
 # ── PHASE 6: ARCHIVE ──────────────────────────────────────
-YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
+YESTERDAY=$(date_yesterday)
 ARCHIVE=~/hedge/archives/${YESTERDAY}.tar.gz
 if [[ ! -f "$ARCHIVE" ]]; then
     find ~/hedge/{signals,macro,thesis} \

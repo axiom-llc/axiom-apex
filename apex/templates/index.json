@@ -1,0 +1,344 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-03-07",
+  "templates": [
+    {
+      "name": "compliance-audit",
+      "file": "compliance-audit.sh",
+      "category": "operations",
+      "description": "Automated regulatory compliance audit — SOC2, HIPAA, PCI-DSS, GDPR, ISO 27001",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 2 * * *",   "command": "nightly"},
+        {"schedule": "0 7 * * 1",   "command": "weekly"},
+        {"schedule": "0 6 1 * *",   "command": "audit SOC2"}
+      ],
+      "config": [
+        {"key": "ORG_NAME",    "required": true,  "description": "Your organization name"},
+        {"key": "FRAMEWORKS",  "required": false, "default": "SOC2 HIPAA", "description": "Space-separated list of frameworks to audit"}
+      ],
+      "commands": ["nightly", "audit <framework>", "evidence <control>", "remediation", "weekly"],
+      "target_buyer": "Series A+ startups, healthcare SMBs, any org pursuing SOC2",
+      "pricing_model": "per-audit or monthly retainer",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "cybersecurity",
+      "file": "cybersecurity.sh",
+      "category": "operations",
+      "description": "Threat intelligence, vulnerability scanning, incident response, morning security brief",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "*/30 * * * *", "command": "pulse"},
+        {"schedule": "0 6 * * 1-5",  "command": "morning"},
+        {"schedule": "0 2 * * *",    "command": "threat-sweep"},
+        {"schedule": "0 3 * * *",    "command": "vuln-scan"},
+        {"schedule": "0 7 * * 1",    "command": "weekly"}
+      ],
+      "config": [
+        {"key": "ORG_NAME",    "required": true,  "description": "Your organization name"},
+        {"key": "ASSETS_FILE", "required": true,  "default": "~/.config/apex/sec_assets", "description": "One IP/domain per line"}
+      ],
+      "commands": ["pulse", "morning", "threat-sweep", "vuln-scan", "incident <desc> [severity]", "weekly"],
+      "target_buyer": "SMBs without dedicated security team, MSPs",
+      "pricing_model": "monthly managed service add-on",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "due-diligence",
+      "file": "due-diligence.sh",
+      "category": "financial",
+      "description": "M&A and investment due diligence via parallel research agents",
+      "version": "1.0.0",
+      "cron": [],
+      "config": [
+        {"key": "TARGET",    "required": true, "description": "Company name to research"},
+        {"key": "DEAL_TYPE", "required": false, "default": "acquisition", "description": "acquisition | investment | partnership"},
+        {"key": "AGENTS",    "required": false, "default": "6", "description": "Number of parallel research agents"}
+      ],
+      "commands": ["./due-diligence.sh \"Company Name\" [deal_type] [agents]"],
+      "target_buyer": "Angel investors, micro-VCs, corp dev teams",
+      "pricing_model": "per-target or retainer",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "healthcare-rcm",
+      "file": "healthcare-rcm.sh",
+      "category": "operations",
+      "description": "Revenue cycle management — claim scrubbing, denial management, AR sweep",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1-5",  "command": "morning"},
+        {"schedule": "0 12 * * 1-5", "command": "ar-sweep"},
+        {"schedule": "0 17 * * 1-5", "command": "eod"},
+        {"schedule": "0 6 * * 1",    "command": "weekly"}
+      ],
+      "config": [
+        {"key": "PROVIDER",   "required": true,  "description": "Practice or organization name"},
+        {"key": "PAYER_FILE", "required": true,  "default": "~/.config/apex/rcm_payers", "description": "One payer name per line"}
+      ],
+      "commands": ["morning", "scrub <file>", "denial <file>", "ar-sweep", "eod", "weekly"],
+      "target_buyer": "Medical practices, billing companies",
+      "pricing_model": "monthly retainer per practice",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "hedge-fund",
+      "file": "hedge-fund.sh",
+      "category": "financial",
+      "description": "Pre-market intelligence brief — reference implementation",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 6 * * 1-5", "command": ""}
+      ],
+      "config": [
+        {"key": "watchlist", "required": false, "default": "AAPL,MSFT,NVDA,BTC-USD", "description": "Comma-separated tickers — write to ~/.config/apex/watchlist"},
+        {"key": "sectors",   "required": false, "default": "macro,tech,energy",        "description": "Comma-separated sectors — write to ~/.config/apex/sectors"}
+      ],
+      "commands": ["./hedge-fund.sh"],
+      "target_buyer": "Portfolio managers, traders, family offices",
+      "pricing_model": "subscription or retainer",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "insurance-claims",
+      "file": "insurance-claims.sh",
+      "category": "operations",
+      "description": "Claims processing — triage, fraud screening, settlement evaluation, compliance tracking",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1-5",  "command": "morning"},
+        {"schedule": "0 8 * * 1-5",  "command": "triage-new"},
+        {"schedule": "0 15 * * 1-5", "command": "status-sweep"},
+        {"schedule": "0 6 * * 1",    "command": "weekly"}
+      ],
+      "config": [
+        {"key": "ORG",              "required": true,  "description": "Your organization name"},
+        {"key": "LINES_OF_BUSINESS","required": false, "default": "auto,property,liability"}
+      ],
+      "commands": ["morning", "triage <file>", "triage-new", "fraud <file>", "settle <file>", "status-sweep", "weekly"],
+      "target_buyer": "Insurance carriers, TPAs, MGAs",
+      "pricing_model": "per-claim or monthly SaaS",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "law-firm",
+      "file": "law-firm.sh",
+      "category": "legal",
+      "description": "Solo and small firm practice automation — intake, time, billing, deadlines, conflict check",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1-5",  "command": "morning"},
+        {"schedule": "0 17 * * 1-5", "command": "eod"},
+        {"schedule": "0 8 * * 1",    "command": "weekly"},
+        {"schedule": "0 9 1 * *",    "command": "invoice-all"}
+      ],
+      "config": [
+        {"key": "FIRM",         "required": true,  "description": "Firm name — write to ~/.config/apex/firm_name"},
+        {"key": "BILLING_RATE", "required": false, "default": "350", "description": "Default hourly rate"},
+        {"key": "PRACTICE_AREAS","required": false,"default": "contracts, employment, business formation"}
+      ],
+      "commands": ["morning", "intake <file>", "time <matter> <hours> <desc>", "deadline <matter> <date> <desc>", "status <matter>", "invoice <matter>", "invoice-all", "eod", "weekly"],
+      "target_buyer": "Solo attorneys, small firms",
+      "pricing_model": "monthly subscription",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "msp",
+      "file": "msp.sh",
+      "category": "operations",
+      "description": "Managed service provider operations — health, incidents, SLA, client reports",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "*/15 * * * *", "command": "health"},
+        {"schedule": "0 7 * * 1-5",  "command": "brief"},
+        {"schedule": "0 8 * * 1",    "command": "weekly"},
+        {"schedule": "0 2 * * *",    "command": "audit"}
+      ],
+      "config": [
+        {"key": "MSP_NAME",          "required": true, "description": "Your MSP name — set in script"},
+        {"key": "CLIENTS",           "required": true, "description": "Array of client slugs — set in script"},
+        {"key": "SLA_RESPONSE_HOURS","required": false,"default": "4"}
+      ],
+      "commands": ["brief", "health", "incident <client> <desc> <priority>", "close-ticket <id>", "audit", "weekly", "client-report <client>"],
+      "target_buyer": "MSPs, IT consultants",
+      "pricing_model": "per-client per-month",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "opportunity-scanner",
+      "file": "opportunity-scanner.sh",
+      "category": "growth",
+      "description": "Weekly market research swarm — scored opportunity report from HN, PH, WSJ, job signals",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1", "command": ""}
+      ],
+      "config": [
+        {"key": "domains",        "required": false, "default": "AI,automation,SaaS,developer-tools", "description": "Write to ~/.config/apex/domains"},
+        {"key": "target-markets", "required": false, "default": "solo,smb,enterprise",               "description": "Write to ~/.config/apex/target-markets"}
+      ],
+      "commands": ["./opportunity-scanner.sh"],
+      "target_buyer": "Founders, product strategists",
+      "pricing_model": "subscription",
+      "revenue_tier": "low"
+    },
+    {
+      "name": "recruiter",
+      "file": "recruiter.sh",
+      "category": "growth",
+      "description": "Parallel resume scoring, ranking, disqualification, and personalised outreach generation",
+      "version": "1.0.0",
+      "cron": [],
+      "config": [],
+      "commands": ["./recruiter.sh job_description.txt resumes_dir/ [top_n]"],
+      "target_buyer": "In-house recruiters, hiring managers, staffing agencies",
+      "pricing_model": "per-search or subscription",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "revenue-monitor",
+      "file": "revenue-monitor.sh",
+      "category": "financial",
+      "description": "Micro-SaaS uptime/security monitoring service with client invoicing — sell as managed service",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "*/15 * * * *", "command": "pulse-all"},
+        {"schedule": "0 7 * * *",    "command": "daily-all"},
+        {"schedule": "0 8 * * 1",    "command": "weekly-all"},
+        {"schedule": "0 2 * * *",    "command": "audit-all"},
+        {"schedule": "0 9 1 * *",    "command": "invoice-all"}
+      ],
+      "config": [
+        {"key": "SERVICE_NAME", "required": true,  "description": "Set in script"},
+        {"key": "YOUR_EMAIL",   "required": true,  "description": "Set in script"},
+        {"key": "YOUR_NAME",    "required": true,  "description": "Set in script"}
+      ],
+      "commands": ["onboard <name> <domain> <ip> <email> [tier] [rate]", "pulse-all", "daily-all", "weekly-all", "audit-all", "invoice-all", "mrr-dashboard"],
+      "target_buyer": "SMBs, e-commerce, agencies — any org without internal monitoring",
+      "pricing_model": "$50-150/client/month tiered",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "solo-agency",
+      "file": "solo-agency.sh",
+      "category": "growth",
+      "description": "Full consulting agency lifecycle — intake, qualification, proposal, delivery, invoicing, follow-up",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1-5",  "command": "morning"},
+        {"schedule": "0 17 * * 1-5", "command": "eod"},
+        {"schedule": "0 8 * * 1",    "command": "weekly"},
+        {"schedule": "0 9 1 * *",    "command": "invoice-all"}
+      ],
+      "config": [
+        {"key": "AGENCY",  "required": true,  "description": "Trading name — write to ~/.config/apex/agency_name"},
+        {"key": "RATE",    "required": false, "default": "150", "description": "Hourly rate — write to ~/.config/apex/agency_rate"},
+        {"key": "SKILLS",  "required": false, "description": "Service lines — write to ~/.config/apex/agency_skills"}
+      ],
+      "commands": ["morning", "intake <brief>", "propose <lead>", "kickoff <proposal> <client>", "log-time <slug> <hours> <desc>", "invoice <slug>", "invoice-all", "followup", "eod", "weekly"],
+      "target_buyer": "Solo consultants, freelancers — direct operator use",
+      "pricing_model": "direct operational tool",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "supply-chain",
+      "file": "supply-chain.sh",
+      "category": "operations",
+      "description": "Vendor risk monitoring — parallel signal collection, risk scoring, daily delta reports",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 8 * * 1-5", "command": ""}
+      ],
+      "config": [
+        {"key": "VENDOR_FILE",   "required": true,  "default": "~/.config/apex/vendors",        "description": "One vendor name per line"},
+        {"key": "supply_context","required": false, "default": "technology services",            "description": "Write to ~/.config/apex/supply_context"}
+      ],
+      "commands": ["./supply-chain.sh [vendor_file]"],
+      "target_buyer": "Operations managers, procurement, CFOs at mid-market firms",
+      "pricing_model": "monthly retainer",
+      "revenue_tier": "medium"
+    },
+    {
+      "name": "venture-bootstrap",
+      "file": "venture-bootstrap.sh",
+      "category": "growth",
+      "description": "Opportunity → market research → business model → MVP spec → outreach assets → deployment checklist",
+      "version": "1.0.0",
+      "cron": [],
+      "config": [],
+      "commands": ["./venture-bootstrap.sh \"opportunity description\""],
+      "target_buyer": "Founders, indie hackers, product strategists",
+      "pricing_model": "per-run or subscription",
+      "revenue_tier": "low"
+    },
+    {
+      "name": "content-engine",
+      "file": "content-engine.sh",
+      "category": "growth",
+      "description": "Automated content marketing pipeline — keyword signals → drafts → SEO scoring → publishing queue",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 6 * * 1",    "command": "weekly-plan"},
+        {"schedule": "0 7 * * 1-5",  "command": "morning"},
+        {"schedule": "0 9 * * 1-5",  "command": "draft"},
+        {"schedule": "0 8 * * 5",    "command": "publish-queue"}
+      ],
+      "config": [
+        {"key": "BRAND",      "required": true,  "description": "Brand or company name — write to ~/.config/apex/content_brand"},
+        {"key": "TOPICS",     "required": true,  "description": "Comma-separated topic clusters — write to ~/.config/apex/content_topics"},
+        {"key": "AUDIENCE",   "required": false, "description": "Target reader — write to ~/.config/apex/content_audience"},
+        {"key": "TONE",       "required": false, "default": "technical, direct", "description": "Write to ~/.config/apex/content_tone"}
+      ],
+      "commands": ["morning", "weekly-plan", "draft <brief_file>", "seo-score <draft_file>", "publish-queue", "weekly"],
+      "target_buyer": "SaaS companies, agencies, solo consultants with content strategy",
+      "pricing_model": "monthly managed service $200-500",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "client-reporting",
+      "file": "client-reporting.sh",
+      "category": "growth",
+      "description": "Automated client-facing report generation — aggregates project data, formats, emails on schedule",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 9 * * 5",   "command": "weekly-all"},
+        {"schedule": "0 9 1 * *",   "command": "monthly-all"}
+      ],
+      "config": [
+        {"key": "AGENCY",    "required": true,  "description": "Your agency/firm name — write to ~/.config/apex/agency_name"},
+        {"key": "SMTP_CMD",  "required": false, "default": "msmtp", "description": "Mail delivery command"}
+      ],
+      "commands": ["weekly-all", "monthly-all", "report <client_slug>", "onboard <name> <email> <type>"],
+      "target_buyer": "Digital agencies, consultants with retainer clients",
+      "pricing_model": "included in agency retainer or $99-299/mo add-on",
+      "revenue_tier": "high"
+    },
+    {
+      "name": "deal-flow",
+      "file": "deal-flow.sh",
+      "category": "financial",
+      "description": "VC/angel inbound deal triage — score against thesis, research memo, pass/advance draft",
+      "version": "1.0.0",
+      "cron": [
+        {"schedule": "0 7 * * 1-5", "command": "morning"}
+      ],
+      "config": [
+        {"key": "FUND_NAME",   "required": true,  "description": "Fund or investor name — write to ~/.config/apex/fund_name"},
+        {"key": "THESIS_FILE", "required": true,  "description": "Investment thesis — write to ~/.config/apex/fund_thesis"},
+        {"key": "STAGE_FOCUS", "required": false, "default": "pre-seed, seed", "description": "Write to ~/.config/apex/fund_stage"},
+        {"key": "SECTORS",     "required": false, "description": "Focus sectors — write to ~/.config/apex/fund_sectors"}
+      ],
+      "commands": ["morning", "triage <pitch_file>", "deep-dive <company>", "weekly"],
+      "target_buyer": "Angel investors, micro-VCs, accelerators, corp dev",
+      "pricing_model": "subscription $500-2000/mo",
+      "revenue_tier": "high"
+    }
+  ],
+  "categories": {
+    "financial": "Market intelligence, revenue, and investment workflows",
+    "operations": "Security, compliance, and operational monitoring",
+    "legal":      "Legal practice management and document automation",
+    "growth":     "Business development, content, and recruiting workflows"
+  }
+}

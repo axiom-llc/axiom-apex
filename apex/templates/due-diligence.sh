@@ -15,7 +15,8 @@ AGENTS="${3:-6}"
 [[ -z "$TARGET" ]] && echo "Usage: $0 \"Company Name\" [acquisition|investment|partnership] [agents]" && exit 1
 
 APEX_ROOT="${APEX_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-AGENT_SCRIPT="$(dirname "$0")/../examples/research-agent.sh"
+AGENT_SCRIPT="${APEX_AGENT_SCRIPT:-$(dirname "$0")/../examples/research-agent.sh}"
+[[ ! -f "$AGENT_SCRIPT" ]] && echo "✗ research-agent.sh not found. Set APEX_AGENT_SCRIPT." && exit 1
 DATE=$(date +%Y-%m-%d)
 OUTDIR="$HOME/diligence/$(echo "$TARGET" | tr ' ' '_')-${DATE}"
 DIMENSIONS="$OUTDIR/dimensions.txt"

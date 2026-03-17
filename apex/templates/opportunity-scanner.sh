@@ -7,6 +7,7 @@
 # Cron:     0 7 * * 1 ~/path/to/opportunity-scanner.sh >> ~/business/logs/scanner.log 2>&1
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 DATE=$(date +%Y-%m-%d)
 DOMAINS=$(cat ~/.config/apex/domains 2>/dev/null || echo "AI,automation,SaaS,developer-tools")

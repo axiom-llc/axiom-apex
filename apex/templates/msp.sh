@@ -130,7 +130,7 @@ morning_brief() {
     and use espeak in a professional voice at speed 145 \
     and save to ~/msp/audio/morning-brief-${DATE}.wav"
 
-    aplay ~/msp/audio/morning-brief-${DATE}.wav 2>/dev/null
+    safe_play ~/msp/audio/morning-brief-${DATE}.wav 2>/dev/null
 
     echo "[$(date)] Morning brief complete." >> ~/msp/logs/script.log
 }
@@ -243,7 +243,7 @@ weekly_review() {
     and use espeak in a confident professional voice at speed 140 \
     and save to ~/msp/audio/weekly-review-${DATE}.wav"
 
-    aplay ~/msp/audio/weekly-review-${DATE}.wav 2>/dev/null
+    safe_play ~/msp/audio/weekly-review-${DATE}.wav 2>/dev/null
 
     # Archive old files
     apex "archive all daily files older than 7 days in ~/msp/reports \

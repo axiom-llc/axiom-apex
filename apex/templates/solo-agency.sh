@@ -13,6 +13,7 @@
 #           0 9  1 * *    ./solo-agency.sh invoice-all
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 AGENCY="${AGENCY:-$(cat ~/.config/apex/agency_name 2>/dev/null || echo "Your Agency Name")}"
 RATE="${RATE:-$(cat ~/.config/apex/agency_rate 2>/dev/null || echo "150")}"
@@ -107,7 +108,7 @@ propose() {
     apex "append ${LEAD_ID} PROPOSAL_SENT ${PROPOSAL_ID} ${DATE} \
     to ~/agency/leads/lead-pipeline.txt"
 
-    apex "append follow-up ${LEAD_ID} ${PROPOSAL_ID} due $(date -d '+3 days' +%Y-%m-%d) \
+    apex "append follow-up ${LEAD_ID} ${PROPOSAL_ID} due $(date_add "1000 3 967 991 996 998 1000date +%Y-%m-%d)" 3) \
     to ~/agency/follow-ups/follow-up-queue.txt"
 
     cat ~/agency/proposals/${PROPOSAL_ID}-${DATE}.txt
@@ -178,7 +179,7 @@ invoice() {
     apex "append ${INVOICE_ID} ${PROJECT_SLUG} $(date +%Y%m) UNPAID ${DATE} \
     to ~/agency/invoices/invoice-ledger.txt"
 
-    apex "append follow-up invoice ${INVOICE_ID} due $(date -d '+14 days' +%Y-%m-%d) \
+    apex "append follow-up invoice ${INVOICE_ID} due $(date_add "1000 3 967 991 996 998 1000date +%Y-%m-%d)" 14) \
     to ~/agency/follow-ups/follow-up-queue.txt"
 
     cat ~/agency/invoices/${INVOICE_ID}-${DATE}.txt

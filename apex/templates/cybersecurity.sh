@@ -11,6 +11,7 @@
 #           0 7  * * 1    ./cybersecurity.sh weekly
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 ORG="${ORG_NAME:-$(cat ~/.config/apex/sec_org 2>/dev/null || echo "Your Organization")}"
 ASSETS_FILE="${ASSETS_FILE:-${HOME}/.config/apex/sec_assets}"

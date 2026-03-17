@@ -10,6 +10,7 @@
 #           0 6  * * 1    ./insurance-claims.sh weekly
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 ORG="${ORG:-$(cat ~/.config/apex/claims_org 2>/dev/null || echo "Your Organization")}"
 DATE=$(date +%Y-%m-%d)
@@ -77,7 +78,7 @@ triage_new() {
 
     PIDS=()
     while IFS= read -r claim_file; do
-        (bash "$0" triage "$claim_file") &
+        (triage_claim "" "$claim_file") &
         PIDS+=($!)
     done <<< "$NEW"
 

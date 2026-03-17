@@ -10,6 +10,7 @@
 #           0 6  * * 1    ./healthcare-rcm.sh weekly
 # ============================================================
 set -euo pipefail
+source "$(dirname "$0")/lib/common.sh"
 
 PROVIDER="${PROVIDER:-$(cat ~/.config/apex/rcm_provider 2>/dev/null || echo "Your Practice Name")}"
 PAYER_FILE="${PAYER_FILE:-${HOME}/.config/apex/rcm_payers}"

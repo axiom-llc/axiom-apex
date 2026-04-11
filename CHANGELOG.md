@@ -40,4 +40,4 @@ SQLite-backed persistent memory. --dry-run and --trace flags.
 
 ---
 
-[2.0.0]: https://github.com/axiom-llc/apex-cli/releases/tag/v2.0.0
+[2.0.0]: https://github.com/axiom-llc/axiom-apex/releases/tag/v2.0.0

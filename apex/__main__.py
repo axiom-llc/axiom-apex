@@ -11,7 +11,6 @@ from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET
 
 
 def main() -> None:
-    # Templates subcommand — intercept before argparse
     if len(sys.argv) > 1 and sys.argv[1] == "templates":
         from apex.templates import templates_main
         templates_main(sys.argv[2:])
@@ -25,7 +24,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Print plan JSON without executing")
     parser.add_argument("--trace", action="store_true", help="Log each step result to stderr")
     parser.add_argument("--interactive", "-i", action="store_true", help="Enter interactive prompt mode")
-    parser.add_argument("--version", action="version", version=f"apex {version('apex')}")
+    parser.add_argument("--version", action="version", version=f"apex {version('axiom-apex')}")
     args = parser.parse_args()
 
     try:
@@ -45,7 +44,7 @@ def main() -> None:
     }
 
     if args.interactive:
-        print(f"APEX {version('apex')} — interactive mode. Ctrl-D or 'exit' to quit.")
+        print(f"APEX {version('axiom-apex')} — interactive mode. Ctrl-D or 'exit' to quit.")
         while True:
             try:
                 task = input("apex> ").strip()

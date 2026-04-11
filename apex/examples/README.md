@@ -1,6 +1,6 @@
 # Examples
 
-Runnable demonstrations of [APEX](https://github.com/axiom-llc/apex-cli) capabilities.
+Runnable demonstrations of [APEX](https://github.com/axiom-llc/axiom-apex) capabilities.
 Each script is self-contained — no additional frameworks required beyond `apex` and `GEMINI_API_KEY`.
 
 ## Prerequisites
@@ -127,7 +127,7 @@ Output → `~/swarm/YYYYMMDD_HHMMSS/`
 APEX rewrites itself. Five sequential agents per generation: an architect critiques the codebase, an engineer proposes changes, an implementer applies them, a QA agent issues a `PASS / WARN / FAIL` verdict, and a technical writer documents what changed. The improved source becomes input to the next generation. Halts on regression, convergence, or max generations.
 
 ```bash
-./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/apex-cli
+./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/axiom-apex
 ./examples/recursive-self-improvement-swarm.sh 3   # defaults to current apex root
 ```
 
@@ -142,4 +142,4 @@ Output → `~/swarm/rsi/YYYYMMDD_HHMMSS/`
 
 ---
 
-*Built with [APEX](https://github.com/axiom-llc/apex-cli) · [Axiom LLC](https://axiom-llc.github.io)*
+*Built with [APEX](https://github.com/axiom-llc/axiom-apex) · [Axiom LLC](https://axiom-llc.github.io)*

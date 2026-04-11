@@ -3,7 +3,7 @@
 
 **v2.0.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
 
-![CI](https://github.com/axiom-llc/apex-cli/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/axiom-llc/axiom-apex/actions/workflows/ci.yml/badge.svg)
 
 ```bash
 export GEMINI_API_KEY=your-key
@@ -26,8 +26,8 @@ pip install axiom-apex
 
 Or from source (requires Python 3.11+):
 ```bash
-git clone https://github.com/axiom-llc/apex-cli.git ~/code/apps/apex-cli
-cd ~/code/apps/apex-cli
+git clone https://github.com/axiom-llc/axiom-apex.git ~/code/apps/axiom-apex
+cd ~/code/apps/axiom-apex
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e .
 ```
@@ -242,7 +242,7 @@ Runnable demonstrations in `examples/` covering single-agent loops, iterative re
 ```bash
 ./examples/competitive-intelligence-swarm.sh "Vercel" 5 6
 ./examples/parallel-swarm.sh "the current state of fusion energy" 5 8
-./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/apex-cli
+./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/axiom-apex
 ```
 
 ---

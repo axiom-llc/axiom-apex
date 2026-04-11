@@ -1,4 +1,4 @@
-# apex-cli Templates
+# axiom-apex Templates
 
 Operational bash scripts that automate business workflows using the `apex` CLI ([axiom-apex on PyPI](https://pypi.org/project/axiom-apex/)).
 
@@ -15,8 +15,8 @@ apex templates install <name>   # scaffolds config stubs + cron to cwd
 Or clone directly:
 
 ```bash
-git clone https://github.com/axiom-llc/apex-cli
-cd apex-cli/apex/templates
+git clone https://github.com/axiom-llc/axiom-apex
+cd axiom-apex/apex/templates
 ```
 
 ## Templates

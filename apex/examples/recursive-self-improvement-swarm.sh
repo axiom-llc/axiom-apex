@@ -5,7 +5,7 @@
 # Runs until no improvements are proposed or an unfixable regression is detected.
 #
 # Usage: ./recursive-self-improvement-swarm.sh [max_generations] [apex_src]
-# Example: ./recursive-self-improvement-swarm.sh 5 ~/code/apps/apex-cli
+# Example: ./recursive-self-improvement-swarm.sh 5 ~/code/apps/axiom-apex
 
 set -euo pipefail
 

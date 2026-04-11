@@ -1,5 +1,5 @@
 """
-APEX test suite — apex-cli v2.0
+APEX test suite — axiom-apex v2.0
 
 Structure:
   Unit tests    — no API key required; test pure functions and data contracts

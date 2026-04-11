@@ -24,7 +24,7 @@ customer pain points, and why existing solutions fail \
 write to ${DIR}/research/market.txt" &
 
 apex "research: what stack would be needed to build ${OPPORTUNITY} \
-cross-reference against available stack: Python, Gemini API, apex-cli, rag-pipeline, \
+cross-reference against available stack: Python, Gemini API, axiom-apex, rag-pipeline, \
 api-integration-framework, Flask, Docker, GCP Cloud Run \
 identify build vs buy decisions and estimated time to MVP \
 write to ${DIR}/research/stack.txt" &

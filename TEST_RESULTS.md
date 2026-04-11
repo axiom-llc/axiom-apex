@@ -1,6 +1,6 @@
 # APEX Test Results
 
-**apex-cli v2.0** · Pure-functional CLI framework · Gemini 2.5 Flash · MIT  
+**axiom-apex v2.0** · Pure-functional CLI framework · Gemini 2.5 Flash · MIT  
 **Platform:** Linux · Python 3.14.3 · pytest 8.4.2  
 **Full suite:** `pytest apex/tests/test_apex.py -v --timeout=120`  
 **Result: 65 passed, 2 xfailed in 84.05s (0:01:24)**

@@ -330,4 +330,4 @@ The LLM uses the prompt entry to plan with the tool; the registry entry makes it
 
 ## License
 
-MIT — [Axiom LLC](https://axiom-llc.github.io)
+MIT — [AXIOM LLC](https://axiom-llc.github.io)

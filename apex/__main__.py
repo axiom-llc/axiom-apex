@@ -11,6 +11,22 @@ from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET
 
 
 def main() -> None:
+    if len(sys.argv) > 1 and sys.argv[1] == "swarm":
+        from apex.core.swarm import run_swarm
+        import argparse as _ap
+        sp = _ap.ArgumentParser(prog="apex swarm")
+        sp.add_argument("--tasks", required=True, help="Path to JSON file containing task list")
+        sp.add_argument("--workers", type=int, default=4, help="Max parallel workers")
+        sp.add_argument("--human-loop", action="store_true", help="Pause for confirmation before each batch")
+        sp.add_argument("--trace-path", default=None, help="JSONL trace path passed to each worker")
+        sa = sp.parse_args(sys.argv[2:])
+        from pathlib import Path as _Path
+        tasks = _ap.json.loads(_Path(sa.tasks).read_text()) if hasattr(_ap, "json") else __import__("json").loads(_Path(sa.tasks).read_text())
+        apex_bin = sys.argv[0]
+        extra = ["--full-trace", "--trace-path", sa.trace_path] if sa.trace_path else []
+        failures = run_swarm(tasks, workers=sa.workers, human_loop=sa.human_loop, db_path=_Path.home() / ".apex" / "memory.db", apex_bin=apex_bin, extra_args=extra)
+        sys.exit(0 if failures == 0 else 1)
+
     if len(sys.argv) > 1 and sys.argv[1] == "templates":
         from apex.templates import templates_main
         templates_main(sys.argv[2:])

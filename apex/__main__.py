@@ -23,12 +23,20 @@ def main() -> None:
     parser.add_argument("task", nargs="*", help="Task description")
     parser.add_argument("--dry-run", action="store_true", help="Print plan JSON without executing")
     parser.add_argument("--trace", action="store_true", help="Log each step result to stderr")
+    parser.add_argument("--full-trace", action="store_true", help="Write JSONL trace events to file or stderr")
+    parser.add_argument("--trace-path", default=None, help="Path to JSONL trace output file (default: stderr)")
     parser.add_argument("--interactive", "-i", action="store_true", help="Enter interactive prompt mode")
     parser.add_argument("--version", action="version", version=f"apex {version('axiom-apex')}")
     args = parser.parse_args()
 
     try:
-        config = load_config(trace=args.trace, dry_run=args.dry_run)
+        from pathlib import Path
+        config = load_config(
+            trace=args.trace,
+            dry_run=args.dry_run,
+            full_trace=args.full_trace,
+            trace_path=Path(args.trace_path) if args.trace_path else None,
+        )
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

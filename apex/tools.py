@@ -57,3 +57,59 @@ HTTP_GET = Tool(
     output_spec={"body": str, "status": int},
     effect=http_get_effect,
 )
+
+
+def _rag_multi_query_effect(args: dict) -> dict:
+    import json
+    import urllib.request
+    import os
+
+    question = args["question"]
+    hops = min(int(args.get("hops", 2)), 5)
+    base_url = os.environ.get("RAG_BASE_URL", "http://localhost:8000").rstrip("/")
+    token = os.environ.get("RAG_API_TOKEN", "")
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    all_sources: list[str] = []
+    hop_summaries: list[str] = []
+    current_question = question
+
+    for hop in range(hops):
+        payload = json.dumps({"question": current_question}).encode()
+        req = urllib.request.Request(
+            f"{base_url}/query",
+            data=payload,
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read())
+        except Exception as e:
+            return {"error": str(e), "hops_completed": hop, "sources": all_sources}
+
+        answer = data.get("answer", "")
+        sources = data.get("sources", [])
+        all_sources.extend(s for s in sources if s not in all_sources)
+        hop_summaries.append(f"[hop {hop + 1}] Q: {current_question}\nA: {answer}")
+
+        if hop < hops - 1:
+            lines = [ln.strip() for ln in answer.split("\n") if "?" in ln]
+            current_question = lines[0] if lines else question
+
+    return {
+        "answer": hop_summaries[-1].split("A: ", 1)[-1] if hop_summaries else "",
+        "hops": hops,
+        "hop_summaries": hop_summaries,
+        "sources": all_sources,
+    }
+
+
+RAG_MULTI_QUERY = Tool(
+    name="rag_multi_query",
+    input_spec={"question": str, "hops": int},
+    output_spec={"answer": str, "hops": int, "hop_summaries": list, "sources": list},
+    effect=_rag_multi_query_effect,
+)

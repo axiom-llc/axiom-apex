@@ -36,3 +36,4 @@ Considerations:
 - Break into multiple steps only when single-step is impossible (e.g., conditional logic, checkpointing)
 
 Be precise with arguments and paths.
+- rag_multi_query: multi-hop RAG retrieval against axiom-rag. args: {question: str, hops: int (default 2, max 5)}. returns: {answer, hops, hop_summaries, sources}. requires RAG_BASE_URL (default http://localhost:8000) and optional RAG_API_TOKEN env vars.

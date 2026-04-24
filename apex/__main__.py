@@ -7,7 +7,7 @@ from apex.core.loop import run
 from apex.core.state import format_output
 from apex.core.types import Tool
 from apex.memory import make_memory_tools
-from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET
+from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET, RAG_MULTI_QUERY
 
 
 def main() -> None:
@@ -63,6 +63,7 @@ def main() -> None:
         "read_file": READ_FILE,
         "write_file": WRITE_FILE,
         "http_get": HTTP_GET,
+        "rag_multi_query": RAG_MULTI_QUERY,
         "memory_read": memory_read,
         "memory_write": memory_write,
     }

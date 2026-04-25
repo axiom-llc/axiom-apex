@@ -4,7 +4,7 @@ import signal
 import sys
 from contextlib import contextmanager
 from dataclasses import replace
-from time import time
+from time import time, sleep as _sleep
 
 from apex.config import Config
 from apex.core.state import State, create_initial_state
@@ -14,6 +14,8 @@ from apex.core.trace import write_event
 
 _MAX_OUTPUT_BYTES = 10_485_760  # 10 MB
 _TOOL_TIMEOUT_S = 300
+_MAX_RETRIES = 3
+_RETRY_DELAY_S = 2
 
 
 class ApexTimeoutError(Exception):
@@ -79,19 +81,25 @@ def run(input_str: str, config: Config, registry: dict) -> State:
             _trace(config, f"[tool] {step.name} args={step.args}")
             _ftrace(config, {"event": "tool_call", "tool": step.name, "args": step.args})
 
-            try:
-                with _timeout(_TOOL_TIMEOUT_S):
-                    output = tool.effect(step.args)
-
-                if len(str(output)) > _MAX_OUTPUT_BYTES:
-                    result = Err("ToolOutputError", f"{step.name} output exceeds 10 MB")
-                else:
-                    result = Ok(output if isinstance(output, dict) else {"output": output})
-
-            except ApexTimeoutError:
-                result = Err("ToolTimeout", f"{step.name} exceeded {_TOOL_TIMEOUT_S}s")
-            except Exception as e:
-                result = Err("ToolExecutionError", str(e))
+            result = None
+            for _attempt in range(1, _MAX_RETRIES + 1):
+                try:
+                    with _timeout(_TOOL_TIMEOUT_S):
+                        output = tool.effect(step.args)
+                    if len(str(output)) > _MAX_OUTPUT_BYTES:
+                        result = Err("ToolOutputError", f"{step.name} output exceeds 10 MB")
+                        break  # non-retryable
+                    else:
+                        result = Ok(output if isinstance(output, dict) else {"output": output})
+                        break
+                except ApexTimeoutError:
+                    result = Err("ToolTimeout", f"{step.name} exceeded {_TOOL_TIMEOUT_S}s")
+                except Exception as e:
+                    result = Err("ToolExecutionError", str(e))
+                if _attempt < _MAX_RETRIES:
+                    _ftrace(config, {"event": "tool_retry", "tool": step.name, "attempt": _attempt, "reason": result.message})
+                    _trace(config, f"[retry] {step.name} attempt {_attempt}/{_MAX_RETRIES}: {result.message}")
+                    _sleep(_RETRY_DELAY_S * _attempt)
 
             _trace(config, f"[result] {'ok' if isinstance(result, Ok) else 'err: ' + result.message}")
             _ftrace(config, {"event": "tool_result", "tool": step.name, "status": "ok" if isinstance(result, Ok) else "err", "output": result.value if isinstance(result, Ok) else result.message})

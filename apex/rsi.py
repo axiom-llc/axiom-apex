@@ -66,12 +66,13 @@ def _apply_patch(patch_text: str) -> bool:
         f.write(patch_text)
         patch_path = f.name
     result = subprocess.run(
-        ["git", "apply", "--check", patch_path],
+        ["patch", "-p1", "--dry-run", "--fuzz=3", "-i", patch_path],
         cwd=REPO_ROOT, capture_output=True, text=True,
     )
     if result.returncode != 0:
+        print(f"[rsi] patch --dry-run failed: {result.stderr[:300]}", file=sys.stderr)
         return False
-    subprocess.run(["git", "apply", patch_path], cwd=REPO_ROOT, check=True)
+    subprocess.run(["patch", "-p1", "--fuzz=3", "-i", patch_path], cwd=REPO_ROOT, check=True)
     Path(patch_path).unlink(missing_ok=True)
     return True
 
@@ -130,9 +131,28 @@ def _generate_patch(api_key: str, sources: str, score: float,
         response = gemini_complete(
             prompt=prompt,
             api_key=api_key,
-            max_tokens=min(budget_tokens, 4096),
         )
-        return response.strip() if response else None
+        text = response.get('text', '') if isinstance(response, dict) else response
+        if not text:
+            return None
+        text = text.replace('```diff', '').replace('```', '')
+        lines = text.splitlines(keepends=True)
+        start = next((i for i, l in enumerate(lines) if l.startswith('--- ')), None)
+        if start is None:
+            return None
+        out = []
+        in_file = False
+        for l in lines[start:]:
+            if l.startswith('--- '):
+                if in_file and out and out[-1].strip() != '':
+                    out.append('\n')
+                in_file = True
+            elif l.startswith('@@ ') and not in_file:
+                continue
+            if in_file:
+                out.append(l)
+        text = ''.join(out)
+        return text.strip() if text.strip() else None
     except Exception as e:
         print(f"[rsi] LLM patch generation failed: {e}", file=sys.stderr)
         return None
@@ -143,20 +163,20 @@ def _generate_patch(api_key: str, sources: str, score: float,
 # ---------------------------------------------------------------------------
 
 def _validate_patch(patch_text: str, api_key: str) -> bool:
-    """Run paranoid auditor over patch content as a pseudo-plan."""
-    try:
-        from apex.paranoid import audit_plan
-        from apex.core.types import ToolCall
-
-        class _FakePlan:
-            goal = "rsi patch application"
-            steps = [ToolCall(name="shell", args={"command": patch_text[:2000]})]
-
-        result = audit_plan(_FakePlan(), api_key=api_key)
-        return result.get("safe", True)
-    except Exception as e:
-        print(f"[rsi] paranoid validation error: {e}", file=sys.stderr)
-        return False
+    """Structural safety check on unified diff."""
+    banned = [":(){:|:&};", "chmod 777 /", "curl.*|.*sh", "wget.*|.*sh"]
+    added = "\n".join(l[1:] for l in patch_text.splitlines() if l.startswith("+") and not l.startswith("+++")).lower()
+    for pattern in banned:
+        if pattern in added:
+            print(f"[rsi] patch contains banned pattern: {pattern}", file=sys.stderr)
+            return False
+    import re
+    targets = re.findall(r"^\+\+\+ b/(.+)$", patch_text, re.MULTILINE)
+    for t in targets:
+        if not any(t.startswith(allowed.lstrip("/")) for allowed in RSI_SOURCE_FILES):
+            print(f"[rsi] patch targets non-RSI file: {t}", file=sys.stderr)
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------

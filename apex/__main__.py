@@ -51,6 +51,10 @@ def main() -> None:
         import json as _json
         print(_json.dumps(aggregate_stats(), indent=2))
         sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "rsi":
+        from apex.rsi import rsi_main
+        rsi_main(sys.argv[2:])
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "templates":
         from apex.templates import templates_main
         templates_main(sys.argv[2:])

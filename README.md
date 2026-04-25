@@ -26,8 +26,8 @@ pip install axiom-apex
 
 Or from source (requires Python 3.11+):
 ```bash
-git clone https://github.com/axiom-llc/axiom-apex.git ~/code/apps/axiom-apex
-cd ~/code/apps/axiom-apex
+git clone https://github.com/axiom-llc/axiom-apex.git ~/c/apps/axiom-apex
+cd ~/c/apps/axiom-apex
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e .
 ```
@@ -50,13 +50,10 @@ apex "read from memory the key active_branch"
 **`--interactive`**, **`-i`** — Enter interactive prompt mode. Accept tasks one at a time without re-invoking the CLI. `exit` or Ctrl-D to quit.
 ```bash
 apex -i
-# APEX 1.0.0 — interactive mode. Ctrl-D or 'exit' to quit.
+# APEX 2.0.0 — interactive mode. Ctrl-D or 'exit' to quit.
 # apex> write today's date to ~/date.txt
-# apex> fetch https://wttr.in/London and save to ~/weather.txt
 # apex> exit
 ```
-
-Each prompt runs a full independent plan-generate → execute cycle. Sessions are stateless across prompts — consistent with single-shot invocation behaviour.
 
 **`--dry-run`** — Generate and print the execution plan as JSON. No tools are invoked.
 ```bash
@@ -72,7 +69,7 @@ apex --dry-run "fetch https://wttr.in/London and save to ~/weather.txt"
 }
 ```
 
-**`--trace`** — Stream each step's result to stderr during execution.
+**`--trace`** — Stream each step result to stderr during execution.
 ```bash
 apex --trace "write the current date to ~/date.txt"
 # [plan] goal=Write current date to ~/date.txt status=RUNNING
@@ -81,19 +78,52 @@ apex --trace "write the current date to ~/date.txt"
 # [halt] done
 ```
 
+**`--full-trace`** — Write structured JSONL trace events to file or stderr. Each event includes a timestamp and full step context.
+```bash
+apex --full-trace "write the current date to ~/date.txt"
+apex --full-trace --trace-path ~/traces/run.jsonl "write the current date to ~/date.txt"
+```
+
+**`--trace-path <path>`** — Path to JSONL trace output file. Used with `--full-trace`. Defaults to stderr if omitted.
+
 **`--version`** — Print version and exit.
+
+---
+
+## Swarm Mode
+
+Run multiple independent tasks in parallel with optional human-in-loop confirmation.
+
+```bash
+apex swarm --tasks tasks.json --workers 4
+apex swarm --tasks tasks.json --workers 4 --human-loop
+apex swarm --tasks tasks.json --workers 4 --trace-path ~/traces/swarm.jsonl
+```
+
+`tasks.json` — array of task prompt strings:
+```json
+[
+  "write planet report for Mars to ~/mars.txt",
+  "write planet report for Jupiter to ~/jupiter.txt",
+  "write planet report for Saturn to ~/saturn.txt"
+]
+```
+
+`--human-loop` pauses for confirmation before each batch. `--workers` caps concurrent apex processes (recommended ceiling: 4 for Gemini 2.5 Flash).
 
 ---
 
 ## Tools
 
-**`shell`** `cmd: str` — Execute a shell command. Returns stdout, stderr, and exit code. Use pipes, `&&`, and `||` to compose multi-step operations into a single invocation.
+**`shell`** `cmd: str` — Execute a shell command. Returns stdout, stderr, and exit code.
 
 **`read_file`** `path: str` — Read file contents.
 
 **`write_file`** `path: str, content: str` — Write to file. Creates parent directories as needed.
 
-**`http_get`** `url: str, headers?: dict` — HTTP GET via requests. Returns body and status code. Does not support JS-rendered pages.
+**`http_get`** `url: str, headers?: dict` — HTTP GET via requests. Returns body and status code.
+
+**`rag_multi_query`** `queries: list[str], top_k?: int` — Multi-hop semantic retrieval via axiom-rag. Issues multiple queries against the local ChromaDB collection and returns merged, deduplicated results. Requires axiom-rag installed and a collection ingested.
 
 **`memory_read`** `key?: str` — Read a named value from persistent memory. Omit `key` to list all entries.
 
@@ -102,10 +132,6 @@ apex --trace "write the current date to ~/date.txt"
 ### Memory
 
 Memory is backed by SQLite at `~/.apex/memory.db` and persists across invocations and concurrent processes.
-```bash
-apex "save current git branch to memory as active_branch"
-apex "read from memory the key active_branch"
-```
 
 ---
 
@@ -115,67 +141,100 @@ apex "read from memory the key active_branch"
 
 **`APEX_DB_PATH`** *(optional, default: `~/.apex/memory.db`)* — SQLite memory database path.
 
+**`LLM_PROVIDER`** *(optional, default: `gemini`)* — LLM backend. Set to `ollama` to use a local Ollama instance. When set to `ollama`, `GEMINI_API_KEY` is not required.
+
+```bash
+LLM_PROVIDER=ollama apex "write today's date to ~/date.txt"
+```
+
 ---
 
 ## Architecture
 
-APEX is a pure-functional pipeline over immutable frozen dataclasses. No shared mutable state. No globals. No module-level singletons.
 ```
 apex/
-  __main__.py     ← CLI entry; builds registry, calls run()
-  config.py       ← Frozen Config dataclass, resolved once at startup
-  llm.py          ← Gemini adapter (stateless)
-  memory.py       ← make_memory_tools(db_path) → (memory_read, memory_write)
-  tools.py        ← shell, read_file, write_file, http_get
-  prompt.txt      ← System + planner prompt
+  __main__.py     <- CLI entry; builds registry, calls run()
+  config.py       <- Frozen Config dataclass, resolved once at startup
+  llm.py          <- Gemini + Ollama adapters (stateless)
+  memory.py       <- make_memory_tools(db_path) -> (memory_read, memory_write)
+  tools.py        <- shell, read_file, write_file, http_get, rag_multi_query
+  prompt.txt      <- System + planner prompt
+  bench.py        <- Task benchmark harness
+  benchmarks/
+    tasks.json    <- Default benchmark task definitions
+    results/      <- CI and local benchmark output JSONs
   core/
-    types.py      ← Frozen dataclasses: Plan, Step, Result, Tool, Event
-    state.py      ← Immutable State; format_output
-    planner.py    ← Prompt rendering, JSON plan parsing, Pydantic schema validation
-    loop.py       ← Pure run(task, config, registry) → State
+    types.py      <- Frozen dataclasses: Plan, Step, Result, Tool, Event
+    state.py      <- Immutable State; format_output
+    planner.py    <- Prompt rendering, JSON plan parsing, Pydantic schema validation
+    loop.py       <- Pure run(task, config, registry) -> State
+    trace.py      <- JSONL write_event
+    swarm.py      <- Parallel swarm coordinator with human-in-loop
 ```
 
 ### Design Axioms
 
 **Immutability.** All core types are frozen dataclasses. `State` is updated via `dataclasses.replace()` — never mutated in place.
 
-**Pure execution loop.** `run()` in `core/loop.py` is a pure function: same plan + same config → same tool call sequence. Side effects are isolated to tool `effect` functions.
+**Pure execution loop.** `run()` in `core/loop.py` is a pure function: same plan + same config produces same tool call sequence.
 
-**Schema-validated plans.** Every plan generated by the LLM is validated against the tool registry via Pydantic before any tool is invoked. Malformed or unknown-tool plans are rejected at the boundary — execution never begins on an invalid plan.
+**Schema-validated plans.** Every LLM-generated plan is validated against the tool registry via Pydantic before any tool is invoked.
 
-**Bash is the concurrency primitive.** No threads. No async. Parallelism is achieved by running multiple `apex` processes concurrently under bash. Each invocation is a fully isolated process with its own LLM context and state.
+**Bash is the concurrency primitive.** No threads. No async. Parallelism via multiple `apex` processes under bash or `apex swarm`.
 
-**Zero implicit configuration.** `Config` is resolved once at startup from environment variables, validated immediately, and passed explicitly to every function. No globals, no startup ordering dependencies.
+**Zero implicit configuration.** `Config` is resolved once at startup, validated immediately, passed explicitly to every function.
 
-**Memory tools are closures.** `make_memory_tools(db_path)` returns tool instances whose effects close over `db_path`. Database path is bound at construction — no ordering dependency possible.
+**Memory tools are closures.** `make_memory_tools(db_path)` returns tool instances whose effects close over `db_path`.
 
 ### Data Flow
 ```
 argv
- └─ main()
-      ├─ load_config()            → Config
-      ├─ make_memory_tools()      → Tool, Tool
-      ├─ {shell, read_file, ...}  → registry: dict[str, Tool]
-      └─ run(task, config, registry)
-           ├─ generate_plan()     → State (plan attached, schema-validated)
-           └─ loop over steps
-                ├─ ToolCall → tool.effect(args) → Ok | Err → State
-                └─ Halt    → State(status=HALTED)
+ -> main()
+      |- load_config()            -> Config
+      |- make_memory_tools()      -> Tool, Tool
+      |- {shell, read_file, ...}  -> registry: dict[str, Tool]
+      -> run(task, config, registry)
+           |- generate_plan()     -> State (plan attached, schema-validated)
+           -> loop over steps
+                |- ToolCall -> tool.effect(args) -> Ok | Err -> State
+                -> Halt    -> State(status=HALTED)
 ```
 
 ### Exit Codes
 
-`0` — plan completed (`HALTED`). `1` — execution error (`ERROR`). `2` — unexpected terminal state.
+`0` — HALTED. `1` — ERROR. `2` — unexpected terminal state.
 
 ---
 
 ## Tests
 
 ```bash
-pytest tests/ -q -m "not live"
+pytest apex/tests/ -q -m "not live"
 ```
 
-Tests marked `live` require a valid `GEMINI_API_KEY` and make real API calls. All other tests run without network access. CI runs the non-live suite on Python 3.11 and 3.12 on every push.
+CI runs the non-live suite on Python 3.11 and 3.12 on every push.
+
+### Benchmark Harness
+
+```bash
+python apex/bench.py --tasks apex/benchmarks/tasks.json --mock
+python apex/bench.py --tasks apex/benchmarks/tasks.json
+python apex/bench.py --tasks apex/benchmarks/tasks.json --out apex/benchmarks/results/run.json
+```
+
+`--mock` skips real apex calls — safe for CI without `GEMINI_API_KEY`. CI uploads results as a build artifact.
+
+`tasks.json` schema:
+```json
+[
+  {
+    "id": "write_file",
+    "prompt": "write 'hello' to /tmp/apex-bench-out.txt",
+    "check": "hello",
+    "check_file": "/tmp/apex-bench-out.txt"
+  }
+]
+```
 
 ---
 
@@ -183,22 +242,19 @@ Tests marked `live` require a valid `GEMINI_API_KEY` and make real API calls. Al
 
 ### Parallel Tasks
 
-Each `apex` invocation is an isolated process. Run concurrently with bash `&` and `wait`:
 ```bash
 apex "write planet report for Mars to ~/mars.txt" &
 apex "write planet report for Jupiter to ~/jupiter.txt" &
 wait
 ```
 
-**Concurrency ceiling — Gemini 2.5 Flash:** Empirical benchmarking (see `apex/benchmarks/`) shows a practical ceiling of **4 concurrent processes**. Beyond this, Gemini API request queuing degrades returns significantly.
+**Concurrency ceiling — Gemini 2.5 Flash:** practical ceiling of **4 concurrent processes**.
 
 | tasks | concurrency | sequential | parallel | speedup | efficiency |
 |-------|-------------|-----------|----------|---------|------------|
-| 4 | 4 (uncapped) | 22.64s | 7.60s | 2.98× | 0.75 |
-| 8 | uncapped | 45.08s | 12.07s | 3.74× | 0.47 |
-| 8 | 4 (batched) | 44.23s | 22.36s | 1.98× | 0.25 |
-
-For workloads with ≤4 tasks, run uncapped. For >4 tasks, batching to 4 enforces rate-limit safety at the cost of wall-clock time — choose based on whether throughput or compliance is the priority.
+| 4 | 4 (uncapped) | 22.64s | 7.60s | 2.98x | 0.75 |
+| 8 | uncapped | 45.08s | 12.07s | 3.74x | 0.47 |
+| 8 | 4 (batched) | 44.23s | 22.36s | 1.98x | 0.25 |
 
 ### Iterative Fix Loop
 ```bash
@@ -228,52 +284,25 @@ apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, 
 
 ## Examples
 
-Runnable demonstrations in `examples/` covering single-agent loops, iterative refinement, and multi-agent parallel swarms. Each script is self-contained and requires only `apex` and `GEMINI_API_KEY`. See `examples/README.md` for full usage and output details.
+Runnable demonstrations in `examples/` covering single-agent loops, iterative refinement, and multi-agent parallel swarms.
 
-### Agents
 ```bash
 ./examples/autonomous-business.sh ~/.config/apex/business_profile.txt
 ./examples/code-review.sh ~/myproject "*.py"
 ./examples/iterative-coder.sh "write a script that finds prime numbers up to N" 8
 ./examples/research-agent.sh "how does RAFT consensus work" 15
-```
-
-### Swarms
-```bash
 ./examples/competitive-intelligence-swarm.sh "Vercel" 5 6
 ./examples/parallel-swarm.sh "the current state of fusion energy" 5 8
-./examples/recursive-self-improvement-swarm.sh 5 ~/code/apps/axiom-apex
+./examples/recursive-self-improvement-swarm.sh 5 ~/c/apps/axiom-apex
 ```
 
 ---
 
 ## Templates
 
-Production-ready integration templates in `templates/` for common operational contexts. Each is a self-contained bash script with a command router and cron schedule. Configure the variables at the top and run.
+Production-ready integration templates in `templates/` for common operational contexts.
 
-**`compliance-audit.sh`** — Automated compliance audit pipeline. Policy checks, evidence collection, gap analysis, and audit report generation.
-
-**`cybersecurity.sh`** — Security operations. Threat monitoring, log analysis, vulnerability triage, and incident response drafts.
-
-**`due-diligence.sh`** — Investment due diligence. Company research, financial signal extraction, risk scoring, and summary report generation.
-
-**`healthcare-rcm.sh`** — Healthcare revenue cycle management. Claims processing, denial triage, follow-up scheduling, and billing summaries. Local only — no cloud transmission.
-
-**`hedge-fund.sh`** — Hedge fund operations. Market data ingestion, signal generation, portfolio snapshots, and daily briefings.
-
-**`insurance-claims.sh`** — Insurance claims processing. Intake classification, fraud signal detection, adjuster notes, and status tracking.
-
-**`law-firm.sh`** — Law firm. Matter intake, billing entry, deadline tracking, daily briefs, weekly reviews.
-
-**`msp.sh`** — IT managed services. Per-client health checks, incident management, SLA tracking, nightly security audits, client reports.
-
-**`recruiter.sh`** — Recruiting operations. Candidate intake, screening summaries, pipeline tracking, and outreach drafts.
-
-**`revenue-monitor.sh`** — Micro-SaaS uptime monitoring service. Per-client health pulses, downtime alerts, weekly reports, monthly invoicing.
-
-**`solo-agency.sh`** — Solo freelance agency. Project intake, proposal generation, client follow-ups, and invoicing.
-
-**`supply-chain.sh`** — Supply chain operations. Supplier monitoring, inventory alerts, reorder triggers, and risk summaries.
+`compliance-audit.sh` · `cybersecurity.sh` · `due-diligence.sh` · `healthcare-rcm.sh` · `hedge-fund.sh` · `insurance-claims.sh` · `law-firm.sh` · `msp.sh` · `recruiter.sh` · `revenue-monitor.sh` · `solo-agency.sh` · `supply-chain.sh`
 
 ---
 
@@ -281,7 +310,7 @@ Production-ready integration templates in `templates/` for common operational co
 
 Add a tool by touching three files:
 
-**1. Define the effect in `apex/tools.py`:**
+**1. `apex/tools.py`:**
 ```python
 def list_dir_effect(args: dict) -> dict:
     from pathlib import Path
@@ -296,23 +325,18 @@ LIST_DIR = Tool(
 )
 ```
 
-**2. Register in `apex/__main__.py`:**
+**2. `apex/__main__.py`:**
 ```python
-from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET, LIST_DIR
-
 registry: dict[str, Tool] = {
     "shell": SHELL,
     "list_dir": LIST_DIR,
-    # ...
 }
 ```
 
-**3. Document in `apex/prompt.txt`:**
+**3. `apex/prompt.txt`:**
 ```
 - list_dir: list directory contents. args: {path}. returns: {items, count}
 ```
-
-The LLM uses the prompt entry to plan with the tool; the registry entry makes it executable.
 
 ---
 
@@ -321,10 +345,9 @@ The LLM uses the prompt entry to plan with the tool; the registry entry makes it
 - Max plan steps: 32
 - Tool timeout: 300 seconds
 - Max tool output: 10 MB
-- LLM provider: Gemini 2.5 Flash
-- Concurrency: bash process isolation (`&` / `wait`); recommended ceiling: **4 concurrent processes** (Gemini 2.5 Flash rate limit)
+- LLM provider: Gemini 2.5 Flash (default) or Ollama (local)
+- Concurrency: bash process isolation; recommended ceiling: **4 concurrent processes**
 - Platform: Unix (SIGALRM-based timeout)
-- JS-rendered pages: not supported
 
 ---
 

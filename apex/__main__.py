@@ -1,4 +1,5 @@
 """APEX CLI entry point."""
+from pathlib import Path
 import argparse
 import sys
 from importlib.metadata import version
@@ -7,6 +8,7 @@ from apex.core.loop import run
 from apex.core.state import format_output
 from apex.core.types import Tool
 from apex.memory import make_memory_tools
+from apex.toolloader import load_tools_dir
 from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET, RAG_MULTI_QUERY
 
 
@@ -67,6 +69,8 @@ def main() -> None:
         "memory_read": memory_read,
         "memory_write": memory_write,
     }
+    tools_dir = Path.home() / ".apex" / "tools"
+    registry.update(load_tools_dir(tools_dir))
 
     if args.interactive:
         print(f"APEX {version('axiom-apex')} — interactive mode. Ctrl-D or 'exit' to quit.")

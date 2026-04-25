@@ -184,6 +184,20 @@ def main() -> None:
     passed = sum(1 for r in results if r["passed"])
     failed = len(results) - passed
 
+    pass_rate = round(passed / len(results), 4) if results else 0.0
+    avg_duration = sum(r["duration_seconds"] for r in results) / len(results) if results else 0.0
+    # speed_factor: 1.0 at 10s/task, degrades linearly; floor 0.01
+    speed_factor = round(max(0.01, 1.0 - (avg_duration - 10.0) / 200.0), 4)
+    # token_efficiency: from history DB if available, else 1.0
+    try:
+        from apex.history import aggregate_stats as _astats
+        _s = _astats()
+        _avg_tok = _s["avg_tokens"] or 1.0
+        # normalise: 1.0 at 1000 tokens, degrades linearly; floor 0.01
+        token_efficiency = round(max(0.01, 1.0 - (_avg_tok - 1000.0) / 50000.0), 4)
+    except Exception:
+        token_efficiency = 1.0
+    apex_score = round(pass_rate * speed_factor * token_efficiency, 6)
     output = {
         "benchmark": "apex_task_harness",
         "mock": args.mock,
@@ -191,6 +205,10 @@ def main() -> None:
         "passed": passed,
         "failed": failed,
         "wall_seconds": wall_total,
+        "pass_rate": pass_rate,
+        "speed_factor": speed_factor,
+        "token_efficiency": token_efficiency,
+        "apex_score": apex_score,
         "results": results,
     }
 

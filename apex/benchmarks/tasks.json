@@ -1,0 +1,29 @@
+[
+  {
+    "id": "write_file",
+    "prompt": "write the word 'apex-bench' to /tmp/apex-bench-write.txt",
+    "check": "apex-bench",
+    "check_file": "/tmp/apex-bench-write.txt"
+  },
+  {
+    "id": "shell_echo",
+    "prompt": "use shell to echo 'bench-shell-ok' and write it to /tmp/apex-bench-shell.txt",
+    "check": "bench-shell-ok",
+    "check_file": "/tmp/apex-bench-shell.txt"
+  },
+  {
+    "id": "read_file",
+    "prompt": "read /tmp/apex-bench-write.txt and print its contents",
+    "check": "apex-bench"
+  },
+  {
+    "id": "memory_write_read",
+    "prompt": "save the value 'bench-mem-value' to memory as bench_test_key then read it back and print it",
+    "check": "bench-mem-value"
+  },
+  {
+    "id": "http_get",
+    "prompt": "fetch https://api.ipify.org and write the response to /tmp/apex-bench-ip.txt",
+    "check_file": "/tmp/apex-bench-ip.txt"
+  }
+]

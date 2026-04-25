@@ -11,6 +11,7 @@ from apex.core.state import State, create_initial_state
 from apex.core.planner import generate_plan
 from apex.core.types import Halt, ToolCall, ToolExecution, Ok, Err
 from apex.core.trace import write_event
+from apex.history import record_run
 from apex.paranoid import audit_plan, format_audit_report
 
 _MAX_OUTPUT_BYTES = 10_485_760  # 10 MB
@@ -49,6 +50,7 @@ def _ftrace(config: Config, event: dict) -> None:
 
 def run(input_str: str, config: Config, registry: dict) -> State:
     state = create_initial_state(input_str)
+    _wall_start = time()
 
     if config.dry_run:
         state = generate_plan(state, config, registry)
@@ -60,7 +62,7 @@ def run(input_str: str, config: Config, registry: dict) -> State:
                 for s in state.plan.steps
             ]
             print(json.dumps({"goal": state.plan.goal, "steps": steps}, indent=2))
-        return replace(state, status="HALTED")
+        return _finish(replace(state, status="HALTED"))
 
     state = generate_plan(state, config, registry)
     _trace(config, f"[plan] goal={state.plan.goal if state.plan else 'NONE'} status={state.status}")
@@ -73,12 +75,22 @@ def run(input_str: str, config: Config, registry: dict) -> State:
             _ftrace(config, {"event": "paranoid_audit", "result": audit})
             if not audit.get("safe", True):
                 print(format_audit_report(audit), flush=True)
-                return replace(state, status="ERROR")
+                return _finish(replace(state, status="ERROR"))
         except Exception as e:
             _trace(config, f"[paranoid] audit failed: {e}")
             return replace(state, status="ERROR")
     if state.status != "RUNNING":
         return state
+
+    def _finish(st):
+        record_run(
+            task=input_str,
+            plan=st.plan.steps if st.plan else None,
+            exit_code=0 if st.status == 'HALTED' else 1,
+            token_count=st.token_count or 0,
+            wall_seconds=round(time() - _wall_start, 3),
+        )
+        return st
 
     while state.status == "RUNNING" and state.plan and state.plan.steps:
         step = state.plan.steps[0]
@@ -86,7 +98,7 @@ def run(input_str: str, config: Config, registry: dict) -> State:
         if isinstance(step, Halt):
             _trace(config, f"[halt] {step.reason}")
             _ftrace(config, {"event": "halt", "reason": step.reason})
-            return replace(state, status="HALTED")
+            return _finish(replace(state, status="HALTED"))
 
         if isinstance(step, ToolCall):
             tool = registry[step.name]
@@ -123,7 +135,7 @@ def run(input_str: str, config: Config, registry: dict) -> State:
             )
 
             if isinstance(result, Err):
-                return replace(state, status="ERROR")
+                return _finish(replace(state, status="ERROR"))
 
     _ftrace(config, {"event": "run_complete", "status": "HALTED", "tokens": state.token_count})
-    return replace(state, status="HALTED")
+    return _finish(replace(state, status="HALTED"))

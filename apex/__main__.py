@@ -30,6 +30,26 @@ def main() -> None:
         failures = run_swarm(tasks, workers=sa.workers, human_loop=sa.human_loop, db_path=_Path.home() / ".apex" / "memory.db", apex_bin=apex_bin, extra_args=extra)
         sys.exit(0 if failures == 0 else 1)
 
+    if len(sys.argv) > 1 and sys.argv[1] == "history":
+        from apex.history import list_runs
+        import argparse as _ap
+        hp = _ap.ArgumentParser(prog="apex history")
+        hp.add_argument("-n", type=int, default=20, help="Number of runs to show")
+        ha = hp.parse_args(sys.argv[2:])
+        rows = list_runs(ha.n)
+        if not rows:
+            print("no runs recorded")
+        else:
+            print(f"{"ID":>5}  {"EXIT":>4}  {"TOKENS":>7}  {"WALL(s)":>8}  {"TIMESTAMP":>19}  TASK")
+            for r in rows:
+                task_short = r["task"][:60] + ("..." if len(r["task"]) > 60 else "")
+                print(f'{r["id"]:>5}  {r["exit_code"]:>4}  {r["token_count"]:>7}  {r["wall_seconds"]:>8.3f}  {r["timestamp"]:>19}  {task_short}')
+        sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "stats":
+        from apex.history import aggregate_stats
+        import json as _json
+        print(_json.dumps(aggregate_stats(), indent=2))
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "templates":
         from apex.templates import templates_main
         templates_main(sys.argv[2:])

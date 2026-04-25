@@ -40,7 +40,8 @@ def main() -> None:
         if not rows:
             print("no runs recorded")
         else:
-            print(f"{"ID":>5}  {"EXIT":>4}  {"TOKENS":>7}  {"WALL(s)":>8}  {"TIMESTAMP":>19}  TASK")
+            _hdr = "{:>5}  {:>4}  {:>7}  {:>8}  {:>19}  TASK".format("ID","EXIT","TOKENS","WALL(s)","TIMESTAMP")
+            print(_hdr)
             for r in rows:
                 task_short = r["task"][:60] + ("..." if len(r["task"]) > 60 else "")
                 print(f'{r["id"]:>5}  {r["exit_code"]:>4}  {r["token_count"]:>7}  {r["wall_seconds"]:>8.3f}  {r["timestamp"]:>19}  {task_short}')

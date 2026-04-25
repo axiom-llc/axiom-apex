@@ -9,6 +9,7 @@ from apex.core.state import format_output
 from apex.core.types import Tool
 from apex.memory import make_memory_tools
 from apex.toolloader import load_tools_dir
+from apex.mcp import load_mcp_servers, mcp_tool_docs
 from apex.tools import SHELL, READ_FILE, WRITE_FILE, HTTP_GET, RAG_MULTI_QUERY
 
 
@@ -43,6 +44,7 @@ def main() -> None:
     parser.add_argument("--trace", action="store_true", help="Log each step result to stderr")
     parser.add_argument("--full-trace", action="store_true", help="Write JSONL trace events to file or stderr")
     parser.add_argument("--trace-path", default=None, help="Path to JSONL trace output file (default: stderr)")
+    parser.add_argument("--paranoid", action="store_true", help="Audit plan for dangerous operations before execution")
     parser.add_argument("--interactive", "-i", action="store_true", help="Enter interactive prompt mode")
     parser.add_argument("--version", action="version", version=f"apex {version('axiom-apex')}")
     args = parser.parse_args()
@@ -53,7 +55,7 @@ def main() -> None:
             trace=args.trace,
             dry_run=args.dry_run,
             full_trace=args.full_trace,
-            trace_path=Path(args.trace_path) if args.trace_path else None,
+            trace_path=Path(args.trace_path) if args.trace_path else None, paranoid=args.paranoid
         )
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -71,6 +73,10 @@ def main() -> None:
     }
     tools_dir = Path.home() / ".apex" / "tools"
     registry.update(load_tools_dir(tools_dir))
+    _mcp_configs = __import__('json').loads(__import__('os').environ.get('APEX_MCP_SERVERS', '[]'))
+    if _mcp_configs:
+        _mcp_tools = load_mcp_servers(_mcp_configs)
+        registry.update(_mcp_tools)
 
     if args.interactive:
         print(f"APEX {version('axiom-apex')} — interactive mode. Ctrl-D or 'exit' to quit.")

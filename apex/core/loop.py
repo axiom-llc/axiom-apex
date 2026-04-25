@@ -11,6 +11,7 @@ from apex.core.state import State, create_initial_state
 from apex.core.planner import generate_plan
 from apex.core.types import Halt, ToolCall, ToolExecution, Ok, Err
 from apex.core.trace import write_event
+from apex.paranoid import audit_plan, format_audit_report
 
 _MAX_OUTPUT_BYTES = 10_485_760  # 10 MB
 _TOOL_TIMEOUT_S = 300
@@ -65,6 +66,17 @@ def run(input_str: str, config: Config, registry: dict) -> State:
     _trace(config, f"[plan] goal={state.plan.goal if state.plan else 'NONE'} status={state.status}")
     _ftrace(config, {"event": "plan", "goal": state.plan.goal if state.plan else None, "steps": len(state.plan.steps) if state.plan else 0, "status": state.status})
 
+    if config.paranoid and state.plan:
+        try:
+            audit = audit_plan(state.plan, api_key=config.api_key)
+            _trace(config, format_audit_report(audit))
+            _ftrace(config, {"event": "paranoid_audit", "result": audit})
+            if not audit.get("safe", True):
+                print(format_audit_report(audit), flush=True)
+                return replace(state, status="ERROR")
+        except Exception as e:
+            _trace(config, f"[paranoid] audit failed: {e}")
+            return replace(state, status="ERROR")
     if state.status != "RUNNING":
         return state
 

@@ -55,6 +55,10 @@ def main() -> None:
         from apex.rsi import rsi_main
         rsi_main(sys.argv[2:])
         sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "export":
+        from apex.export import export_main
+        export_main(sys.argv[2:])
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "replay":
         from apex.replay import replay_main
         replay_main(sys.argv[2:])

@@ -43,3 +43,6 @@ temp/
 build/
 dist/
 *.egg-info/
+
+# Backup directories
+backups/

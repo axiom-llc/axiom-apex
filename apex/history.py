@@ -6,7 +6,7 @@ from pathlib import Path
 
 DB_PATH = Path.home() / ".apex" / "runs.db"
 
-DDL = """
+DDL_RUNS = """
 CREATE TABLE IF NOT EXISTS runs (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     task         TEXT    NOT NULL,
@@ -18,10 +18,23 @@ CREATE TABLE IF NOT EXISTS runs (
 );
 """
 
+DDL_EVENTS = """
+CREATE TABLE IF NOT EXISTS events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id      INTEGER NOT NULL REFERENCES runs(id),
+    step        INTEGER NOT NULL,
+    tool        TEXT    NOT NULL,
+    args_json   TEXT,
+    result_json TEXT,
+    timestamp   TEXT    NOT NULL DEFAULT (datetime('now','utc'))
+);
+"""
+
 def _conn() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
-    con.execute(DDL)
+    con.execute(DDL_RUNS)
+    con.execute(DDL_EVENTS)
     con.commit()
     return con
 
@@ -51,6 +64,19 @@ def list_runs(n: int = 20) -> list[dict]:
              token_count=r[3], wall_seconds=r[4], timestamp=r[5])
         for r in rows
     ]
+
+def record_event(run_id: int, step: int, tool: str,
+                 args: dict | None, result: dict | None) -> None:
+    args_json   = json.dumps(args)   if args   is not None else None
+    result_json = json.dumps(result) if result is not None else None
+    con = _conn()
+    con.execute(
+        "INSERT INTO events (run_id, step, tool, args_json, result_json) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (run_id, step, tool, args_json, result_json),
+    )
+    con.commit()
+    con.close()
 
 def aggregate_stats() -> dict:
     con = _conn()

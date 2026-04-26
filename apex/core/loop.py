@@ -11,7 +11,7 @@ from apex.core.state import State, create_initial_state
 from apex.core.planner import generate_plan
 from apex.core.types import Halt, ToolCall, ToolExecution, Ok, Err
 from apex.core.trace import write_event
-from apex.history import record_run
+from apex.history import record_run, record_event
 from apex.paranoid import audit_plan, format_audit_report
 
 _MAX_OUTPUT_BYTES = 10_485_760  # 10 MB
@@ -51,6 +51,28 @@ def _ftrace(config: Config, event: dict) -> None:
 def run(input_str: str, config: Config, registry: dict) -> State:
     state = create_initial_state(input_str)
     _wall_start = time()
+    _event_buffer: list[dict] = []
+
+    def _serialize_plan(steps):
+        out = []
+        for s in (steps or []):
+            if isinstance(s, Halt):
+                out.append({"type": "halt", "reason": s.reason})
+            else:
+                out.append({"type": "tool", "name": s.name, "args": s.args})
+        return out
+
+    def _finish(st):
+        run_id = record_run(
+            task=input_str,
+            plan=_serialize_plan(st.plan.steps) if st.plan else None,
+            exit_code=0 if st.status == 'HALTED' else 1,
+            token_count=st.token_count or 0,
+            wall_seconds=round(time() - _wall_start, 3),
+        )
+        for ev in _event_buffer:
+            record_event(run_id, ev["step"], ev["tool"], ev["args"], ev["result"])
+        return st
 
     if config.dry_run:
         state = generate_plan(state, config, registry)
@@ -82,15 +104,6 @@ def run(input_str: str, config: Config, registry: dict) -> State:
     if state.status != "RUNNING":
         return state
 
-    def _finish(st):
-        record_run(
-            task=input_str,
-            plan=st.plan.steps if st.plan else None,
-            exit_code=0 if st.status == 'HALTED' else 1,
-            token_count=st.token_count or 0,
-            wall_seconds=round(time() - _wall_start, 3),
-        )
-        return st
 
     while state.status == "RUNNING" and state.plan and state.plan.steps:
         step = state.plan.steps[0]
@@ -126,6 +139,12 @@ def run(input_str: str, config: Config, registry: dict) -> State:
                     _sleep(_RETRY_DELAY_S * _attempt)
 
             _trace(config, f"[result] {'ok' if isinstance(result, Ok) else 'err: ' + result.message}")
+            _event_buffer.append({
+                "step": len(state.history),
+                "tool": step.name,
+                "args": step.args,
+                "result": result.value if isinstance(result, Ok) else {"error": result.message},
+            })
             _ftrace(config, {"event": "tool_result", "tool": step.name, "status": "ok" if isinstance(result, Ok) else "err", "output": result.value if isinstance(result, Ok) else result.message})
 
             state = replace(

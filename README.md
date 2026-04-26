@@ -1,7 +1,7 @@
 [![PyPI](https://img.shields.io/pypi/v/axiom-apex.svg)](https://pypi.org/project/axiom-apex/)
-# APEX — Agentic Process Executor
+# axiom-apex
 
-**v2.1.0** · Pure-functional CLI framework for deterministic, reproducible AI-driven workflows. Python 3.11+ · Gemini 2.5 Flash · MIT
+**v2.1.0** · Deterministic agentic runtime for AI-driven task execution — schema-validated plans, bounded tool execution, recursive self-improvement, and full audit trails without the non-determinism of conventional agent frameworks. Python 3.11+ · Gemini 2.5 Flash · MIT
 
 ![CI](https://github.com/axiom-llc/axiom-apex/actions/workflows/ci.yml/badge.svg)
 
@@ -76,7 +76,7 @@ apex swarm --tasks tasks.json --workers 4 --trace-path ~/traces/swarm.jsonl
 
 ## Run History
 
-Every run is persisted to SQLite at `~/.apex/runs.db`.
+Every run is persisted to SQLite at `~/.apex/runs.db`. Every tool invocation within a run is recorded as a step event.
 
 ```bash
 apex history        # list last 20 runs
@@ -95,7 +95,45 @@ apex stats          # aggregate metrics as JSON
 }
 ```
 
-Schema: `runs(id, task, plan_json, exit_code, token_count, wall_seconds, timestamp)`
+Schema:
+```
+runs(id, task, plan_json, exit_code, token_count, wall_seconds, timestamp)
+events(id, run_id, step, tool, args_json, result_json, timestamp)
+```
+
+---
+
+## Replay
+
+Re-execute any recorded run without re-querying the LLM.
+
+```bash
+apex replay 42                        # simulate using recorded step outputs
+apex replay 42 --mode dry             # print plan JSON only
+apex replay 42 --mode live            # re-execute against current registry
+apex replay 42 --mode simulate --diff # compare simulated vs recorded outputs
+apex replay 42 --mode live --no-write # live replay with write_file disabled
+```
+
+Replay modes:
+- `simulate` — stubs all tools using recorded outputs from `events` table. No side effects.
+- `dry` — prints the recorded plan JSON. No execution.
+- `live` — full re-execution against the current tool registry. Real side effects.
+
+---
+
+## Export
+
+Dump run history to flat files for external analysis.
+
+```bash
+apex export                                    # JSONL to stdout
+apex export --format csv                       # CSV to stdout
+apex export --format jsonl --since 2026-01-01  # filter by date
+apex export --fields id,task,exit_code         # select fields
+apex export --events                           # include step-level events
+apex export --format csv -o ~/runs.csv         # write to file
+```
 
 ---
 
@@ -133,15 +171,26 @@ apex rsi --cycles 1 --mock-bench
 **Cycle sequence:**
 1. Run bench → compute `apex_score`
 2. Read RSI-eligible source files
-3. Generate unified diff via LLM
-4. Structural validation (banned patterns, file allowlist)
-5. Apply on `rsi/cycle-N` branch via `patch -p1 --fuzz=3`
-6. Re-run bench → compare scores
+3. Generate N=3 candidate patches via LLM
+4. Structural validation on each candidate (banned patterns, file allowlist)
+5. Score each candidate in isolation (k=3 bench runs, mean score)
+6. Apply highest-scoring candidate on `rsi/cycle-N` branch via `patch -p1 --fuzz=3`
 7. Print delta + human review gate before any merge
 
 **Governor hard caps:** max cycles · max token budget · max wall time (1h). All enforced before each cycle.
 
 **RSI-eligible files:** `apex/core/loop.py` · `apex/core/planner.py` · `apex/llm.py` · `apex/paranoid.py`
+
+---
+
+## Safety
+
+`--paranoid` runs a two-stage audit before execution:
+
+1. **Static prefilter** — deterministic regex rules block known-dangerous patterns (`rm -rf /`, `curl | sh`, writes outside `$HOME`, etc.) before any LLM call.
+2. **LLM audit** — Gemini audits the full plan for destructive, exfiltration, or privilege-escalation patterns. Returns structured risk assessment.
+
+Execution is blocked if either stage rejects the plan.
 
 ---
 
@@ -173,6 +222,10 @@ Memory is backed by SQLite at `~/.apex/memory.db`.
 
 **`LLM_PROVIDER`** *(optional, default: `gemini`)* — Set to `ollama` to use local Ollama. `GEMINI_API_KEY` not required when using Ollama.
 
+**`OLLAMA_BASE_URL`** *(optional, default: `http://localhost:11434`)* — Ollama base URL.
+
+**`OLLAMA_MODEL`** *(optional, default: `llama3`)* — Ollama model name.
+
 **`APEX_MCP_SERVERS`** *(optional)* — JSON array of MCP server configs. Tools injected into registry at startup.
 
 ---
@@ -181,15 +234,18 @@ Memory is backed by SQLite at `~/.apex/memory.db`.
 
 ```
 apex/
-  __main__.py     <- CLI entry; builds registry, calls run()
+  __main__.py     <- CLI entry; builds registry, dispatches subcommands, calls run()
   config.py       <- Frozen Config dataclass, resolved once at startup
-  llm.py          <- Gemini + Ollama adapters (stateless)
+  providers.py    <- Provider abstraction: GeminiProvider, OllamaProvider, get_provider()
+  llm.py          <- Thin shim delegating to providers.py
   memory.py       <- make_memory_tools(db_path) -> (memory_read, memory_write)
-  history.py      <- record_run(), list_runs(), aggregate_stats() -> ~/.apex/runs.db
+  history.py      <- record_run(), record_event(), list_runs(), aggregate_stats()
+  export.py       <- apex export: runs.db -> CSV / JSONL
+  replay.py       <- apex replay: re-execute recorded runs (simulate/dry/live)
   tools.py        <- shell, read_file, write_file, http_get, rag_multi_query
   bench.py        <- Benchmark harness + apex_score fitness function
-  rsi.py          <- RSI loop + CycleGovernor
-  paranoid.py     <- Plan auditor — safety gate before execution
+  rsi.py          <- RSI loop + multi-candidate scoring + CycleGovernor
+  paranoid.py     <- Static prefilter + LLM plan auditor
   mcp.py          <- MCP client adapter
   toolloader.py   <- Tool autoloading from ~/.apex/tools/
   prompt.txt      <- System + planner prompt
@@ -200,7 +256,7 @@ apex/
     types.py      <- Frozen dataclasses: Plan, Step, Result, Tool, Event
     state.py      <- Immutable State; format_output
     planner.py    <- Prompt rendering, JSON plan parsing, Pydantic schema validation
-    loop.py       <- Pure run(task, config, registry) -> State; writes to runs.db
+    loop.py       <- Pure run(task, config, registry) -> State; writes runs + events
     trace.py      <- JSONL write_event
     swarm.py      <- Parallel swarm coordinator with human-in-loop
 ```
@@ -219,6 +275,8 @@ apex/
 
 **RSI never touches main.** All cycles operate on isolated `rsi/cycle-N` branches. Human merge required.
 
+**Deterministic safety.** Static prefilter runs before any LLM audit — dangerous patterns blocked without a network call.
+
 ### Data Flow
 
 ```
@@ -229,11 +287,13 @@ argv
       |- {shell, read_file, ...}  -> registry: dict[str, Tool]
       -> run(task, config, registry)
            |- generate_plan()     -> State (schema-validated)
-           |- paranoid audit      -> safe | block
+           |- static_audit()      -> safe | block  (deterministic)
+           |- paranoid LLM audit  -> safe | block  (if --paranoid)
            -> loop over steps
                 |- ToolCall -> tool.effect(args) -> Ok | Err -> State
+                           -> record_event()     -> ~/.apex/runs.db (events)
                 -> Halt    -> State(status=HALTED)
-           -> record_run()        -> ~/.apex/runs.db
+           -> record_run()        -> ~/.apex/runs.db (runs)
 ```
 
 ### Exit Codes

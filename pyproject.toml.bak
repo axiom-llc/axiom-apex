@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "axiom-apex"
+version = "2.0.0"
+description = "Deterministic AI agent runtime — NL to schema-validated plans to reproducible tool execution"
+authors = [{ name = "Axiom LLC", email = "axiom.co@proton.me" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["ai", "agent", "llm", "automation", "deterministic", "gemini"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "requests",
+    "google-genai",
+]
+
+[project.scripts]
+apex = "apex.__main__:main"
+
+[project.urls]
+Homepage = "https://axiom-llc.github.io"
+Repository = "https://github.com/axiom-llc/axiom-apex"
+Changelog = "https://github.com/axiom-llc/axiom-apex/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apex*"]
+
+[tool.setuptools.package-data]
+"apex" = ["*.txt"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: end-to-end tests requiring GEMINI_API_KEY",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:google.*",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]

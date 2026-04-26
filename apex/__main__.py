@@ -63,6 +63,10 @@ def main() -> None:
         from apex.replay import replay_main
         replay_main(sys.argv[2:])
         sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "serve":
+        from apex.server import serve_main
+        serve_main(sys.argv[2:])
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "templates":
         from apex.templates import templates_main
         templates_main(sys.argv[2:])

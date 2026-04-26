@@ -1,8 +1,52 @@
 """Paranoid plan validator — audits generated plans for dangerous operations before execution."""
 from __future__ import annotations
-
 import json
+import re
 from apex.core.types import Plan, Halt, ToolCall
+
+# ---------------------------------------------------------------------------
+# Static deterministic prefilter (runs BEFORE LLM audit)
+# ---------------------------------------------------------------------------
+
+_BLOCK_PATTERNS = [
+    re.compile(r"rm\s+-[rf]+\s+/"),
+    re.compile(r"chmod\s+777\s+/"),
+    re.compile(r"curl\s+.*\|\s*sh"),
+    re.compile(r"wget\s+.*\|\s*sh"),
+    re.compile(r"dd\s+if=/dev/zero"),
+    re.compile(r"mkfs\."),
+    re.compile(r">\s*/dev/sd"),
+    re.compile(r":\(\)\{:\|:&\};"),
+]
+
+
+def _static_check(plan: Plan) -> list[dict]:
+    import os
+    home = str(os.path.expanduser("~"))
+    violations = []
+    for i, step in enumerate(plan.steps):
+        if not isinstance(step, ToolCall):
+            continue
+        args_str = json.dumps(step.args)
+        for pat in _BLOCK_PATTERNS:
+            if pat.search(args_str):
+                violations.append({"step": i, "tool": step.name,
+                                   "reason": "blocked pattern: " + pat.pattern})
+        if step.name == "write_file":
+            path_arg = step.args.get("path", "")
+            if path_arg and not str(path_arg).startswith(home):
+                violations.append({"step": i, "tool": step.name,
+                                   "reason": "write outside HOME: " + str(path_arg)})
+    return violations
+
+
+def static_audit(plan: Plan) -> dict:
+    violations = _static_check(plan)
+    if violations:
+        return {"safe": False, "risk_level": "critical",
+                "findings": violations,
+                "summary": "Static prefilter blocked " + str(len(violations)) + " pattern(s)"}
+    return {"safe": True, "risk_level": "none", "findings": [], "summary": "Static check passed"}
 
 _PARANOID_PROMPT = """You are a security auditor for an AI agent execution system.
 
@@ -46,6 +90,9 @@ def audit_plan(plan: Plan, *, api_key: str, provider: str = "gemini") -> dict:
     plan_json = json.dumps({"goal": plan.goal, "steps": steps}, indent=2)
     prompt = _PARANOID_PROMPT + plan_json
 
+    static = static_audit(plan)
+    if not static["safe"]:
+        return static
     from apex.llm import gemini_complete
     result = gemini_complete(prompt, api_key=api_key)
     text = result["text"].strip()

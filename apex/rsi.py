@@ -77,6 +77,51 @@ def _apply_patch(patch_text: str) -> bool:
     return True
 
 
+def _run_candidate(
+    candidate_idx: int,
+    patch_text: str,
+    tasks_path: str,
+    mock_bench: bool,
+    k: int = 3,
+) -> float:
+    """Apply patch to isolated tmpdir copy, bench k times, return mean score."""
+    import shutil
+    tmpdir = Path(tempfile.mkdtemp(prefix=f"rsi_cand{candidate_idx}_"))
+    try:
+        shutil.copytree(REPO_ROOT, tmpdir / "repo", dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns(".git", ".venv", "__pycache__"))
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".patch", delete=False) as f:
+            f.write(patch_text)
+            patch_path = f.name
+        dry = subprocess.run(
+            ["patch", "-p1", "--dry-run", "--fuzz=3", "-i", patch_path],
+            cwd=tmpdir / "repo", capture_output=True, text=True,
+        )
+        if dry.returncode != 0:
+            return 0.0
+        subprocess.run(["patch", "-p1", "--fuzz=3", "-i", patch_path],
+                       cwd=tmpdir / "repo", check=True, capture_output=True)
+        Path(patch_path).unlink(missing_ok=True)
+        scores = []
+        for _ in range(k):
+            cmd = [sys.executable, "-m", "apex.bench", "--tasks", tasks_path]
+            if mock_bench:
+                cmd.append("--mock")
+            r = subprocess.run(cmd, capture_output=True, text=True,
+                               cwd=tmpdir / "repo",
+                               env={**os.environ, "PYTHONPATH": str(tmpdir / "repo")})
+            try:
+                scores.append(json.loads(r.stdout).get("apex_score", 0.0))
+            except json.JSONDecodeError:
+                scores.append(0.0)
+        return sum(scores) / len(scores) if scores else 0.0
+    except Exception as e:
+        print(f"[rsi] candidate {candidate_idx} error: {e}", file=sys.stderr)
+        return 0.0
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
 def _commit_cycle(cycle: int, score_before: float, score_after: float) -> None:
     _git(["add", "-A"])
     _git(["commit", "-m",
@@ -254,35 +299,41 @@ def run_rsi(
         try:
             sources = _read_sources()
             remaining = governor.tokens_remaining()
-            patch = _generate_patch(api_key, sources, score, remaining)
 
-            if not patch:
-                print(f"[rsi] no patch generated — skipping cycle", flush=True)
+            # Multi-candidate: generate N=3 patches, score each in isolation
+            N_CANDIDATES = 3
+            candidates = []
+            for ci in range(N_CANDIDATES):
+                patch = _generate_patch(api_key, sources, score, remaining)
+                if not patch:
+                    continue
+                if not _validate_patch(patch, api_key):
+                    print(f"[rsi] candidate {ci} rejected by paranoid", flush=True)
+                    continue
+                estimated_tokens = len(patch) // 4 + len(sources) // 4
+                governor.consume_tokens(estimated_tokens)
+                cand_score = _run_candidate(ci, patch, tasks_path, mock_bench, k=3)
+                print(f"[rsi] candidate {ci} score={cand_score:.6f}", flush=True)
+                candidates.append((cand_score, patch))
+
+            if not candidates:
+                print(f"[rsi] no valid candidates — skipping cycle", flush=True)
                 _checkout(origin_branch)
                 _git(["branch", "-D", branch])
                 continue
 
-            # Estimate token cost (~4 chars/token)
-            estimated_tokens = len(patch) // 4 + len(sources) // 4
-            governor.consume_tokens(estimated_tokens)
+            best_score, best_patch = max(candidates, key=lambda x: x[0])
+            print(f"[rsi] best candidate score={best_score:.6f} "
+                  f"(from {len(candidates)} candidates)", flush=True)
 
-            # Paranoid validate
-            if not _validate_patch(patch, api_key):
-                print(f"[rsi] paranoid rejected patch — skipping cycle", flush=True)
+            # Apply best patch to working tree
+            if not _apply_patch(best_patch):
+                print(f"[rsi] best patch apply failed — skipping cycle", flush=True)
                 _checkout(origin_branch)
                 _git(["branch", "-D", branch])
                 continue
 
-            # Apply patch
-            if not _apply_patch(patch):
-                print(f"[rsi] patch apply failed — skipping cycle", flush=True)
-                _checkout(origin_branch)
-                _git(["branch", "-D", branch])
-                continue
-
-            # Rerun bench
-            new_bench = _run_bench(tasks_path, mock=mock_bench)
-            new_score = new_bench.get("apex_score", 0.0)
+            new_score = best_score
             delta = new_score - score
 
             print(f"[rsi] score: {score:.6f} -> {new_score:.6f}  delta={delta:+.6f}",

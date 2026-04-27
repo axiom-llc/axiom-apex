@@ -236,4 +236,4 @@ def serve_main(argv: list[str]) -> None:
         print("Auth: X-Apex-Key required", file=sys.stderr)
 
     print(f"apex serve {_VERSION}  http://{a.host}:{a.port}", file=sys.stderr)
-    app.run(host=a.host, port=a.port, debug=False)
+    app.run(host=a.host, port=a.port, debug=False, threaded=False)

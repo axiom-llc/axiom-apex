@@ -30,7 +30,6 @@ RSI_SOURCE_FILES = [
     "apex/core/loop.py",
     "apex/core/planner.py",
     "apex/llm.py",
-    "apex/paranoid.py",
 ]
 
 

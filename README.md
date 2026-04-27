@@ -1,7 +1,7 @@
 [![PyPI](https://img.shields.io/pypi/v/axiom-apex.svg)](https://pypi.org/project/axiom-apex/)
 # axiom-apex
 
-**v2.1.0** · Deterministic agentic runtime for AI-driven task execution — schema-validated plans, bounded tool execution, recursive self-improvement, and full audit trails without the non-determinism of conventional agent frameworks. Python 3.11+ · Gemini 2.5 Flash · MIT
+**v2.2.0** · Deterministic agentic runtime for AI-driven task execution — schema-validated plans, bounded tool execution, recursive self-improvement, and full audit trails without the non-determinism of conventional agent frameworks. Python 3.11+ · Gemini 2.5 Flash · MIT
 
 ![CI](https://github.com/axiom-llc/axiom-apex/actions/workflows/ci.yml/badge.svg)
 
@@ -137,6 +137,55 @@ apex export --format csv -o ~/runs.csv         # write to file
 
 ---
 
+## HTTP API
+
+`apex serve` exposes a Flask HTTP API for programmatic plan submission and run inspection.
+
+```bash
+apex serve                          # bind 127.0.0.1:8080
+apex serve --host 0.0.0.0           # expose on all interfaces
+apex serve --host 0.0.0.0 --port 9090
+```
+
+Set `APEX_API_KEY` to require authentication on all endpoints:
+
+```bash
+export APEX_API_KEY=your-secret-key
+apex serve
+```
+
+Requests must include `X-Apex-Key: your-secret-key`. If `APEX_API_KEY` is unset, the server starts without auth (warning printed at startup).
+
+### Endpoints
+
+**`GET /health`**
+```json
+{"status": "ok", "version": "2.2.0"}
+```
+
+**`POST /run`** — Submit a task for execution.
+```bash
+curl -X POST http://127.0.0.1:8080/run \
+  -H "Content-Type: application/json" \
+  -H "X-Apex-Key: your-secret-key" \
+  -d '{"task": "write hello world to /tmp/hello.txt"}'
+```
+Response: `{run_id, plan, exit_code, status, output, token_count, step_count}`
+
+**`GET /runs`** — List last 20 run summaries.
+
+**`GET /runs/<id>`** — Full run dict + events list for a specific run.
+
+**`POST /replay`** — Replay a recorded run.
+```json
+{"run_id": 42, "mode": "simulate"}
+```
+Response: `{run_id, mode, exit_code, output}`
+
+**`GET /export`** — Stream run history. Accepts `?format=csv|jsonl&since=YYYY-MM-DD`.
+
+---
+
 ## Benchmark Harness & Fitness Score
 
 ```bash
@@ -179,7 +228,7 @@ apex rsi --cycles 1 --mock-bench
 
 **Governor hard caps:** max cycles · max token budget · max wall time (1h). All enforced before each cycle.
 
-**RSI-eligible files:** `apex/core/loop.py` · `apex/core/planner.py` · `apex/llm.py` · `apex/paranoid.py`
+**RSI-eligible files:** `apex/core/loop.py` · `apex/core/planner.py` · `apex/llm.py`
 
 ---
 
@@ -191,6 +240,8 @@ apex rsi --cycles 1 --mock-bench
 2. **LLM audit** — Gemini audits the full plan for destructive, exfiltration, or privilege-escalation patterns. Returns structured risk assessment.
 
 Execution is blocked if either stage rejects the plan.
+
+`paranoid.py` is a permanent security boundary and is never RSI-eligible.
 
 ---
 
@@ -218,6 +269,8 @@ Memory is backed by SQLite at `~/.apex/memory.db`.
 
 **`GEMINI_API_KEY`** *(required)* — Gemini API key.
 
+**`APEX_API_KEY`** *(optional)* — API key for `apex serve` authentication. If unset, server starts without auth.
+
 **`APEX_DB_PATH`** *(optional, default: `~/.apex/memory.db`)* — SQLite memory database path.
 
 **`LLM_PROVIDER`** *(optional, default: `gemini`)* — Set to `ollama` to use local Ollama. `GEMINI_API_KEY` not required when using Ollama.
@@ -238,6 +291,7 @@ apex/
   config.py       <- Frozen Config dataclass, resolved once at startup
   providers.py    <- Provider abstraction: GeminiProvider, OllamaProvider, get_provider()
   llm.py          <- Thin shim delegating to providers.py
+  server.py       <- Flask HTTP API; apex serve subcommand
   memory.py       <- make_memory_tools(db_path) -> (memory_read, memory_write)
   history.py      <- record_run(), record_event(), list_runs(), aggregate_stats()
   export.py       <- apex export: runs.db -> CSV / JSONL
@@ -245,7 +299,7 @@ apex/
   tools.py        <- shell, read_file, write_file, http_get, rag_multi_query
   bench.py        <- Benchmark harness + apex_score fitness function
   rsi.py          <- RSI loop + multi-candidate scoring + CycleGovernor
-  paranoid.py     <- Static prefilter + LLM plan auditor
+  paranoid.py     <- Static prefilter + LLM plan auditor (not RSI-eligible)
   mcp.py          <- MCP client adapter
   toolloader.py   <- Tool autoloading from ~/.apex/tools/
   prompt.txt      <- System + planner prompt

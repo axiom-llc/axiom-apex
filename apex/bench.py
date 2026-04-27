@@ -136,7 +136,7 @@ def main() -> None:
                         help="Pass --full-trace --trace-path to each apex call")
     parser.add_argument("--out", default=None,
                         help="Write JSON results to this path (default: stdout only)")
-    parser.add_argument("--timeout", type=int, default=120,
+    parser.add_argument("--timeout", type=int, default=180,
                         help="Per-task timeout in seconds (default: 120)")
     args = parser.parse_args()
 

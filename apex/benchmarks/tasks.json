@@ -25,5 +25,44 @@
     "id": "http_get",
     "prompt": "fetch https://api.ipify.org and write the response to /tmp/apex-bench-ip.txt",
     "check_file": "/tmp/apex-bench-ip.txt"
+  },
+  {
+    "id": "multi_step_chain",
+    "prompt": "write the string 'step-one-data' to /tmp/apex-bench-chain-a.txt, then read that file, then write its contents uppercased to /tmp/apex-bench-chain-b.txt",
+    "check": "STEP-ONE-DATA",
+    "check_file": "/tmp/apex-bench-chain-b.txt"
+  },
+  {
+    "id": "overwrite_existing",
+    "prompt": "write the string 'old-value' to /tmp/apex-bench-overwrite.txt, then overwrite that same file with the string 'new-value'",
+    "check": "new-value",
+    "check_file": "/tmp/apex-bench-overwrite.txt"
+  },
+  {
+    "id": "shell_pipeline",
+    "prompt": "use shell to run: echo 'pipeline-input' | tr 'a-z' 'A-Z' > /tmp/apex-bench-pipeline.txt",
+    "check": "PIPELINE-INPUT",
+    "check_file": "/tmp/apex-bench-pipeline.txt"
+  },
+  {
+    "id": "http_post",
+    "prompt": "make an HTTP POST request to https://httpbin.org/post with JSON body {\"bench\": \"apex\"} and write the response to /tmp/apex-bench-post.txt",
+    "check": "apex",
+    "check_file": "/tmp/apex-bench-post.txt"
+  },
+  {
+    "id": "memory_multi_key",
+    "prompt": "save 'alpha-value' to memory key alpha_key and 'beta-value' to memory key beta_key, then retrieve and print both values",
+    "check": "beta-value"
+  },
+  {
+    "id": "large_file_write",
+    "prompt": "use shell to write a file /tmp/apex-bench-large.txt containing 200 lines each with the text 'bench-line', then print the line count of the file",
+    "check": "200"
+  },
+  {
+    "id": "multi_file_verify",
+    "prompt": "write 'file-alpha' to /tmp/apex-bench-mf-a.txt, 'file-beta' to /tmp/apex-bench-mf-b.txt, and 'file-gamma' to /tmp/apex-bench-mf-c.txt, then read all three files and print their contents",
+    "check": "file-gamma"
   }
 ]

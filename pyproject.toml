@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "axiom-apex"
-version = "2.1.0"
+version = "2.2.0"
 description = "Deterministic AI agent runtime — NL to schema-validated plans to reproducible tool execution"
 authors = [{ name = "AXIOM LLC", email = "axiom.co@proton.me" }]
 readme = "README.md"

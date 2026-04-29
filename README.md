@@ -415,6 +415,39 @@ apex "read ~/research-1.txt ~/research-2.txt ~/research-3.txt ~/research-4.txt, 
 
 `compliance-audit.sh` · `cybersecurity.sh` · `due-diligence.sh` · `healthcare-rcm.sh` · `hedge-fund.sh` · `insurance-claims.sh` · `law-firm.sh` · `msp.sh` · `recruiter.sh` · `revenue-monitor.sh` · `solo-agency.sh` · `supply-chain.sh`
 
+
+Each template ships with a recommended ASON policy. Four representative profiles:
+
+**Law firm** — document-centric, no egress required
+```bash
+# templates/law-firm.sh
+# Reads matter files, writes reports and engagement letters — never touches the network
+ASON_POLICY='{"max_steps": 12, "allowed_tools": ["read_file", "write_file"], "blast_radius": "local"}'
+```
+
+**Healthcare RCM** — compliance-sensitive, filesystem-only
+```bash
+# templates/healthcare-rcm.sh
+# Claim scrubbing, denial analysis, AR aging — all local reads and writes
+ASON_POLICY='{"max_steps": 8, "allowed_tools": ["read_file", "write_file"], "blast_radius": "local", "rollback_on_failure": true}'
+```
+
+**Hedge fund** — requires live market data ingestion via HTTP
+```bash
+# templates/hedge-fund.sh
+# Fetches Yahoo Finance, WSJ RSS, HN signals — network egress required
+ASON_POLICY='{"max_steps": 16, "allowed_tools": ["http_get", "write_file"], "blast_radius": "network"}'
+```
+
+**MSP / DevOps** — local ops with shell access, no network writes
+```bash
+# templates/msp.sh
+# Disk cleanup, log rotation, health checks — shell scoped to local filesystem
+ASON_POLICY='{"max_steps": 10, "allowed_tools": ["shell", "read_file", "write_file", "delete_file"], "blast_radius": "local"}'
+```
+
+`blast_radius=local` blocks all HTTP tools at the API boundary before execution. `blast_radius=none` additionally blocks write and delete operations — enforced structurally, not by prompt.
+
 ---
 
 ## Extending APEX

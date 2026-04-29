@@ -1,7 +1,7 @@
 [![PyPI](https://img.shields.io/pypi/v/axiom-apex.svg)](https://pypi.org/project/axiom-apex/)
 # axiom-apex
 
-**v2.2.0** · Deterministic agentic runtime for AI-driven task execution — schema-validated plans, bounded tool execution, recursive self-improvement, and full audit trails without the non-determinism of conventional agent frameworks. Python 3.11+ · Gemini 2.5 Flash · MIT
+**v2.2.0** · Deterministic agentic runtime for AI-driven task execution — schema-validated plans, bounded tool execution, benchmark-driven self-optimization, and full audit trails without the non-determinism of conventional agent frameworks. Python 3.11+ · Gemini 2.5 Flash · MIT
 
 ![CI](https://github.com/axiom-llc/axiom-apex/actions/workflows/ci.yml/badge.svg)
 
@@ -208,9 +208,9 @@ apex_score = pass_rate × speed_factor × token_efficiency
 
 ---
 
-## Recursive Self-Improvement
+## Benchmark-Driven Self-Optimization (BDSO)
 
-`apex rsi` runs automated improvement cycles against the benchmark. Main is never touched without human approval.
+`apex rsi` runs Benchmark-Driven Self-Optimization (BDSO) cycles against the benchmark. Main is never touched without human approval.
 
 ```bash
 apex rsi --cycles 3 --budget-tokens 50000
@@ -219,7 +219,7 @@ apex rsi --cycles 1 --mock-bench
 
 **Cycle sequence:**
 1. Run bench → compute `apex_score`
-2. Read RSI-eligible source files
+2. Read BDSO-eligible source files
 3. Generate N=3 candidate patches via LLM
 4. Structural validation on each candidate (banned patterns, file allowlist)
 5. Score each candidate in isolation (k=3 bench runs, mean score)
@@ -228,7 +228,7 @@ apex rsi --cycles 1 --mock-bench
 
 **Governor hard caps:** max cycles · max token budget · max wall time (1h). All enforced before each cycle.
 
-**RSI-eligible files:** `apex/core/loop.py` · `apex/core/planner.py` · `apex/llm.py`
+**BDSO-eligible files:** `apex/core/loop.py` · `apex/core/planner.py` · `apex/llm.py`
 
 ---
 
@@ -241,7 +241,7 @@ apex rsi --cycles 1 --mock-bench
 
 Execution is blocked if either stage rejects the plan.
 
-`paranoid.py` is a permanent security boundary and is never RSI-eligible.
+`paranoid.py` is a permanent security boundary and is never BDSO-eligible.
 
 ---
 
@@ -298,8 +298,8 @@ apex/
   replay.py       <- apex replay: re-execute recorded runs (simulate/dry/live)
   tools.py        <- shell, read_file, write_file, http_get, rag_multi_query
   bench.py        <- Benchmark harness + apex_score fitness function
-  rsi.py          <- RSI loop + multi-candidate scoring + CycleGovernor
-  paranoid.py     <- Static prefilter + LLM plan auditor (not RSI-eligible)
+  rsi.py          <- BDSO loop + multi-candidate scoring + CycleGovernor
+  paranoid.py     <- Static prefilter + LLM plan auditor (not BDSO-eligible)
   mcp.py          <- MCP client adapter
   toolloader.py   <- Tool autoloading from ~/.apex/tools/
   prompt.txt      <- System + planner prompt
@@ -327,7 +327,7 @@ apex/
 
 **Zero implicit configuration.** `Config` resolved once at startup, passed explicitly to every function.
 
-**RSI never touches main.** All cycles operate on isolated `rsi/cycle-N` branches. Human merge required.
+**BDSO never touches main.** All cycles operate on isolated `rsi/cycle-N` branches. Human merge required.
 
 **Deterministic safety.** Static prefilter runs before any LLM audit — dangerous patterns blocked without a network call.
 

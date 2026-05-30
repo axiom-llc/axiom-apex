@@ -1,0 +1,771 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{Deterministic Execution Contracts for LLM Agent Systems:
+Architecture, Policy Enforcement, and Empirical
+Evaluation}\label{deterministic-execution-contracts-for-llm-agent-systems-architecture-policy-enforcement-and-empirical-evaluation}
+
+\textbf{Adam Tacon}\\
+Axiom LLC, New Jersey\\
+\texttt{adam.tacon@proton.me} \texttt{axiom.co@proton.me}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Abstract}\label{abstract}
+
+Large language model (LLM) agents introduce a structural mismatch
+between probabilistic generation and the determinism required for safe,
+reproducible execution in consequential environments. We present APEX
+(Autonomous Plan EXecutor), a plan-deterministic swarm runtime that
+enforces schema-validated, bounded, process-isolated execution contracts
+over LLM-generated plans, and ASON (Autonomous Security Optimization
+Network), a policy enforcement layer that validates and governs plan
+submission prior to execution. Together, these systems instantiate a
+two-stage architecture in which generation remains probabilistic but
+execution is structurally constrained: given a validated plan, the
+tool-call sequence is deterministic; LLM variance across plan generation
+is logged and replayable. We formalize the information-flow discipline
+underlying this design, describe the implementation of key invariants
+including step bounding, tool timeout, blast-radius enforcement, and
+rollback generation, and report empirical results from a benchmark
+harness yielding a 12/12 pass rate with a composite \texttt{apex\_score}
+of 1.008 across nominal and adversarial tool-invocation, file I/O,
+memory, and HTTP tasks. We further describe the Benchmark-Driven
+Self-Optimization (BDSO) loop integrated into APEX, bounded by a fitness
+function and restricted to a verified-eligible file set that permanently
+excludes security-critical components. The system is released as
+open-source infrastructure for deterministic AI agent deployment.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Introduction}\label{1-introduction}
+
+The dominant failure mode of deployed LLM agent systems is not
+generative inaccuracy but architectural unsafety: the absence of
+enforceable boundaries on information flow between probabilistic
+generation and consequential execution. When an agent ingests tool
+outputs, retrieved documents, and user instructions through a unified
+untyped context, data and control become structurally indistinguishable.
+This ambiguity is the root cause of prompt injection, policy drift,
+unverified plan execution, and unstable self-modification.
+
+Prior work has addressed these failure modes largely through heuristic
+filtering, constitutional prompting, and output classifiers ---
+interventions that operate at the semantic layer and inherit its
+fundamental unreliability. We argue that reliable agent execution
+requires a lower-level intervention: typed intermediate representations,
+schema-validated plan contracts, and execution environments with
+formally bounded resource consumption.
+
+This paper makes the following contributions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A formal characterization of information-flow collapse as the unifying
+  cause across injection, verification failure, and unstable
+  self-improvement.
+\item
+  APEX: a plan-deterministic agent runtime implementing a pure
+  \texttt{run(task,\ config,\ registry)\ →\ State} execution contract
+  with bounded step count, tool timeout, output limits, and JSONL audit
+  trace.
+\item
+  ASON: a policy enforcement layer implementing blast-radius
+  classification, tool allowlisting, and automatic rollback plan
+  generation against the APEX execution substrate.
+\item
+  A benchmark harness and fitness function (\texttt{apex\_score})
+  producing verifiable, reproducible evaluation of agent task execution.
+\item
+  A Benchmark-Driven Self-Optimization (BDSO) loop bounded by the
+  fitness function and restricted to a security-invariant eligible file
+  set.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Related Work}\label{2-related-work}
+
+\textbf{Prompt injection and control-flow integrity.} Perez and Ribeiro
+(2022) characterize prompt injection as an input-validation failure;
+Greshake et al. (2023) extend this to indirect injection via retrieved
+content. Our treatment formalizes the mechanism as type confusion over a
+semantically untyped channel, analogous to memory-unsafe control-flow
+corruption.
+
+\textbf{Plan verification.} SayCan (Ahn et al., 2022) and ToolFormer
+(Schick et al., 2023) generate tool-calling plans but perform no
+pre-execution structural validation. ReAct (Yao et al., 2022)
+interleaves reasoning and action without schema enforcement. APEX
+introduces a validation stage that rejects plans failing schema,
+step-count, or tool-allowlist constraints prior to any execution.
+
+\textbf{Agent safety frameworks.} Constitutional AI (Bai et al., 2022)
+and RLHF-based approaches address value alignment at training time. Our
+approach is complementary and orthogonal: we address execution-time
+structural safety independently of model-level alignment.
+
+\textbf{Policy enforcement and execution contracts.} Existing
+orchestration frameworks lack the enforcement layer that distinguishes
+ASON from prior work. LangGraph provides a stateful execution graph but
+no policy layer: tool invocation is unrestricted by blast-radius or
+allowlist constraints. Temporal enforces workflow durability and retry
+semantics but has no LLM-native contract mechanism --- policies are
+defined in application code, not validated against plan structure.
+AutoGen supports multi-agent coordination but provides no execution
+bounds on individual agent actions. ASON\textquotesingle s
+distinguishing contribution is enforcement at the API boundary:
+blast-radius classification, tool allowlisting, and step-count limits
+are validated against the plan structure before any execution begins,
+with no comparator in the cited frameworks.
+
+\textbf{Recursive self-improvement.} Schmidhuber (2003) and subsequent
+work characterize RSI stability requirements. APEX instantiates a
+pragmatic bounded self-optimization loop (BDSO) with multi-candidate
+patch generation, isolated scoring, and a permanent security boundary
+excluding the plan auditor from eligible modification targets.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Theoretical Framework: Information Flow as the Core
+Safety
+Primitive}\label{3-theoretical-framework-information-flow-as-the-core-safety-primitive}
+
+\subsubsection{3.1 The Type-Confusion Model of Prompt
+Injection}\label{31-the-type-confusion-model-of-prompt-injection}
+
+LLM agents process all inputs --- user prompts, tool outputs, retrieved
+documents --- through a single untyped context. The model assigns no
+structural distinction between data (what is known) and control (what is
+done). A string that appears descriptive may be reinterpreted as
+prescriptive if it aligns with latent training patterns.
+
+This is structurally equivalent to type confusion in memory-unsafe
+languages: a buffer interpreted as a control structure can overwrite
+execution flow; a string interpreted as an instruction can override
+policy constraints. The agent does not resolve this ambiguity through
+judgment --- it lacks the structural capacity to prevent
+reinterpretation.
+
+The critical consequence is \textbf{compositionality}: individual
+fragments may be benign, but their accumulation across retrieval, tool
+output, and memory can constitute a coherent adversarial program that
+emerges through interaction, never existing explicitly at any single
+point. Local per-input filtering is therefore provably insufficient.
+Safety must be defined over entire execution traces.
+
+\subsubsection{3.2 Verification as a Correctness
+Envelope}\label{32-verification-as-a-correctness-envelope}
+
+Verification in LLM agent systems cannot achieve full formal correctness
+--- plans are underspecified, environments are non-deterministic, and
+verification latency must remain bounded for real-time operation. The
+pragmatic objective is a \textbf{correctness envelope}: a bounded region
+within which all executions are guaranteed to satisfy safety
+constraints.
+
+Critically, this envelope must be \textbf{temporal and relational}: an
+action safe in isolation may violate constraints in combination with
+prior or subsequent steps. Verification must therefore operate over the
+complete plan structure, including state transitions and resource
+consumption projections, not over individual steps.
+
+\subsubsection{3.3 Recursive Self-Improvement and Stability
+Constraints}\label{33-recursive-self-improvement-and-stability-constraints}
+
+RSI dynamics are most accurately modeled as a feedback system. Stability
+requires that errors decay across iterations --- each modification cycle
+must reduce, not amplify, deviation from desired behavior. Two
+conditions are necessary: (1) the magnitude of per-iteration changes
+must be bounded to keep verification tractable, and (2) the verification
+mechanism must scale with capability growth. A system that improves
+faster than its verifier can evaluate enters a regime of uncontrolled
+capability increase.
+
+A further invariant is that \textbf{security-critical components must be
+excluded from the eligible modification set}. A self-modifying system
+that can alter its own safety enforcement is not self-improving --- it
+is self-destabilizing.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. APEX: Deterministic Agent
+Runtime}\label{4-apex-deterministic-agent-runtime}
+
+\subsubsection{4.1 Core Execution
+Contract}\label{41-core-execution-contract}
+
+APEX implements a pure function:
+
+\begin{verbatim}
+run(task: str, config: Config, registry: ToolRegistry) → State
+\end{verbatim}
+
+The function is stateless with respect to prior runs. All state is local
+to the invocation and flushed to the audit log on completion. This
+purity is a primary architectural invariant: no hidden state accumulates
+across runs, and given a validated plan, execution is fully reproducible
+--- identical plans produce identical tool-call sequences. LLM variance
+occurs at plan generation time and is captured in the audit log rather
+than eliminated.
+
+\subsubsection{4.2 Execution Bounds}\label{42-execution-bounds}
+
+Every run is subject to hard resource bounds:
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Constraint & Bound \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Maximum steps & 32 \\
+Tool timeout & 300 s (SIGALRM, main thread) \\
+Output size & 10 MB \\
+Plan schema & Pydantic-validated pre-execution \\
+\end{longtable}
+
+Plans failing schema validation are rejected before any tool invocation.
+Step count is enforced as a hard ceiling, not a soft advisory. Tool
+timeout is enforced at the syscall boundary via \texttt{signal.alarm},
+ensuring no tool invocation can hold the executor indefinitely.
+
+\subsubsection{4.3 Tool Registry and
+Autoloading}\label{43-tool-registry-and-autoloading}
+
+Tools are registered against a typed interface requiring an
+\texttt{effect(args)\ →\ result} method and a JSON schema for argument
+validation. The runtime autoloads tools from
+\texttt{\textasciitilde{}/.apex/tools/}, enabling deployment-specific
+tool sets without modifying core execution logic. This separation
+maintains the KISS invariant: the core executor has no awareness of
+domain-specific tool semantics.
+
+\subsubsection{4.4 Audit Infrastructure}\label{44-audit-infrastructure}
+
+Every run emits a JSONL trace recording each step\textquotesingle s tool
+invocation, arguments, result, and wall time. Runs are persisted to a
+SQLite database (\texttt{\textasciitilde{}/.apex/runs.db}) with schema:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{runs(}\KeywordTok{id}\NormalTok{, task, plan\_json, exit\_code, token\_count, wall\_seconds, }\DataTypeTok{timestamp}\NormalTok{)}
+\KeywordTok{events}\NormalTok{(}\KeywordTok{id}\NormalTok{, run\_id, step, tool, args\_json, result\_json, }\DataTypeTok{timestamp}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+This provides complete replay fidelity and supports post-hoc audit of
+any execution. The \texttt{apex\ replay} subcommand supports three
+modes: \texttt{simulate} (reconstruct trace without re-executing),
+\texttt{dry} (execute plan without committing side effects), and
+\texttt{live} (full re-execution).
+
+\subsubsection{4.5 Multi-Provider
+Abstraction}\label{45-multi-provider-abstraction}
+
+The LLM provider is abstracted behind a \texttt{providers.py} shim with
+concrete adapters for Gemini 2.5 Flash and Ollama. Provider selection is
+configuration-driven at startup; the core execution loop has no
+provider-specific logic. This isolation ensures that provider
+substitution does not require modification of any safety-critical
+component.
+
+\subsubsection{4.6 HTTP API}\label{46-http-api}
+
+APEX exposes a Flask HTTP API (\texttt{apex\ serve}) with endpoints for
+run submission (\texttt{POST\ /run}), run history (\texttt{GET\ /runs},
+\texttt{GET\ /runs/\textless{}id\textgreater{}}), replay
+(\texttt{POST\ /replay}), and export (\texttt{GET\ /export}). The server
+runs in single-threaded mode (\texttt{threaded=False}) to maintain
+SIGALRM compatibility --- the tool timeout mechanism operates only on
+the main thread, and multi-threaded dispatch would silently disable it.
+
+Authentication is enforced via \texttt{X-Apex-Key} header matched
+against \texttt{APEX\_API\_KEY} environment variable. If the variable is
+unset, the server starts without authentication with a startup warning.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. ASON: Policy Enforcement
+Layer}\label{5-ason-policy-enforcement-layer}
+
+\subsubsection{5.1 Architecture}\label{51-architecture}
+
+ASON (Autonomous Security Optimization Network) is a pre-execution
+policy enforcement layer that validates and governs plan submission to
+APEX. It implements a strict separation: APEX defines execution
+semantics; ASON defines submission policy. Plans that violate policy are
+rejected before reaching the APEX executor.
+
+\subsubsection{5.2 Policy Schema}\label{52-policy-schema}
+
+ASON policies are Pydantic-validated contracts:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class}\NormalTok{ Policy(BaseModel):}
+\NormalTok{    max\_steps: }\BuiltInTok{int}          \CommentTok{\# default 16, bounds [1, 32]}
+\NormalTok{    allowed\_tools: }\BuiltInTok{list}\NormalTok{[}\BuiltInTok{str}\NormalTok{] }\CommentTok{\# empty = unrestricted}
+\NormalTok{    blast\_radius: Literal[}\StringTok{"none"}\NormalTok{, }\StringTok{"local"}\NormalTok{, }\StringTok{"network"}\NormalTok{]  }\CommentTok{\# default "local"}
+\NormalTok{    rollback\_on\_failure: }\BuiltInTok{bool}  \CommentTok{\# default True}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{blast\_radius} field classifies the
+execution\textquotesingle s potential impact envelope. \texttt{none}
+permits read-only operations; \texttt{local} permits filesystem
+modification within the process working directory; \texttt{network}
+permits egress. Policy is enforced at the structural level prior to
+execution, not as a runtime advisory.
+
+\subsubsection{5.3 Validation Logic}\label{53-validation-logic}
+
+The ASON validator enforces:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{len(plan.steps)\ ≤\ policy.max\_steps}
+\item
+  No step invokes a tool in the blocked set (\texttt{\{"shell"\}} by
+  default)
+\item
+  If \texttt{policy.allowed\_tools} is non-empty, every
+  step\textquotesingle s tool must appear in it
+\item
+  No step invokes a tool in the \texttt{blast\_radius}-derived block set
+  (\texttt{blast\_radius="none"} blocks \texttt{write\_file},
+  \texttt{delete\_file}, \texttt{http\_get}, \texttt{http\_post};
+  \texttt{blast\_radius="local"} blocks \texttt{http\_get},
+  \texttt{http\_post})
+\end{enumerate}
+
+Violations produce structured rejection results with per-violation
+diagnostics. Validated plans are submitted to \texttt{POST\ /run} via
+the APEX HTTP API with the \texttt{X-Apex-Key} credential.
+
+\subsubsection{5.4 Rollback Generation}\label{54-rollback-generation}
+
+On execution failure, ASON generates a compensating \texttt{ASONRequest}
+by traversing the \texttt{events} table for the failed run in reverse
+step order and applying the reversal map:
+
+\begin{verbatim}
+write_file → delete_file
+\end{verbatim}
+
+\texttt{shell} invocations are flagged to stderr as non-reversible. The
+rollback plan is itself subject to policy validation before submission.
+If no reversible steps exist, rollback returns \texttt{None} without
+error.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Benchmark-Driven Self-Optimization
+(BDSO)}\label{6-benchmark-driven-self-optimization-bdso}
+
+\subsubsection{6.1 Bounded BDSO Loop}\label{61-bounded-bdso-loop}
+
+APEX implements a Benchmark-Driven Self-Optimization loop
+(\texttt{apex\ rsi}) that generates candidate patches to the
+executor\textquotesingle s own source files, scores them via the
+benchmark harness, and applies improvements that exceed a fitness
+threshold.
+
+Each BDSO cycle generates N=3 candidate patches via the LLM, executes
+them in isolated subprocesses, scores each against the
+\texttt{apex\_score} fitness function, and applies the highest-scoring
+candidate that exceeds the baseline. If no candidate improves on the
+baseline, the cycle terminates without modification. The mechanism is
+bounded and empirically grounded: improvement is defined by measurable
+benchmark regression, not open-ended capability growth.
+
+\subsubsection{6.2 Fitness Function}\label{62-fitness-function}
+
+The \texttt{apex\_score} composite fitness function is:
+
+\begin{verbatim}
+apex_score = pass_rate × speed_factor × token_efficiency
+\end{verbatim}
+
+Where:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{pass\_rate\ =\ passed\_tasks\ /\ total\_tasks}
+\item
+  \texttt{speed\_factor\ =\ max(0.01,\ 1.0\ −\ (avg\_duration\_seconds\ −\ 10.0)\ /\ 200.0)}
+\item
+  \texttt{token\_efficiency\ =\ max(0.01,\ 1.0\ −\ (avg\_tokens\ −\ 1000.0)\ /\ 50000.0)}
+\end{itemize}
+
+This formulation penalizes both execution latency and token
+overconsumption while treating task success as the primary signal. A
+system that passes all tasks at 10s/task with 1000 tokens/task achieves
+\texttt{apex\_score\ =\ 1.0}.
+
+\subsubsection{6.3 Security Boundary}\label{63-security-boundary}
+
+The BDSO eligible file set is restricted to
+\texttt{\{loop.py,\ planner.py,\ llm.py\}}. The plan auditor
+(\texttt{paranoid.py}) is \textbf{permanently excluded} from the
+eligible set. This exclusion is architectural, not configurable: a
+self-modifying system that can alter its own safety enforcement
+mechanism provides no meaningful safety guarantee.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Evaluation}\label{7-evaluation}
+
+\subsubsection{7.1 Benchmark Harness}\label{71-benchmark-harness}
+
+The benchmark harness (\texttt{apex.bench}) loads a task suite from
+\texttt{tasks.json}, executes each task via the APEX CLI in a
+subprocess, and records per-task pass/fail, duration, and exit code.
+Tasks specify an optional content check against stdout or a designated
+output file.
+
+\subsubsection{7.2 Task Suite}\label{72-task-suite}
+
+The benchmark suite comprises 12 tasks across nominal and adversarial
+categories:
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Task ID & Category & Description & Tool(s) \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{write\_file} & Nominal & Write string to \texttt{/tmp} path,
+verify content & \texttt{write\_file} \\
+\texttt{shell\_echo} & Nominal & Execute shell command, verify stdout &
+\texttt{shell} \\
+\texttt{read\_file} & Nominal & Write then read file, verify round-trip
+& \texttt{read\_file} \\
+\texttt{memory\_write\_read} & Nominal & Write key-value to memory,
+retrieve and verify & \texttt{memory} \\
+\texttt{http\_get} & Nominal & HTTP GET to public endpoint, verify
+response & \texttt{http\_get} \\
+\texttt{multi\_step\_chain} & Adversarial & Multi-step chained file
+write and read & \texttt{write\_file}, \texttt{read\_file} \\
+\texttt{overwrite\_existing} & Adversarial & Write to pre-existing path,
+verify overwrite & \texttt{write\_file} \\
+\texttt{shell\_pipeline} & Adversarial & Execute shell pipeline, verify
+stdout & \texttt{shell} \\
+\texttt{http\_post} & Adversarial & HTTP POST to endpoint, verify
+response & \texttt{http\_post} \\
+\texttt{memory\_multi\_key} & Adversarial & Write multiple keys,
+retrieve and verify all & \texttt{memory} \\
+\texttt{large\_file\_write} & Adversarial & Write large payload, verify
+size and content & \texttt{write\_file} \\
+\texttt{multi\_file\_verify} & Adversarial & Write multiple files, read
+and verify each & \texttt{write\_file}, \texttt{read\_file} \\
+\end{longtable}
+
+The adversarial suite targets boundary conditions identified as coverage
+gaps in prior evaluation: multi-step plan chaining, idempotency under
+overwrite, I/O scaling, and multi-key memory operations. Runtime
+blast-radius isolation (chroot/namespace enforcement) remains a
+near-term objective; current \texttt{blast\_radius} enforcement operates
+at plan-validation time.
+
+\subsubsection{7.3 Results}\label{73-results}
+
+Two independent benchmark runs were executed on hardware (AMD Ryzen 3
+3250U, 33 GiB RAM, NVMe storage) under identical conditions with a
+180-second per-task timeout:
+
+\begin{longtable}[]{@{}llllll@{}}
+\toprule\noalign{}
+Run & Pass Rate & Wall Time & \texttt{speed\_factor} &
+\texttt{token\_efficiency} & \texttt{apex\_score} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Run 1 & 12/12 (1.0) & 92.0 s & 1.0117 & 0.9959 & 1.007552 \\
+Run 2 & 12/12 (1.0) & 90.5 s & 1.0123 & 0.9954 & 1.007643 \\
+\end{longtable}
+
+\texttt{apex\_score\ \textgreater{}\ 1.0} in both runs indicates
+execution faster than the 10s/task baseline with near-unity token
+efficiency. Results are consistent across runs (δ \textless{} 0.0001).
+All 12 tasks completed within timeout; the \texttt{memory\_multi\_key}
+task exhibits the longest per-task wall time (\textasciitilde22--25 s)
+due to multi-round memory retrieval, accounted for by the 180 s timeout
+budget.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Docker Deployment}\label{8-docker-deployment}
+
+APEX and ASON are containerized and orchestrated via
+\texttt{axiom-infra} (docker-compose). The compose stack defines:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{apex}: builds from \texttt{axiom-apex}; binds port 8080;
+  healthcheck on \texttt{GET\ /health}; persists
+  \texttt{\textasciitilde{}/.apex} via named volume
+\item
+  \textbf{ason}: builds from \texttt{axiom-ason}; depends on apex health
+  passing before start
+\end{itemize}
+
+This enables production deployment of the full two-layer architecture as
+a single \texttt{docker-compose\ up} invocation, with GEMINI\_API\_KEY
+injected at runtime from environment.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Future Work}\label{9-future-work}
+
+\textbf{Blast-radius runtime enforcement.} \texttt{blast\_radius} is
+currently enforced at plan-validation time. Full runtime enforcement
+requires process isolation (chroot or namespace) for \texttt{local} and
+an egress proxy for \texttt{network}. Plan-level enforcement is a
+necessary but not sufficient condition for the security guarantee the
+field implies.
+
+\textbf{Multi-agent consensus.} For high-\texttt{blast\_radius} tasks,
+generating N=3 independent plans and requiring intersection before
+execution would substantially reduce the probability of unilateral
+consequential actions.
+
+\textbf{RAG-driven policy grounding.} Policy constraints derived from
+compliance manifests (SOC2, HIPAA) via retrieval-augmented generation
+would enable domain-specific ASON policy without manual specification.
+
+\textbf{BDSO fitness expansion.} The current \texttt{apex\_score}
+formulation does not include a security-regression component. Adding a
+paranoid-flag delta term would penalize BDSO cycles that reduce plan
+auditor sensitivity.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Conclusion}\label{10-conclusion}
+
+The reliable deployment of LLM agents in consequential environments
+requires architectural discipline that probabilistic generation alone
+cannot provide. The central invariant is information-flow separation:
+generation proposes, a typed intermediate representation constrains, and
+a bounded executor acts. APEX and ASON instantiate this architecture
+concretely, with verifiable execution contracts, schema-enforced policy,
+complete audit infrastructure, and a BDSO loop bounded by a composite
+fitness function and a permanent security exclusion boundary.
+
+The empirical results --- 12/12 pass rate across nominal and adversarial
+tasks, \texttt{apex\_score} \textasciitilde1.008 across two independent
+runs --- establish a reproducible baseline against which future
+capability and hardening improvements can be measured. The architecture
+is released as open-source infrastructure at
+\texttt{github.com/axiom-llc/axiom-apex} and
+\texttt{github.com/axiom-llc/axiom-ason}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{References}\label{references}
+
+Ahn, M., et al. (2022). Do As I Can, Not As I Say: Grounding Language in
+Robotic Affordances. \emph{arXiv:2204.01691}.
+
+Bai, Y., et al. (2022). Constitutional AI: Harmlessness from AI
+Feedback. \emph{arXiv:2212.08073}.
+
+Greshake, K., et al. (2023). Not What You\textquotesingle ve Signed Up
+For: Compromising Real-World LLM-Integrated Applications with Indirect
+Prompt Injection. \emph{arXiv:2302.12173}.
+
+Perez, F., \& Ribeiro, I. (2022). Ignore Previous Prompt: Attack
+Techniques For Language Models. \emph{arXiv:2211.09527}.
+
+Schick, T., et al. (2023). Toolformer: Language Models Can Teach
+Themselves to Use Tools. \emph{arXiv:2302.04761}.
+
+Schmidhuber, J. (2003). Gödel Machines: Self-Referential Universal
+Problem Solvers Making Provably Optimal Self-Improvements.
+\emph{Technical Report IDSIA-19-03}.
+
+Yao, S., et al. (2022). ReAct: Synergizing Reasoning and Acting in
+Language Models. \emph{arXiv:2210.03629}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Appendix A: APEX
+Invariants}\label{appendix-a-apex-invariants}
+
+The following invariants are maintained across all versions of the
+system:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{run()} is a pure function --- no hidden state persists across
+  invocations
+\item
+  No async primitives or threading in the core execution path
+\item
+  Plan-deterministic outputs: given a validated plan, identical inputs
+  produce identical tool-call sequences; LLM variance at plan generation
+  time is logged and replayable
+\item
+  Bounded execution: \texttt{max\_steps=32}, \texttt{timeout=300s},
+  \texttt{output=10MB}
+\item
+  All plans are schema-validated before any tool invocation
+\item
+  ASON never bypasses APEX policy enforcement
+\item
+  \texttt{paranoid.py} is not BDSO-eligible --- permanent security
+  boundary
+\item
+  Flask HTTP API runs \texttt{threaded=False} to preserve SIGALRM
+  semantics
+\end{enumerate}
+
+\subsection{Appendix B: Benchmark Task Suite (tasks.json, nominal
+subset)}\label{appendix-b-benchmark-task-suite-tasksjson-nominal-subset}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{[}
+  \FunctionTok{\{}
+    \DataTypeTok{"id"}\FunctionTok{:} \StringTok{"write\_file"}\FunctionTok{,}
+    \DataTypeTok{"prompt"}\FunctionTok{:} \StringTok{"write \textquotesingle{}hello world\textquotesingle{} to /tmp/apex{-}bench{-}out.txt"}\FunctionTok{,}
+    \DataTypeTok{"check"}\FunctionTok{:} \StringTok{"hello"}\FunctionTok{,}
+    \DataTypeTok{"check\_file"}\FunctionTok{:} \StringTok{"/tmp/apex{-}bench{-}out.txt"}
+  \FunctionTok{\}}\OtherTok{,}
+  \FunctionTok{\{}
+    \DataTypeTok{"id"}\FunctionTok{:} \StringTok{"shell\_echo"}\FunctionTok{,}
+    \DataTypeTok{"prompt"}\FunctionTok{:} \StringTok{"run the shell command: echo apex{-}bench{-}ok"}\FunctionTok{,}
+    \DataTypeTok{"check"}\FunctionTok{:} \StringTok{"apex{-}bench{-}ok"}
+  \FunctionTok{\}}\OtherTok{,}
+  \FunctionTok{\{}
+    \DataTypeTok{"id"}\FunctionTok{:} \StringTok{"read\_file"}\FunctionTok{,}
+    \DataTypeTok{"prompt"}\FunctionTok{:} \StringTok{"write \textquotesingle{}readtest\textquotesingle{} to /tmp/apex{-}bench{-}read.txt then read it back and output the contents"}\FunctionTok{,}
+    \DataTypeTok{"check"}\FunctionTok{:} \StringTok{"readtest"}
+  \FunctionTok{\}}\OtherTok{,}
+  \FunctionTok{\{}
+    \DataTypeTok{"id"}\FunctionTok{:} \StringTok{"memory\_write\_read"}\FunctionTok{,}
+    \DataTypeTok{"prompt"}\FunctionTok{:} \StringTok{"store the value \textquotesingle{}bench{-}value\textquotesingle{} under key \textquotesingle{}bench{-}key\textquotesingle{} in memory, then retrieve it"}\FunctionTok{,}
+    \DataTypeTok{"check"}\FunctionTok{:} \StringTok{"bench{-}value"}
+  \FunctionTok{\}}\OtherTok{,}
+  \FunctionTok{\{}
+    \DataTypeTok{"id"}\FunctionTok{:} \StringTok{"http\_get"}\FunctionTok{,}
+    \DataTypeTok{"prompt"}\FunctionTok{:} \StringTok{"make an HTTP GET request to https://httpbin.org/get and output the response"}\FunctionTok{,}
+    \DataTypeTok{"check"}\FunctionTok{:} \StringTok{"httpbin"}
+  \FunctionTok{\}}
+\OtherTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+The full 12-task suite including adversarial cases is maintained at
+\texttt{apex/benchmarks/tasks.json} in the APEX repository.
+
+\end{document}

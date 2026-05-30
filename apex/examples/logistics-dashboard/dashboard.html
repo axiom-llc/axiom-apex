@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maverick Logistics - Dashboard Mockup</title>
+    <style>
+        :root {
+            --primary-blue: #00529B; /* Darker blue for text/accents */
+            --secondary-blue: #007BFF; /* Lighter blue for buttons/active states */
+            --light-blue-bg: #E6F3FF;
+            --sidebar-bg: #0D1F3C; /* Dark blue for sidebar */
+            --sidebar-text: #E0E0E0;
+            --sidebar-active-bg: #007BFF;
+            --sidebar-hover-bg: #1A2D50;
+            --border-color: #DEE2E6;
+            --card-bg: #FFFFFF;
+            --text-color: #343A40;
+            --text-muted: #6C757D;
+            --green: #28A745;
+            --light-green-bg: #E2F0D9;
+            --red: #DC3545;
+            --light-red-bg: #F8D7DA;
+            --yellow: #FFC107;
+            --light-yellow-bg: #FFF3CD;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: #F4F7FC;
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, main content will scroll */
+        }
+
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #2A3F60;
+        }
+        .sidebar-header img.logo {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            background-color: var(--secondary-blue); /* Placeholder logo background */
+            border-radius: 4px;
+            padding: 3px; /* if using an actual image with transparency */
+        }
+        .sidebar-header h1 {
+            font-size: 1.1em;
+            margin: 0;
+            font-weight: 600;
+        }
+        .sidebar nav {
+            flex-grow: 1;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--sidebar-text);
+            font-size: 0.95em;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .sidebar li a:hover {
+            background-color: var(--sidebar-hover-bg);
+        }
+        .sidebar li a.active {
+            background-color: var(--sidebar-active-bg);
+            color: #FFF;
+            font-weight: 500;
+        }
+        .sidebar li a svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            fill: currentColor;
+        }
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #2A3F60;
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .sidebar-footer a:hover { color: #FFF; }
+        .sidebar-footer a svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            fill: currentColor;
+        }
+
+
+        .main-content {
+            flex-grow: 1;
+            padding: 0;
+            overflow-y: auto; /* Allow scrolling for main content */
+            background-color: #F4F7FC;
+        }
+        .top-bar {
+            background-color: var(--card-bg);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .top-bar .page-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin: 0;
+        }
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+        }
+        .top-bar-actions .icon-button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.4em; /* Adjusted for better visual balance of info icon */
+            margin-left: 15px;
+            cursor: pointer;
+            line-height: 1; /* Ensures icon aligns well */
+        }
+        .top-bar-actions .icon-button:hover {
+            color: var(--primary-blue);
+        }
+        .top-bar-actions .user-profile {
+            width: 36px;
+            height: 36px;
+            background-color: var(--secondary-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 20px;
+            font-size: 0.9em;
+        }
+        .content-wrapper {
+             padding: 25px 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--secondary-blue);
+            display: inline-block;
+        }
+
+        /* Table Styles */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-controls .search-clients input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 0.9em;
+            min-width: 250px;
+        }
+        .table-controls .filters { display: flex; gap: 10px; align-items: center; }
+        .table-controls .filters select, .table-controls .filters button {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            font-size: 0.9em;
+        }
+        .table-controls .btn-primary {
+            background-color: var(--secondary-blue);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s, transform 0.1s ease-out;
+        }
+        .table-controls .btn-primary:hover {
+            background-color: var(--primary-blue);
+            transform: translateY(-1px);
+        }
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow-x: auto; /* For responsive tables */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #F8F9FA;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        td.actions-cell span {
+            margin-right: 8px;
+            cursor: pointer;
+            color: var(--secondary-blue);
+            font-size: 1.1em; /* Slightly increase size for better visibility of Unicode icons */
+        }
+        td.actions-cell span:hover { color: var(--primary-blue); }
+        .name-column { color: var(--secondary-blue); cursor: pointer; font-weight: 500; }
+        .name-column:hover { text-decoration: underline; }
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px;
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+        .pagination span { margin: 0 5px; }
+        .pagination .page-number {
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .pagination .page-number.active {
+            background-color: var(--secondary-blue);
+            color: white;
+            border-color: var(--secondary-blue);
+        }
+        .no-data-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .no-data-placeholder svg { width: 60px; height: 60px; fill: #B0BEC5; margin-bottom: 10px; }
+
+        /* Card Styles (KPIs) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .kpi-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary-blue); /* Accent border */
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .kpi-card.safety { border-left-color: var(--yellow); }
+        .kpi-card.quality { border-left-color: var(--green); }
+        .kpi-card.team { border-left-color: #6F42C1; } /* Purple for team */
+        .kpi-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .kpi-card-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        .info-icon, .arrow-icon {
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .info-icon:hover, .arrow-icon:hover { color: var(--primary-blue); }
+        .kpi-card-metric {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+        .kpi-card-metric.fantastic { color: var(--green); }
+        .kpi-card-metric.compliant { color: var(--green); }
+        .kpi-card-metric.no-data { color: var(--text-muted); font-size: 1.2em; }
+        .kpi-card-subtext {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .progress-bar-container {
+            height: 8px;
+            background-color: #E9ECEF;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-blue);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .progress-bar.green { background-color: var(--green); }
+        .progress-bar.yellow { background-color: var(--yellow); }
+        .kpi-card-details .detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        .kpi-card-details .detail-item .label { color: var(--text-muted); }
+        .kpi-card-details .detail-item .value { font-weight: 500; }
+        .value.fantastic { color: var(--green); }
+        .value.zero { color: var(--text-muted); }
+
+        /* Vehicle Health Card Specifics */
+        .vehicle-health-card .metric-large {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-align: center;
+        }
+        .vehicle-health-card .metric-large.red { color: var(--red); }
+        .vehicle-health-card .metric-label {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .vehicle-health-card .sub-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* For columns like Total active / Operational */
+            gap: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+         .vehicle-health-card .sub-metrics-grid .value { font-size: 1.5em; font-weight: 600; }
+         .vehicle-health-card .sub-metrics-grid .label { font-size: 0.8em; color: var(--text-muted); }
+
+        .inspection-chart-placeholder {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .donut-placeholder {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 10px solid #E9ECEF; /* Light grey track */
+            border-top-color: var(--secondary-blue); /* Actual value */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            position: relative;
+            transform: rotate(-45deg); /* Start point for donut */
+        }
+        .donut-placeholder.green { border-top-color: var(--green); }
+        .donut-placeholder.red { border-top-color: var(--red); }
+        .donut-placeholder span { transform: rotate(45deg); } /* Counter-rotate text */
+        .inspection-list ul { list-style: none; padding-left: 0; margin-top: 10px; }
+        .inspection-list li {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            display: flex; justify-content: space-between;
+        }
+        .inspection-list li .dot {
+            width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px;
+        }
+        .dot.blue { background-color: var(--secondary-blue); }
+        .dot.green { background-color: var(--green); }
+        .dot.red { background-color: var(--red); }
+
+        /* Make Sidebar Toggleable (Optional tiny JS needed) */
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .sidebar-header h1 { display: none; }
+        .sidebar.collapsed .sidebar-header img.logo { margin-right:0; }
+        .sidebar.collapsed nav ul li a span { display: none; }
+        .sidebar.collapsed nav ul li a svg { margin-right: 0; }
+        .sidebar.collapsed .sidebar-footer span { display: none; } /* Targets generic span if needed */
+        .sidebar.collapsed .sidebar-footer-text { display: none; } /* Specifically targets the text span */
+        .sidebar.collapsed .sidebar-footer a svg { margin-right: 0; }
+        .sidebar.collapsed .sidebar-footer { justify-content: center; padding: 15px 0;}
+
+
+        .sidebar-toggle {
+            background: none; border: none; color: var(--sidebar-text); font-size: 1.5em;
+            padding: 10px; cursor: pointer;
+            display: block;
+            margin: 10px auto 10px auto;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed .sidebar-toggle {
+            margin: 10px auto;
+        }
+
+
+        /* Tooltip (Basic) */
+        [data-tooltip] {
+            position: relative; /* Needed for ::after positioning */
+        }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            z-index: 1000; /* Ensure tooltip is on top */
+            bottom: 125%; /* Position above the element */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease .1s, visibility 0.2s ease .1s; /* Added slight delay */
+        }
+        [data-tooltip]:hover::before { /* Optional: Tooltip arrow */
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(5px); /* Adjust to touch tooltip box */
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease .1s, visibility 0.2s ease .1s; /* Added slight delay */
+        }
+
+        [data-tooltip]:hover::after,
+        [data-tooltip]:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZmZmIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6Ii8+PHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPjwvc3ZnPg==" alt="Logo" class="logo">
+            <h1>Maverick Delivers</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path></svg>
+                    <span>Dashboard</span>
+                </a></li>
+                <li><a href="#" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+                    <span>Entities</span>
+                </a></li>
+                <li><a href="#" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"></path></svg>
+                    <span>Shipments</span>
+                </a></li>
+                <li><a href="#" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"></path></svg>
+                    <span>Reports</span>
+                </a></li>
+                 <li><a href="#" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>
+                    <span>Vehicle Health</span>
+                </a></li>
+                <li><a href="#" onclick="setActive(this); return false;">
+                    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
+                    <span>Settings</span>
+                </a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#">
+                <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"></path></svg>
+                <span class="sidebar-footer-text">Options</span>
+            </a>
+        </div>
+         <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 class="page-title" id="pageTitle">Maverick Delivers Related Entities</h2>
+            <div class="top-bar-actions">
+                <button class="icon-button" data-tooltip="Help">&#x2139;</button>
+                <div class="user-profile">JS</div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- Section 1: Related Entities Table (Screenshot 1) -->
+            <section class="section" id="related-entities">
+                <div class="table-controls">
+                    <div class="search-clients">
+                        <input type="search" placeholder="Search clients...">
+                    </div>
+                    <div class="filters">
+                        <select>
+                            <option>Active</option>
+                            <option>Inactive</option>
+                            <option>All</option>
+                        </select>
+                        <button>Show All Related Entities</button>
+                    </div>
+                    <button class="btn-primary"><span>&#43;</span> Add Location</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name &#9650;</th>
+                                <th>Total Lives</th>
+                                <th>Total Incidents</th>
+                                <th>Pending Incidents</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="name-column">FedEx</td>
+                                <td>150</td>
+                                <td>12</td>
+                                <td>2</td>
+                                <td>Primary Carrier</td>
+                                <td class="actions-cell">
+                                    <span data-tooltip="Edit">&#9881;</span> <!-- GEAR ICON for Edit -->
+                                    <span data-tooltip="View Details">&#128269;</span>
+                                    <span data-tooltip="Delete">&#128465;</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="name-column">Amazon</td>
+                                <td>85</td>
+                                <td>5</td>
+                                <td>0</td>
+                                <td>Secondary Carrier</td>
+                                <td class="actions-cell">
+                                    <span data-tooltip="Edit">&#9881;</span> <!-- GEAR ICON for Edit -->
+                                    <span data-tooltip="View Details">&#128269;</span>
+                                    <span data-tooltip="Delete">&#128465;</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="name-column">Tertiary Client</td>
+                                <td>N/A</td>
+                                <td>2</td>
+                                <td>1</td>
+                                <td>Storage Partner</td>
+                                <td class="actions-cell">
+                                    <span data-tooltip="Edit">&#9881;</span> <!-- GEAR ICON for Edit -->
+                                    <span data-tooltip="View Details">&#128269;</span>
+                                    <span data-tooltip="Delete">&#128465;</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span>Total 3 items</span>
+                    <span class="page-number">&lt;</span>
+                    <span class="page-number active">1</span>
+                    <span class="page-number">&gt;</span>
+                    <span>10 / page</span>
+                </div>
+            </section>
+
+            <!-- Section 2: Performance Scorecards (Screenshots 2 & 3) -->
+            <section class="section" id="performance-scorecards">
+                <h3 class="section-title">Overall Performance</h3>
+                <div class="cards-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Overall Standing <span class="info-icon" data-tooltip="Overall company performance rating.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-metric fantastic">Fantastic Plus</div>
+                        <div class="progress-bar-container"><div class="progress-bar green" style="width: 95%;"></div></div>
+                        <div class="kpi-card-details" style="margin-top: 15px;">
+                            <div class="detail-item">
+                                <span class="label">Safety and Compliance</span> <span class="value fantastic">Fantastic</span>
+                            </div>
+                            <div class="progress-bar-container"><div class="progress-bar green" style="width: 90%;"></div></div>
+                             <div class="detail-item" style="margin-top:8px;">
+                                <span class="label">Quality</span> <span class="value fantastic">Fantastic</span>
+                            </div>
+                            <div class="progress-bar-container"><div class="progress-bar green" style="width: 92%;"></div></div>
+                             <div class="detail-item" style="margin-top:8px;">
+                                <span class="label">Team</span> <span class="value fantastic">Fantastic</span>
+                            </div>
+                            <div class="progress-bar-container"><div class="progress-bar green" style="width: 88%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-title" style="margin-top: 30px;">Safety</h3>
+                 <div class="cards-grid">
+                    <div class="kpi-card safety">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">On-Road Safety Score <span class="info-icon" data-tooltip="Calculated from various safety metrics.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-metric fantastic">Fantastic</div>
+                        <div class="progress-bar-container"><div class="progress-bar green" style="width: 92%;"></div></div>
+                        <div class="kpi-card-details" style="margin-top:15px;">
+                            <div class="detail-item"><span class="label">Safe Driving Metric</span> <span class="value fantastic">841 <small>FICO</small></span></div>
+                            <div class="detail-item"><span class="label">Seatbelt-Off Rate</span> <span class="value zero">0.0 <small>Events per 100 trips</small></span></div>
+                            <div class="detail-item"><span class="label">Speeding Event Rate</span> <span class="value fantastic">Fantastic <small>0.0 Events per 100 trips</small></span></div>
+                            <div class="detail-item"><span class="label">Distractions Rate</span> <span class="value zero">0.0 <small>Events per 100 trips</small></span></div>
+                        </div>
+                    </div>
+                    <div class="kpi-card safety">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Safety Compliance <span class="info-icon" data-tooltip="Adherence to safety protocols.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                         <div class="kpi-card-metric no-data" style="margin-bottom:15px;">No Data</div>
+                        <div class="kpi-card-subtext">Working Device Metric (Preview)</div>
+                    </div>
+                     <div class="kpi-card safety">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Compliance <span class="info-icon" data-tooltip="Overall compliance status.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-details" style="margin-top:15px;">
+                             <div class="detail-item" style="flex-direction:column; align-items:flex-start; margin-bottom:10px;">
+                                <span class="label">Breach of Contract <span class="info-icon" data-tooltip="Any contract breaches.">&#x2139;</span></span>
+                                <span class="value fantastic" style="font-size:1.4em;">Compliant</span>
+                            </div>
+                            <div class="detail-item" style="flex-direction:column; align-items:flex-start;">
+                                <span class="label">Comprehensive Audit <span class="info-icon" data-tooltip="Results of comprehensive audit.">&#x2139;</span></span>
+                                <span class="value fantastic" style="font-size:1.4em;">Compliant</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <h3 class="section-title" style="margin-top: 30px;">Quality</h3>
+                <div class="cards-grid">
+                     <div class="kpi-card quality">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Overall Delivery Quality Score <span class="info-icon" data-tooltip="Score for delivery quality.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-metric fantastic">Fantastic</div>
+                        <div class="progress-bar-container"><div class="progress-bar green" style="width: 96%;"></div></div>
+                         <div class="kpi-card-details" style="margin-top:15px;">
+                            <div class="detail-item"><span class="label">Delivery Completion Rate</span> <span class="value fantastic">99.91%</span></div>
+                            <div class="detail-item"><span class="label">Delivery Success Behaviors</span> <span class="value fantastic">97</span></div>
+                            <div class="detail-item"><span class="label">Customer Delivery Experience</span> <span class="value fantastic">Fantastic</span></div>
+                            <div class="detail-item"><span class="label">Customer Escalation Defect DPMO</span> <span class="value zero">0</span></div>
+                            <div class="detail-item"><span class="label">Customer Delivery Feedback DPMO</span> <span class="value zero">0</span></div>
+                            <div class="detail-item"><span class="label">POD Acceptance Rate</span> <span class="value fantastic">Fantastic</span></div>
+                        </div>
+                    </div>
+                     <div class="kpi-card quality">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Overall Pickup Quality Score <span class="info-icon" data-tooltip="Score for pickup quality.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-metric fantastic">Fantastic</div>
+                        <div class="progress-bar-container"><div class="progress-bar green" style="width: 90%;"></div></div>
+                        <div style="display:flex; justify-content:space-around; margin: 10px 0; font-size: 0.8em; color: var(--text-muted);">
+                            <small>Poor</small><small>Fair</small><small>Great</small><small>Fantastic</small>
+                        </div>
+                         <div class="kpi-card-details" style="margin-top:15px;">
+                            <div class="detail-item"><span class="label">Pickup Success Behaviors</span> <span class="value zero">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                 <h3 class="section-title" style="margin-top: 30px;">Team</h3>
+                 <div class="cards-grid">
+                     <div class="kpi-card team">
+                        <div class="kpi-card-header">
+                            <div class="kpi-card-title">Overall Team Score <span class="info-icon" data-tooltip="Team performance rating.">&#x2139;</span></div>
+                            <span class="arrow-icon">&rsaquo;</span>
+                        </div>
+                        <div class="kpi-card-metric fantastic">Fantastic</div>
+                        <div class="progress-bar-container"><div class="progress-bar green" style="width: 93%;"></div></div>
+                         <div style="display:flex; justify-content:space-around; margin: 10px 0; font-size: 0.8em; color: var(--text-muted);">
+                            <small>Poor</small><small>Fair</small><small>Great</small><small>Fantastic</small>
+                        </div>
+                         <div class="kpi-card-details" style="margin-top:15px;">
+                            <div class="detail-item"><span class="label">High Performer Share</span> <span class="value fantastic">91.66%</span></div>
+                            <div class="detail-item"><span class="label">Low Performer Share</span> <span class="value zero">0%</span></div>
+                            <div class="detail-item"><span class="label">Tenured Workforce</span> <span class="value fantastic">99.23%</span></div>
+                        </div>
+                    </div>
+                 </div>
+            </section>
+
+
+            <!-- Section 3: Delivery Associate Table (Screenshot 4) -->
+            <section class="section" id="delivery-associates">
+                <h3 class="section-title">Delivery Associate Performance</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Delivery Associate &#9662;</th>
+                                <th>DA Overall Standing &#9662;</th>
+                                <th>On-Road Safety Score &#9662;</th>
+                                <th>Overall Quality Score &#9662;</th>
+                                <th>FICO &#9662;</th>
+                                <th>Seatbelt-Off Rate (per trip) &#9662;</th>
+                                <th>Speeding Event Rate (per trip) &#9662;</th>
+                                <th>DCR &#9662;</th>
+                                <th>DSB &#9662;</th>
+                                <th>CDF DPMO &#9662;</th>
+                                <th>CED &#9662;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="name-column">Wesley Col Taylor<br><small>A1LJ8XDZRQHSF9</small></td>
+                                <td class="fantastic">Fantastic</td>
+                                <td class="fantastic">Fantastic</td>
+                                <td class="fantastic">Fantastic</td>
+                                <td>850</td>
+                                <td>No Data</td>
+                                <td>No Data</td>
+                                <td class="fantastic">100.0% <span style="color:var(--green);">&#9650; 0.1</span></td>
+                                <td>0 -- 0</td>
+                                <td>No Data</td>
+                                <td>0</td>
+                            </tr>
+                             <tr>
+                                <td class="name-column">Ryan M Mulvey<br><small>A1C28SCBTHZU8Z</small></td>
+                                <td class="fantastic">Fantastic</td>
+                                <td class="fantastic">Fantastic</td>
+                                <td class="fantastic">Fantastic</td>
+                                <td>No Data</td>
+                                <td>0.0 -- 0.0</td>
+                                <td>0.0 -- 0.0</td>
+                                <td class="fantastic">100.0% <span style="color:var(--green);">&#9650; 0.3</span></td>
+                                <td>0 -- 0</td>
+                                <td>0</td>
+                                <td>0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                 <div class="pagination">
+                    <span class="page-number">&lt;</span>
+                    <span class="page-number active">1</span>
+                    <span class="page-number">2</span>
+                    <span class="page-number">3</span>
+                    <span class="page-number">4</span>
+                    <span class="page-number">5</span>
+                    <span class="page-number">&gt;</span>
+                </div>
+            </section>
+
+            <!-- Section 4: Current Vehicle Health (Screenshots 5 & 6) -->
+            <section class="section" id="vehicle-health">
+                <h3 class="section-title">Current Vehicle Health</h3>
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">Vehicles by operational status</div>
+                        <div class="sub-metrics-grid">
+                            <div><div class="value">39</div><div class="label">Total active</div></div>
+                            <div><div class="value">34</div><div class="label">Operational</div></div>
+                        </div>
+                        <div class="kpi-card-details">
+                            <div class="detail-item"><span class="label">Grounded</span> <span class="value" style="color:var(--red)">5</span></div>
+                            <div class="detail-item"><span class="label">Inspection defect</span> <span class="value">1</span></div>
+                            <div class="detail-item"><span class="label">Preventative maintenance</span> <span class="value">0</span></div>
+                            <div class="detail-item"><span class="label">Issue reported by you</span> <span class="value">5</span></div>
+                            <div class="detail-item"><span class="label">DOT Annual/CA BIT inspection</span> <span class="value">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:15px;">Today's vehicle inspections</div>
+                        <div class="inspection-chart-placeholder">
+                            <div class="donut-placeholder"><span>6</span></div>
+                            <div class="donut-placeholder"><span>6</span></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-around; font-size:0.8em; color:var(--text-muted); margin-bottom:15px;">
+                            <span>DVIC missing</span><span>AVI missing</span>
+                        </div>
+                        <div class="inspection-list">
+                            <ul>
+                                <li><span class="dot blue"></span> DVIC-Pre Trip <span class="value">6</span></li>
+                                <li><span class="dot blue"></span> DVIC-Post Trip <span class="value">0</span></li>
+                                <li><span class="dot blue"></span> AVI-Post Trip <span class="value">0</span></li>
+                            </ul>
+                        </div>
+                        <div class="metric-large" style="font-size:1.8em; margin-top:10px; text-align:center;">0 <span style="font-size:0.6em; font-weight:normal;">New defects</span></div>
+                    </div>
+
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">Vehicles with inspection defects <span class="info-icon" data-tooltip="Vehicles currently having defects.">&#x2139;</span></div>
+                        <div class="sub-metrics-grid">
+                            <div><div class="value">1</div><div class="label">All defects</div></div>
+                            <div><div class="value">0</div><div class="label">Repairs due within 2 days</div></div>
+                        </div>
+                        <div class="metric-large red" style="margin-top:15px;">1</div>
+                        <div class="metric-label">Vehicle(s) grounded</div>
+                    </div>
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">Odometer defects <span class="info-icon" data-tooltip="Defects related to odometer.">&#x2139;</span></div>
+                        <div class="metric-large" style="margin-top:25px;">3</div>
+                        <div class="metric-label">Total defects</div>
+                    </div>
+
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">Preventative maintenance <span class="info-icon" data-tooltip="Status of preventative maintenance.">&#x2139;</span></div>
+                        <div style="display:flex; justify-content:space-around; text-align:center; margin: 15px 0;">
+                            <div><div class="value" style="font-size:1.8em;">7</div><div class="label" style="font-size:0.8em;">Total PMs</div></div>
+                            <div><div class="value" style="font-size:1.8em;">1</div><div class="label" style="font-size:0.8em;">Due now</div></div>
+                            <div><div class="value red" style="font-size:1.8em; color:var(--red)">0</div><div class="label" style="font-size:0.8em;">Overdue</div></div>
+                        </div>
+                        <div class="metric-large red" style="margin-top:15px;">0</div>
+                        <div class="metric-label">Vehicle(s) grounded</div>
+                    </div>
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">DOT Annual/CA BIT inspection <span class="info-icon" data-tooltip="Status of DOT inspections.">&#x2139;</span></div>
+                         <div style="display:flex; justify-content:space-around; text-align:center; margin: 15px 0;">
+                            <div><div class="value" style="font-size:1.8em;">0</div><div class="label" style="font-size:0.8em;">Total</div></div>
+                            <div><div class="value" style="font-size:1.8em;">0</div><div class="label" style="font-size:0.8em;">Due now</div></div>
+                            <div><div class="value red" style="font-size:1.8em; color:var(--red)">0</div><div class="label" style="font-size:0.8em;">Overdue</div></div>
+                        </div>
+                        <div class="metric-large red" style="margin-top:15px;">0</div>
+                        <div class="metric-label">Vehicle(s) grounded</div>
+                    </div>
+                     <div class="kpi-card vehicle-health-card">
+                        <div class="kpi-card-title" style="text-align:center; margin-bottom:10px;">Vehicle safety signals <span class="info-icon" data-tooltip="Safety signals from vehicles.">&#x2139;</span></div>
+                        <div class="metric-large" style="margin-top:25px;">18</div>
+                        <div class="metric-label">Total issues</div>
+                         <div class="kpi-card-details" style="margin-top:15px;">
+                            <div class="detail-item"><span class="label">Tire warning light</span> <span class="value">16</span></div>
+                            <div class="detail-item"><span class="label">Engine warning light</span> <span class="value">2</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <footer style="text-align:center; padding: 20px 0; font-size:0.8em; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top:30px;">
+                Built by Axiom LLC
+            </footer>
+        </div>
+    </main>
+
+<script>
+    function setActive(element) {
+        const links = document.querySelectorAll('.sidebar nav ul li a');
+        links.forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+
+        const pageTitleElement = document.getElementById('pageTitle');
+        if (pageTitleElement && element.querySelector('span')) {
+            let titleText = element.querySelector('span').textContent;
+            if (titleText === "Entities") {
+                 pageTitleElement.textContent = "Maverick Delivers Related Entities";
+            } else if (titleText === "Dashboard") {
+                 pageTitleElement.textContent = "Maverick Delivers Dashboard";
+            } else {
+                 pageTitleElement.textContent = titleText + " Overview";
+            }
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        const toggleButton = document.querySelector('.sidebar-toggle');
+        const footerTextElement = document.querySelector('.sidebar-footer-text');
+
+        if (sidebar.classList.contains('collapsed')) {
+            toggleButton.innerHTML = '&#9776;'; // Hamburger
+            if(footerTextElement) footerTextElement.style.display = 'none';
+        } else {
+            toggleButton.innerHTML = '&times;'; // Close icon
+            if(footerTextElement) footerTextElement.style.display = 'inline';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('sidebar');
+        const toggleButton = document.querySelector('.sidebar-toggle');
+        const firstLink = document.querySelector('.sidebar nav ul li a.active'); // Get the default active link
+        const footerTextElement = document.querySelector('.sidebar-footer-text');
+
+        if (!sidebar.classList.contains('collapsed')) {
+            toggleButton.innerHTML = '&times;';
+            if(footerTextElement) footerTextElement.style.display = 'inline';
+        } else {
+            toggleButton.innerHTML = '&#9776;';
+            if(footerTextElement) footerTextElement.style.display = 'none';
+        }
+
+        if(firstLink) {
+            if (document.getElementById('pageTitle') && firstLink.querySelector('span')) {
+                let titleText = firstLink.querySelector('span').textContent;
+                if (titleText === "Dashboard") {
+                     document.getElementById('pageTitle').textContent = "Maverick Delivers Dashboard";
+                } else if (titleText === "Entities") {
+                     document.getElementById('pageTitle').textContent = "Maverick Delivers Related Entities";
+                }
+                 else {
+                     document.getElementById('pageTitle').textContent = titleText + " Overview";
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

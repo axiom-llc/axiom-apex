@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axiom LLC — AI & Automation Systems</title>
+    <meta name="description" content="Axiom LLC — AI &amp; Automation Systems">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset ─────────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Tokens ────────────────────────────────────────────────── */
+        :root {
+            --bg:          #06080A;
+            --surface:     #0B0F13;
+            --surface-2:   #101418;
+            --border:      #181E25;
+            --border-hi:   #252E38;
+            --text:        #B8B3AA;
+            --text-dim:    #5A6670;
+            --text-mute:   #44505A;
+            --text-hi:     #E8E4DC;
+            --accent:      #3DFFA0;
+            --accent-dim:  rgba(61, 255, 160, 0.06);
+            --accent-glow: rgba(61, 255, 160, 0.15);
+            --mono: "Azeret Mono", "Fira Code", monospace;
+            --sans: "Bricolage Grotesque", system-ui, sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 16px;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
+        }
+
+        /* ── Grid background ───────────────────────────────────────── */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--text-mute) 1px, transparent 1px),
+                linear-gradient(90deg, var(--text-mute) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
+        }
+
+        /* ── Noise overlay ─────────────────────────────────────────── */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.5;
+        }
+
+        /* ── Top accent rule ───────────────────────────────────────── */
+        .top-rule {
+            position: relative;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent) 70%, transparent 100%);
+            box-shadow: 0 0 40px 0 var(--accent-glow), 0 0 80px 0 rgba(61, 255, 160, 0.07);
+        }
+
+        /* ── Layout ────────────────────────────────────────────────── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.75rem 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ────────────────────────────────────────────────── */
+        .wordmark {
+            padding: 4rem 0 3.2rem;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(12px);
+            animation: fadeUp 0.8s var(--ease) 0.05s forwards;
+        }
+
+        .wordmark-lockup {
+            display: flex;
+            align-items: flex-end;
+            line-height: 1;
+        }
+
+        .wordmark-axiom {
+            font-family: var(--sans);
+            font-size: clamp(3rem, 9vw, 5.2rem);
+            font-weight: 800;
+            color: var(--text-hi);
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .wordmark-llc {
+            font-family: var(--mono);
+            font-size: clamp(0.55rem, 1.2vw, 0.72rem);
+            font-weight: 400;
+            color: var(--text-dim);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            padding-left: 0.18em;
+            padding-bottom: 0.18em;
+        }
+
+        .wordmark-rule {
+            display: block;
+            width: 36px;
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            margin: 1.5rem 0 0.9rem;
+        }
+
+        .wordmark-sub {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--accent);
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+        }
+
+        /* ── Sections ──────────────────────────────────────────────── */
+        .section {
+            padding: 3.2rem 0;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .section.visible {
+            animation: fadeUp 0.65s var(--ease) forwards;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Section headings ──────────────────────────────────────── */
+        h2 {
+            font-family: var(--mono);
+            font-size: 9.5px;
+            font-weight: 400;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: "";
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            flex-shrink: 0;
+        }
+
+        /* ── Overview text ─────────────────────────────────────────── */
+        .section > p {
+            font-size: 1.04rem;
+            color: var(--text);
+            max-width: 640px;
+            margin-bottom: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .section > p:last-of-type { margin-bottom: 0; }
+
+        .section > p strong {
+            color: var(--text-hi);
+            font-weight: 600;
+        }
+
+        .inline-link {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(61, 255, 160, 0.35);
+            transition: color 0.18s, border-color 0.18s;
+        }
+
+        .inline-link:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .inline-link strong { font-weight: 600; }
+
+        /* ── Services grid ─────────────────────────────────────────── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .project {
+            background: var(--surface);
+            padding: 1.8rem 1.8rem 2rem;
+            position: relative;
+            transition: background 0.22s;
+            overflow: hidden;
+        }
+
+        .project::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 0;
+            background: var(--accent);
+            transition: height 0.3s var(--ease);
+        }
+
+        .project:hover::after { height: 100%; }
+        .project:hover        { background: var(--surface-2); }
+
+        .project-num {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text-mute);
+            letter-spacing: 0.12em;
+            margin-bottom: 0.9rem;
+        }
+
+        h3 {
+            font-family: var(--sans);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-hi);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+        }
+
+        .project p {
+            font-size: 0.87rem;
+            color: var(--text-dim);
+            line-height: 1.65;
+            max-width: none;
+            margin-bottom: 0;
+        }
+
+        /* ── Stack tags ────────────────────────────────────────────── */
+        .stack-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 2px;
+            transition: color 0.18s, border-color 0.18s, background 0.18s;
+            cursor: default;
+        }
+
+        .tag:hover {
+            color: var(--accent);
+            border-color: rgba(61, 255, 160, 0.2);
+            background: var(--accent-dim);
+        }
+
+        /* ── Contact ───────────────────────────────────────────────── */
+        .contact-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            margin-bottom: 1.8rem;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        .contact-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            min-width: 50px;
+        }
+
+        .contact-value {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--text);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 1px;
+            transition: color 0.18s, border-color 0.18s;
+        }
+
+        .contact-value:hover {
+            color: var(--accent);
+            border-bottom-color: rgba(61, 255, 160, 0.4);
+        }
+
+        /* ── Buttons ───────────────────────────────────────────────── */
+        .contact-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 22px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            border-radius: 2px;
+            text-decoration: none;
+            border: none;
+            transition: all 0.18s var(--ease);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #5AFFB4;
+            box-shadow: 0 0 28px var(--accent-glow), 0 4px 16px rgba(61, 255, 160, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border-hi);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-hi);
+            border-color: var(--text-dim);
+            transform: translateY(-1px);
+        }
+
+        /* ── Footer ────────────────────────────────────────────────── */
+        footer {
+            padding: 2rem 0;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        /* ── Focus ─────────────────────────────────────────────────── */
+        .visually-hidden {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+        }
+
+        :focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+
+        /* ── Responsive ────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<div class="container">
+
+    <header>
+        <h1 class="visually-hidden">Axiom LLC — AI &amp; Automation Systems</h1>
+        <div class="wordmark">
+
+            <div class="wordmark-lockup">
+                <span class="wordmark-axiom">Axiom</span>
+                <span class="wordmark-llc">LLC</span>
+            </div>
+
+            <span class="wordmark-rule" aria-hidden="true"></span>
+            <span class="wordmark-sub">AI &amp; Automation Systems</span>
+
+        </div>
+    </header>
+
+    <section class="section" data-observe>
+        <h2>Overview</h2>
+        <p>
+            Deterministic AI Infrastructure
+        </p>
+        <p>
+            Production-ready agents, retrieval pipelines, and API integration. Grounded. Reproducible. Deployment-ready.
+        </p>
+    </section>
+
+    <section class="section" data-observe>
+        <h2>Services</h2>
+        <div class="grid" role="list">
+            <div class="project" role="listitem">
+                <div class="project-num">01</div>
+                <h3>Agent Systems</h3>
+                <p>Deterministic, schema-validated execution frameworks. Natural language input translated into reproducible, auditable tool invocations.</p>
+            </div>
+            <div class="project" role="listitem">
+                <div class="project-num">02</div>
+                <h3>LLM Integration</h3>
+                <p>Multi-model orchestration pipelines with structured output, audit trails, and bounded retry convergence.</p>
+            </div>
+            <div class="project" role="listitem">
+                <div class="project-num">03</div>
+                <h3>Workflow Automation</h3>
+                <p>End-to-end operational pipeline design and delivery. Data transforms, system integrations, and process automation with measurable, auditable outcomes.</p>
+            </div>
+            <div class="project" role="listitem">
+                <div class="project-num">04</div>
+                <h3>Infrastructure</h3>
+                <p>GCP, Docker, and Unix-aligned deployment. Security-first, minimal-dependency systems engineered for long-term production stability.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" data-observe>
+		<h2>Stack</h2>
+		<div class="stack-list" role="list">
+			<span class="tag" role="listitem">Python</span>
+			<span class="tag" role="listitem">Bash</span>
+			<span class="tag" role="listitem">Gemini API</span>
+			<span class="tag" role="listitem">Pydantic</span>
+			<span class="tag" role="listitem">Deterministic Agent Runtimes</span>
+			<span class="tag" role="listitem">Multi-agent Systems</span>
+			<span class="tag" role="listitem">RAG / Vector Search</span>
+			<span class="tag" role="listitem">SQLite</span>
+			<span class="tag" role="listitem">ChromaDB</span>
+			<span class="tag" role="listitem">PostgreSQL / pgvector</span>
+			<span class="tag" role="listitem">Flask</span>
+			<span class="tag" role="listitem">Docker</span>
+			<span class="tag" role="listitem">GCP Cloud Run</span>
+			<span class="tag" role="listitem">REST APIs</span>
+			<span class="tag" role="listitem">Twilio</span>
+			<span class="tag" role="listitem">Ollama</span>
+			<span class="tag" role="listitem">OpenSCAD</span>
+			<span class="tag" role="listitem">JavaScript</span>
+		</div>
+	</section>
+
+    <section class="section" data-observe>
+        <h2>Architecture</h2>
+        <img src="architecture/system-stack.svg" alt="Axiom LLC system architecture" style="width:100%;border-radius:3px;">
+    </section>
+
+    <section class="section contact" data-observe>
+        <h2>Contact</h2>
+        <div class="contact-rows">
+            <div class="contact-row">
+                <span class="contact-label">email</span>
+                <a href="mailto:axiom.co@proton.me" class="contact-value">axiom.co@proton.me</a>
+            </div>
+            <div class="contact-row">
+                <span class="contact-label">phone</span>
+                <a href="tel:+16468834329" class="contact-value">646-883-4329</a>
+            </div>
+            <div class="contact-row">
+                <span class="contact-label">github</span>
+                <a href="https://github.com/axiom-llc" target="_blank" rel="noopener" class="contact-value">github.com/axiom-llc</a>
+            </div>
+        </div>
+        <nav class="contact-links" aria-label="Contact and portfolio links">
+            <a href="mailto:axiom.co@proton.me" class="btn btn-primary">Start a Project</a>
+            <a href="https://github.com/axiom-llc" target="_blank" rel="noopener" class="btn btn-secondary">View Work &rarr;</a>
+        </nav>
+    </section>
+
+    <footer>
+        <span>&copy; 2026 Axiom LLC</span>
+    </footer>
+
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        var sections = document.querySelectorAll('[data-observe]');
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+
+        sections.forEach(function (el) { observer.observe(el); });
+    })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+# ==============================================================================
+# PYTHON BUILDS & PIPELINE RESIDUES
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==============================================================================
+# VIRTUAL ENVIRONMENTS
+# ==============================================================================
+venv/
+.venv/
+env/
+
+# ==============================================================================
+# SECRETS & LOCAL ENVIRONMENT
+# ==============================================================================
+.env
+.env.*
+.bash_secrets
+
+# ==============================================================================
+# LOCAL DATABASES & TRACES (If created locally instead of ~/.apex/)
+# ==============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+
+# ==============================================================================
+# GOOGLE CLOUD & CONTAINERS
+# ==============================================================================
+.gcloud/
+gcloud-service-key.json
+*.json
+
+# Safety bypass to ensure essential workspace files are tracked
+!apex/benchmarks/tasks.json
+!apex/benchmarks/results/*.json
+!apex/templates.json
+!apex/examples/logistics-dashboard/shipments.csv
+
+# ==============================================================================
+# LATEX / RESEARCH PAPER COMPILATION RESIDUES
+# ==============================================================================
+# Ignore build outputs generated during pdflatex compilation under docs/research/
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.pdf
+
+# ==============================================================================
+# OPERATING SYSTEM SPECIFICS
+# ==============================================================================
+.DS_Store
+Thumbs.db
+
+# ==============================================================================
+# IDE / DIAGNOSTICS SPECIFICS
+# ==============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================================================================
+# TRANSITIONAL META RECORDS
+# ==============================================================================
+transfer.md
+tree

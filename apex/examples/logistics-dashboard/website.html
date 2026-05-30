@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maverick Logistics Solutions - Driving Your Success</title>
+    <style>
+        /* Reset and Base Styles */
+        :root {
+            --font-primary: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            --font-secondary: 'Georgia', serif;
+            
+            /* Light Theme (Default) */
+            --bg-color-light: #f8f9fa;
+            --text-color-light: #212529;
+            --primary-color-light: #007bff; /* Professional Blue */
+            --secondary-color-light: #6c757d; /* Muted Gray */
+            --accent-color-light: #17a2b8; /* Info Cyan */
+            --card-bg-light: #ffffff;
+            --border-color-light: #dee2e6;
+            --link-color-light: #0056b3;
+            --hero-bg-light: linear-gradient(135deg, #e9f5ff 0%, #ffffff 100%);
+            --footer-bg-light: #343a40;
+            --footer-text-light: #f8f9fa;
+
+            /* Dark Theme Variables */
+            --bg-color-dark: #1a1a1a; /* Slightly off-black */
+            --text-color-dark: #e0e0e0;
+            --primary-color-dark: #61dafb; /* Bright Blue for Dark Mode */
+            --secondary-color-dark: #adb5bd;
+            --accent-color-dark: #39cccc; /* Teal for Dark Mode */
+            --card-bg-dark: #2c2c2c;
+            --border-color-dark: #444;
+            --link-color-dark: #82eefd;
+            --hero-bg-dark: linear-gradient(135deg, #0d2030 0%, #1a1a1a 100%);
+            --footer-bg-dark: #111111;
+            --footer-text-dark: #adb5bd;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- Light Theme --- */
+        body.light-theme {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+            --current-primary: var(--primary-color-light);
+            --current-secondary: var(--secondary-color-light);
+            --current-accent: var(--accent-color-light);
+            --current-card-bg: var(--card-bg-light);
+            --current-border: var(--border-color-light);
+            --current-link: var(--link-color-light);
+            --current-hero-bg: var(--hero-bg-light);
+            --current-footer-bg: var(--footer-bg-light);
+            --current-footer-text: var(--footer-text-light);
+        }
+
+        /* --- Dark Theme --- */
+        body.dark-theme {
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+            --current-primary: var(--primary-color-dark);
+            --current-secondary: var(--secondary-color-dark);
+            --current-accent: var(--accent-color-dark);
+            --current-card-bg: var(--card-bg-dark);
+            --current-border: var(--border-color-dark);
+            --current-link: var(--link-color-dark);
+            --current-hero-bg: var(--hero-bg-dark);
+            --current-footer-bg: var(--footer-bg-dark);
+            --current-footer-text: var(--footer-text-dark);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: var(--current-card-bg);
+            color: var(--text-color-light); /* Keep nav text dark for light header */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.dark-theme header {
+            background-color: var(--current-card-bg);
+            color: var(--text-color-dark); /* Adjust nav text for dark header */
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        nav .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--current-primary);
+            text-decoration: none;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-left: 25px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: inherit; /* Inherit color from header */
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        nav ul li a:hover, nav ul li a.active {
+            color: var(--current-primary);
+            border-bottom: 2px solid var(--current-primary);
+            padding-bottom: 3px;
+        }
+        body.dark-theme nav ul li a:hover, body.dark-theme nav ul li a.active {
+            color: var(--current-primary);
+            border-bottom-color: var(--current-primary);
+        }
+
+
+        /* Theme Switcher */
+        .theme-switcher {
+            cursor: pointer;
+            font-size: 1.5em; /* Adjust size of icon/text */
+            background: none;
+            border: none;
+            color: inherit; /* Inherits from nav text color */
+        }
+        /* Hide actual checkbox but keep it functional */
+        #theme-toggle {
+            display: none;
+        }
+        #theme-toggle + label {
+            font-size: 1.5em; /* Icon size */
+            cursor: pointer;
+            color: inherit;
+        }
+
+
+        /* Hero Section */
+        .hero {
+            background: var(--current-hero-bg);
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 20px 20px 20px; /* Added top padding for fixed header */
+            color: var(--text-color-light); /* Default for light hero */
+            transition: background 0.3s ease;
+        }
+        body.dark-theme .hero {
+            color: var(--text-color-dark); /* Adjust for dark hero */
+        }
+
+        .hero-content h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            color: var(--current-primary);
+            font-family: var(--font-primary);
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .hero-content .tagline {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            color: var(--current-secondary);
+            font-family: var(--font-primary);
+            font-weight: 300;
+        }
+        .hero-content .cta-button {
+            background-color: var(--current-primary);
+            color: #fff;
+            padding: 15px 35px;
+            text-decoration: none;
+            font-size: 1.1em;
+            border-radius: 50px; /* Pill shape */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .hero-content .cta-button:hover {
+            background-color: var(--current-accent);
+            transform: translateY(-2px);
+        }
+        body.dark-theme .hero-content .cta-button {
+            color: var(--bg-color-dark); /* Dark text on bright button */
+        }
+
+
+        /* Section Styling */
+        section {
+            padding: 80px 0;
+            border-bottom: 1px solid var(--current-border);
+        }
+        section:last-of-type {
+            border-bottom: none;
+        }
+        section h2 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 60px;
+            color: var(--current-primary);
+            position: relative;
+            padding-bottom: 15px;
+        }
+        section h2::after { /* Underline effect */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--current-accent);
+        }
+
+        /* Card Styling (for Services, Why Maverick) */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background-color: var(--current-card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .card h3 {
+            font-size: 1.5em;
+            color: var(--current-primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .card p {
+            font-size: 1em;
+            line-height: 1.6;
+            color: var(--current-secondary);
+        }
+
+        /* About Us Section */
+        #about p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            color: var(--current-secondary);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .stat-item {
+            padding: 20px;
+            background-color: var(--current-card-bg);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .stat-item .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--current-primary);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .stat-item .stat-label {
+            font-size: 1em;
+            color: var(--current-secondary);
+        }
+
+        /* Partners Section */
+        #partners .partner-logos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+        }
+        #partners .partner-logo {
+            /* Placeholder for actual logos */
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px 25px;
+            background-color: var(--current-card-bg);
+            border-radius: 5px;
+            color: var(--current-secondary);
+            border: 1px solid var(--current-border);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--current-footer-bg);
+            color: var(--current-footer-text);
+            text-align: center;
+            padding: 40px 20px;
+        }
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+        footer a {
+            color: var(--current-accent);
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Typing effect for tagline */
+        .tagline {
+            overflow: hidden; /* Ensures the text is not shown outside its container */
+            /* border-right: .15em solid var(--current-primary); /* The typwriter cursor */
+            /* white-space: nowrap; /* Keeps the content on a single line */
+            /* letter-spacing: .05em; /* Adjust as needed */
+            /* animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite; */
+        }
+
+        /* Typing animation (optional) */
+        /* @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--current-primary); }
+        } */
+
+        /* Scroll to top button (optional) */
+        #scrollTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background-color: var(--current-primary);
+            color: white;
+            cursor: pointer;
+            padding: 12px 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        body.dark-theme #scrollTopBtn {
+             background-color: var(--current-primary);
+             color: var(--bg-color-dark);
+        }
+        #scrollTopBtn:hover {
+            background-color: var(--current-accent);
+        }
+
+    </style>
+</head>
+<body class="light-theme">
+
+    <header>
+        <nav class="container">
+            <a href="#hero" class="logo">MAVERICK</a>
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#partners">Partners</a></li>
+                <li><a href="#why-us">Why Maverick</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div>
+                <input type="checkbox" id="theme-toggle">
+                <label for="theme-toggle" class="theme-switcher" title="Toggle Theme">🌙</label>
+                <!-- Icon will change via JS; could use ☀️/🌙 or an SVG -->
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="hero">
+            <div class="hero-content">
+                <h1>Powering Progress, Delivering Excellence.</h1>
+                <p class="tagline" id="tagline-text">Your Trusted Partner in Scalable Logistics and Fleet Solutions.</p>
+                <a href="#contact" class="cta-button">Partner With Us</a>
+            </div>
+        </section>
+
+        <section id="about" class="container">
+            <h2>About Maverick Logistics</h2>
+            <p>Founded on principles of reliability and innovation, Maverick Logistics has rapidly grown from a dedicated team of 20 to a robust workforce of approximately 200 professionals. For the past four years, we've proudly held our position as a market share leader, consistently delivering exceptional logistics solutions for our valued clients and partners.</p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">Years Market Leader</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">200+</span>
+                    <span class="stat-label">Dedicated Employees</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">10x</span>
+                    <span class="stat-label">Growth Since Inception</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">Top-Tier</span>
+                    <span class="stat-label">Partner Network</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="container">
+            <h2>Our Core Services</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Dedicated Contract Carriage</h3>
+                    <p>Customized transportation solutions designed to integrate seamlessly with your supply chain, providing consistent capacity and predictable costs.</p>
+                </div>
+                <div class="card">
+                    <h3>Fleet Management & Leasing</h3>
+                    <p>Comprehensive fleet services, from vehicle acquisition and maintenance to advanced telematics and driver management, ensuring optimal performance.</p>
+                </div>
+                <div class="card">
+                    <h3>Last-Mile & Regional Delivery</h3>
+                    <p>Efficient and reliable final-mile delivery solutions, leveraging our extensive network and technology to meet demanding schedules for partners like Amazon.</p>
+                </div>
+                <div class="card">
+                    <h3>Logistics Consulting & Optimization</h3>
+                    <p>Expert guidance to streamline your logistics operations, reduce costs, and enhance supply chain visibility through data-driven strategies.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="partners" class="container">
+            <h2>Trusted by Industry Leaders</h2>
+            <p style="text-align:center; max-width:700px; margin:0 auto 40px auto; color: var(--current-secondary);">We are proud to be the chosen logistics partner for top-tier businesses, providing critical support and innovative solutions.</p>
+            <div class="partner-logos">
+                <span class="partner-logo">Amazon</span>
+                <span class="partner-logo">Hertz</span>
+                <span class="partner-logo">U-Haul</span>
+                <span class="partner-logo">Budget</span>
+                <span class="partner-logo">Ryder</span>
+                <span class="partner-logo">Enterprise</span>
+                <!-- In a real site, these would be actual <img> tags with logos -->
+            </div>
+        </section>
+
+        <section id="why-us" class="container">
+            <h2>Why Choose Maverick?</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Unwavering Reliability</h3>
+                    <p>Our commitment to on-time performance and service excellence is foundational to every partnership and operation.</p>
+                </div>
+                <div class="card">
+                    <h3>Scalable Solutions</h3>
+                    <p>From local fleets to interstate logistics, our infrastructure and expertise scale to meet your evolving business needs.</p>
+                </div>
+                <div class="card">
+                    <h3>Technology-Driven</h3>
+                    <p>We leverage modern technology, data analytics, and (soon!) advanced dashboards to optimize routes, track performance, and ensure transparency.</p>
+                </div>
+                <div class="card">
+                    <h3>Experienced Team</h3>
+                    <p>Our growing team of 200+ professionals are problem-solvers and collaborators, dedicated to your success.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="container">
+            <h2>Get In Touch</h2>
+            <p style="text-align:center; max-width:600px; margin:0 auto 40px auto; color: var(--current-secondary);">Ready to streamline your logistics and drive growth? Let's talk about how Maverick can support your business.</p>
+            <div style="text-align:center;">
+                <!-- Placeholder for contact form or details -->
+                <p><strong>Email:</strong> <a href="mailto:info@mavericklogistics.example.com" style="color: var(--current-link);">info@mavericklogistics.example.com</a></p>
+                <p><strong>Phone:</strong> (555) 123-4567 (Demo Number)</p>
+                <p>Township of Brick, NJ</p>
+                <a href="#hero" class="cta-button" style="margin-top:20px;">Request a Consultation</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Maverick Logistics Solutions. All Rights Reserved.</p>
+            <p>Built by Axiom LLC</p>
+        </div>
+    </footer>
+
+    <button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top">⇧</button>
+
+    <script>
+        // --- Theme Switcher ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeSwitcherLabel = document.querySelector('label[for="theme-toggle"]');
+        const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+                themeSwitcherLabel.textContent = '☀️'; // Sun icon for light mode
+                localStorage.setItem('theme', 'dark');
+                if(themeToggle) themeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-theme');
+                document.body.classList.add('light-theme');
+                themeSwitcherLabel.textContent = '🌙'; // Moon icon for dark mode
+                localStorage.setItem('theme', 'light');
+                if(themeToggle) themeToggle.checked = false;
+            }
+        }
+
+        // Load saved theme or detect system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else {
+            setTheme(prefersDarkScheme.matches ? 'dark' : 'light');
+        }
+        
+        if(themeToggle) {
+            themeToggle.addEventListener('change', () => {
+                setTheme(themeToggle.checked ? 'dark' : 'light');
+            });
+        }
+        // Listen for changes in system preference (optional)
+        prefersDarkScheme.addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) { // Only if no theme is manually set
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        // --- Smooth Scrolling for Nav Links & Active Nav Link Highlighting ---
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Smooth scroll considering fixed header height
+                    const headerOffset = document.querySelector('header').offsetHeight;
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+        // Active link highlighting on scroll
+        const sections = document.querySelectorAll('main section');
+        const navLi = document.querySelectorAll('nav ul li a');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const headerHeight = document.querySelector('header').offsetHeight;
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - headerHeight - 50; // Adjusted offset
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLi.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${current}`) {
+                    a.classList.add('active');
+                }
+            });
+        });
+
+
+        // --- Tagline Typing Effect (Simple) ---
+        // const taglineEl = document.getElementById('tagline-text');
+        // const taglineText = taglineEl.textContent;
+        // taglineEl.textContent = ''; // Clear it
+        // let i = 0;
+        // function typeTagline() {
+        //     if (i < taglineText.length) {
+        //         taglineEl.textContent += taglineText.charAt(i);
+        //         i++;
+        //         setTimeout(typeTagline, 70); // Adjust speed here
+        //     }
+        // }
+        // setTimeout(typeTagline, 1000); // Delay start of typing
+
+
+        // --- Current Year for Footer ---
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Scroll to Top Button ---
+        let scrollTopBtn = document.getElementById("scrollTopBtn");
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+          if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            scrollTopBtn.style.display = "block";
+          } else {
+            scrollTopBtn.style.display = "none";
+          }
+        }
+        function scrollToTop() {
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+    </script>
+</body>
+</html>

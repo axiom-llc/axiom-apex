@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="100%" height="100%">
+  <style>
+    .bg { fill: #0a0b10; }
+    .card { fill: #12141c; stroke: #262936; stroke-width: 1.5; rx: 8; ry: 8; }
+    .card-active { stroke: #38bdf8; }
+    .card-boundary { stroke: #f59e0b; }
+    .title { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 22px; fill: #ffffff; font-weight: bold; letter-spacing: 1px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #6b7280; }
+    .text-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; fill: #e5e7eb; font-weight: 600; }
+    .text-sub { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 11.5px; fill: #38bdf8; }
+    .arrow { stroke: #4b5563; stroke-width: 2; stroke-dasharray: 4 4; fill: none; }
+    .arrow-head { fill: #4b5563; }
+    .badge { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 10px; font-weight: bold; }
+  </style>
+  
+  <!-- Background -->
+  <rect width="800" height="1000" class="bg" />
+  
+  <!-- Subtle Grid Overlay -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f2937" stroke-width="0.5" opacity="0.3"/>
+  </pattern>
+  <rect width="800" height="1000" fill="url(#grid)" />
+
+  <!-- Header -->
+  <text x="400" y="50" text-anchor="middle" class="title">AXIOM SYSTEM STACK ARCHITECTURE</text>
+  <text x="400" y="75" text-anchor="middle" class="subtitle">Unified Plan-Deterministic Execution Kernel &amp; Safe Boundaries [2]</text>
+
+  <!-- Connection Arrow Marker (refX corrected to avoid card overlapping) -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" class="arrow-head" />
+    </marker>
+  </defs>
+
+  <!-- 1. Language Model Planner -->
+  <g transform="translate(130, 100)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">1. Language Model (Planner)</text>
+    <text x="25" y="48" class="text-sub">Gemini 2.5 Flash / Local Ollama [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#0284c7" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">PROBABILISTIC</text>
+  </g>
+
+  <!-- Line ends at 192 (8px offset before card starting at 200) to show arrowhead -->
+  <path d="M 400 165 L 400 192" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 2. Structured JSON Intent -->
+  <g transform="translate(130, 200)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">2. Structured JSON Intent</text>
+    <text x="25" y="48" class="text-sub">Strict Pydantic Plan Schema Parsing [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#eab308" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">VALIDATION</text>
+  </g>
+
+  <path d="M 400 265 L 400 292" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 3. Schema & Policy Boundary -->
+  <g transform="translate(130, 300)">
+    <rect width="540" height="65" class="card card-boundary" />
+    <text x="25" y="28" class="text-label" fill="#f59e0b">3. Schema &amp; Policy Boundary</text>
+    <text x="25" y="48" class="text-sub">apex/core/validator.py (Static + LLM Audit) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#f59e0b" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">HARD GATEWAY</text>
+  </g>
+
+  <path d="M 400 365 L 400 392" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 4. Deterministic Execution Kernel -->
+  <g transform="translate(130, 400)">
+    <rect width="540" height="65" class="card card-active" />
+    <text x="25" y="28" class="text-label" fill="#38bdf8">4. Deterministic Execution Kernel</text>
+    <text x="25" y="48" class="text-sub">apex/core/loop.py (Pure State transitions) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#10b981" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">DETERMINISTIC</text>
+  </g>
+
+  <path d="M 400 465 L 400 492" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 5. Tool Isolation & Callback Layer -->
+  <g transform="translate(130, 500)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">5. Tool Isolation &amp; Callback Layer</text>
+    <text x="25" y="48" class="text-sub">apex/core/tools.py (Process-isolated sandboxes) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#4b5563" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">ISOLATED</text>
+  </g>
+
+  <path d="M 400 565 L 400 592" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 6. Embedded Retrieval Engine -->
+  <g transform="translate(130, 600)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">6. Embedded Retrieval Engine (RAG)</text>
+    <text x="25" y="48" class="text-sub">apex/core/rag.py (In-process Vector Querying) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#4f46e5" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">CONTEXT GROUND</text>
+  </g>
+
+  <path d="M 400 665 L 400 692" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 7. Deployment Blueprints -->
+  <g transform="translate(130, 700)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">7. Deployment Blueprints</text>
+    <text x="25" y="48" class="text-sub">apex/examples/ (Logistics, Voice-IVR, Swarms) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#06b6d4" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">APPLIED BLUEPRINT</text>
+  </g>
+
+  <path d="M 400 765 L 400 792" class="arrow" marker-end="url(#arrow)" />
+
+  <!-- 8. Public Web Registry -->
+  <g transform="translate(130, 800)">
+    <rect width="540" height="65" class="card" />
+    <text x="25" y="28" class="text-label">8. Public Web Registry</text>
+    <text x="25" y="48" class="text-sub">docs/web/ (Consolidated Registry &amp; Landing Page) [2]</text>
+    <rect x="385" y="22" width="130" height="22" rx="4" fill="#ec4899" />
+    <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">PUBLIC RECORD</text>
+  </g>
+
+  <!-- Unified Symmetrical Legend -->
+  <g transform="translate(130, 890)">
+    <rect width="540" height="70" rx="6" ry="6" fill="#12141c" stroke="#334155" stroke-width="1" />
+    <text x="270" y="25" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12px" fill="#9ca3af" font-weight="bold">GLOBAL INVARIANTS ENFORCED AT ALL LEVELS [2]</text>
+    <text x="270" y="48" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="10.5px" fill="#e5e7eb">schema-validated plans • deterministic transitions • max_steps=32 • process safety [2]</text>
+  </g>
+</svg>

@@ -1,19 +1,32 @@
-# Static Public Registry
+# Public Web Registry Assets
 
-The public static registry assets and organizational portfolio configurations of Axiom LLC.
-
-## Folder Contents
-
-*   `index.html` — Base registry index displaying company positioning, unified repository documentation, and diagnostic run flows.
-*   `architecture/system-stack.svg` — Visual systems architecture blueprint tracing the flow from language planning layers down to isolated local sandboxes.
-*   `favicon.svg` & `LICENSE` — Site asset assets and usage compliance.
+This directory houses the static web assets, visual diagrams, and public portfolio index files defining the online surface of Axiom LLC (`axiom-llc.github.io`).
 
 ---
 
-## Local Deployment
+## 1. File & Asset Inventory
 
-To serve the landing interface locally to verify layout and asset links:
+*   **`index.html`** — The corporate landing page. Features structural overview blocks, repository links, pricing consultancy outlines, and direct communication panels.
+*   **`architecture/system-stack.svg`** — Visually maps the system hierarchy, tracing paths from language model planning down to safe local sandboxes.
+*   **`favicon.svg`** — Scalable vector logo for web browsers.
+*   **`LICENSE`** — MIT usage license.
+
+---
+
+## 2. Architecture Diagram (`system-stack.svg`)
+
+The `system-stack.svg` is an optimized, dark-mode vector graphic illustrating our engineering stack. It has been designed with re-centered grids, expanded card elements (`540px` widths), and offset connection paths to guarantee high legibility across all diagnostic browsers.
+
+---
+
+## 3. Local Audit & Deployment
+
+### Local Verification
+To test site layouts, asset links, and CSS styles locally on your machine, launch the Python built-in server:
 ```bash
-python -m http.server 8000
+python -m http.server -d /home/u/c/apps/docs/web/ 8000
 ```
-Then, navigate to `http://localhost:8000` in any web browser.
+Open your web browser and navigate to `http://localhost:8000` to verify changes.
+
+### Automated Continuous Integration
+This subfolder is deployed automatically to GitHub Pages on every push to the `main` branch, managed by the GitHub Action workflow defined at `.github/workflows/deploy-pages.yml`.

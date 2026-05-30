@@ -1,29 +1,60 @@
-# Twilio Telephony Voice Agent
+# Containerized Twilio Telephony Voice Agent
 
-This directory contains a containerized voice agent blueprint integrating Twilio programmatic voice streams with Gemini's reasoning pipelines to execute real-time call center workflows [2].
-
-## Directory Components
-
-*   `main.py` — Core Flask server handling Twilio webhook routing, dynamic TwiML generation, and model response generation [2].
-*   `deploy.sh` — Shell automation compiling, building, and deploying the containerized microservice to Google Cloud Run.
-*   `Dockerfile` — Optimized container build configuration.
-*   `requirements.txt` — Frozen application dependencies (Flask, twilio, google-generativeai) [2].
+This deployment blueprint details a serverless voice agent architecture. It integrates **Twilio Voice Streams** with **Gemini’s Reasoning Model** inside an optimized Docker container to handle conversational call routing and dynamic customer workflows.
 
 ---
 
-## Setup & Local Run
+## 1. Operational Architecture
 
-1. Configure your local runtime parameters:
-   ```bash
-   export TWILIO_ACCOUNT_SID="your-sid"
-   export TWILIO_AUTH_TOKEN="your-token"
-   export GEMINI_API_KEY="your-key"
-   ```
-2. Execute the Flask entry point:
-   ```bash
-   python main.py
-   ```
-3. Tunnel port `5000` via a secure reverse proxy (such as ngrok) to expose your webhook securely to Twilio:
-   ```bash
-   ngrok http 5000
-   ```
+```
+Incoming Call ──> Twilio ──(HTTP POST Webhook)──> ngrok / Load Balancer
+                                                          │
+  TwiML XML response <── [main.py (Flask)] ◄──────────────┘
+                             │
+                     Gemini 2.5 Flash
+```
+
+1.  **Call Initiation**: An incoming call triggers Twilio to issue an HTTP POST request containing call parameters to our server webhook.
+2.  **Webhook Router (`main.py`)**: Handles the request, queries Gemini for the next conversational response, and generates dynamic **TwiML XML** structures (e.g., `<Say>`, `<Gather>`, `<Hangup>`).
+3.  **Process Isolation**: Containerization ensures clean runtime environments with minimal package surfaces.
+
+---
+
+## 2. Configuration & Local Execution
+
+### Step 1: Export Telephony Credentials
+Configure your terminal environment variables:
+```bash
+export TWILIO_ACCOUNT_SID="your-twilio-sid"
+export TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+export GEMINI_API_KEY="your-gemini-key"
+```
+
+### Step 2: Install Package Requirements
+```bash
+pip install -r requirements.txt
+```
+
+### Step 3: Run the Server
+Launch the Flask telephony server on port `5000`:
+```bash
+python main.py
+```
+
+### Step 4: Secure Port Tunneling
+Twilio requires a public HTTPS URL to route calls. Create a secure tunnel using ngrok:
+```bash
+ngrok http 5000
+```
+Copy the public HTTPS URL (e.g., `https://abcd.ngrok-free.app`) and configure it as the Voice webhook URL inside your Twilio Console.
+
+---
+
+## 3. Containerized Deployment (GCP Cloud Run)
+
+To compile, build, and deploy this voice agent to Google Cloud Run, execute the deployment script:
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+This compiles your local directory assets, pushes the image to Google Artifact Registry, and deploys it on Google Cloud Run serverless container instances.

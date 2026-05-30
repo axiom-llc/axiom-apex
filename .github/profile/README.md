@@ -1,21 +1,44 @@
-# AXIOM LLC
-## AI Operating System Architecture & Automation Consultancy
+# Axiom LLC — AI & Automation Systems
 
-AXIOM LLC engineers deterministic AI Operating System layers over probabilistic language models.
+Engineers plan-deterministic AI Operating System layers over probabilistic language models.
 
-Natural language becomes structured intent. Structured intent becomes schema-validated plans. Plans execute inside bounded, inspectable runtimes.
+Natural language → structured intent → schema-validated plans → bounded, inspectable runtimes.
 
-All code, safety policies, retrieval models, research publications, and deployment surfaces are unified inside a single cohesive repository.
+All modules, research papers, compliance frameworks, and deployment blueprints are unified inside a single cohesive repository.
 
 ---
 
-## The Unified Stack
+## 1. Unified Stack Topology
 
-Our complete core capabilities are packaged within the single primary repository: **[`axiom`](https://github.com/axiom-llc/axiom)**.
+Axiom LLC organizes its entire software capability inside a single monorepo to eliminate distributed state drift, minimize maintenance overhead, and guarantee atomic dependency resolution:
 
-| Module | Layer | Structural Component & Capabilities |
+```
+Language Model (Planner)
+        ↓
+Structured JSON Intent
+        ↓
+Schema & Policy Boundary (apex/core/validator.py)
+        ↓
+Deterministic Execution Kernel (apex/core/loop.py)
+        ↓
+Tool Isolation & Callback Layer (apex/core/tools.py)
+        ↓
+Embedded Retrieval Engine (apex/core/rag.py)
+        ↓
+Applied Deployments & Blueprints (apex/examples/)
+        ↓
+Public Web Registry (docs/web/)
+```
+
+---
+
+## 2. Repository Architecture Overview
+
+Our complete software stack and publication record are packaged within **[`axiom`](https://github.com/axiom-llc/axiom)**:
+
+| Folder Path | Operational Layer | Functional Purpose & Scope |
 |---|---|---|
-| **[`apex/core/`](https://github.com/axiom-llc/axiom/tree/main/apex/core)** | Execution Kernel | Pure-functional state loop running schema-validated plan transitions. |
+| **[`apex/core/`](https://github.com/axiom-llc/axiom/tree/main/apex/core)** | Execution Kernel | Functional run loops, SQLite-backed state/trace transitions, and schema-validated plan generation. |
 | **[`apex/policy/`](https://github.com/axiom-llc/axiom/tree/main/apex/core)** | Safety &amp; Contracts | Pre-execution safety constraints: step-count limits, blocked tools, allowed-tool lists, and execution rollback mechanisms. |
 | **[`apex/rag/`](https://github.com/axiom-llc/axiom/tree/main/apex/rag)** | Knowledge Boundary | In-process document chunking, semantic similarity retrieval filters, and grounded generation. |
 | **[`apex/examples/`](https://github.com/axiom-llc/axiom/tree/main/apex/examples)** | Deployment Surface | Containerized voice agents (Twilio) and full-stack real-time data ingestion dashboards. |
@@ -24,21 +47,22 @@ Our complete core capabilities are packaged within the single primary repository
 
 ---
 
-## Architectural Doctrine
+## 3. Core Architectural Doctrines
 
-All components within this unified boundary strictly enforce the following system invariants:
-*   **Schema-Validated Plan Boundaries**: Every action sequence is pre-validated against Pydantic schemas before invocation.
-*   **Deterministic Execution Kernels**: Identical verified plans strictly produce identical tool execution paths.
-*   **Explicit State Transition Models**: Zero hidden mutable state; transitions are purely functional and SQLite-logged.
-*   **Bounded Runtimes**: Structural caps on execution steps (max=32), total execution time (300s limit), and isolated process memory.
-*   **Process-Isolated Side Effects**: Local execution domains and blast-radius constraints verified at the API boundary.
-*   **Inspectable Execution Traces**: Detailed, real-time structured JSONL logs written for auditability.
-*   **Minimal Dependency Surfaces**: Designed around minimal package footprint and lightweight system adapters.
+All systems in this monorepo strictly comply with these tenets:
+*   **Plan-Deterministic Invariance**: Identical verified plans strictly guarantee identical tool-call and callback sequences.
+*   **Hard Boundaries**: All processes are capped at 32 max steps, 300s runtime limits, and isolated process memory.
+*   **Safety Isolation**: Absolute blocklist enforcement (such as shell blocks) and sandbox blast-radius restrictions checked at the API boundary.
 
 ---
 
-## Contact
+## 4. Consultancy Operations
 
-*   **Company**: `axiom.co@proton.me`
-*   **Development**: `axiom.de@proton.me`
-*   **Web Surface**: [`axiom-llc.github.io`](https://axiom-llc.github.io)
+Axiom LLC provides dedicated systems advisory and implementation services:
+*   Deterministic runtime layout design
+*   Secure agent policy and rollback integration
+*   Context-grounded knowledge boundaries (RAG)
+*   High-throughput tool calling pipelines
+*   Client demonstration and containerized cloud deployment setup
+
+**axiom.co@proton.me · [axiom-llc.github.io](https://axiom-llc.github.io)**

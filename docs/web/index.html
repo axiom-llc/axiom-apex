@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom LLC — AI & Automation Systems</title>
+    <title>Axiom LLC — AI &amp; Automation Systems</title>
     <meta name="description" content="Axiom LLC — AI &amp; Automation Systems">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,20 +13,20 @@
         /* ── Reset ─────────────────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ── Tokens ────────────────────────────────────────────────── */
+        /* ── Tokens (Cyan Palette Color-Aligned with Logo &amp; Stack) ── */
         :root {
-            --bg:          #06080A;
-            --surface:     #0B0F13;
-            --surface-2:   #101418;
-            --border:      #181E25;
-            --border-hi:   #252E38;
-            --text:        #B8B3AA;
-            --text-dim:    #5A6670;
-            --text-mute:   #44505A;
-            --text-hi:     #E8E4DC;
-            --accent:      #3DFFA0;
-            --accent-dim:  rgba(61, 255, 160, 0.06);
-            --accent-glow: rgba(61, 255, 160, 0.15);
+            --bg:          #080a0f;
+            --surface:     #0e1118;
+            --surface-2:   #151922;
+            --border:      #1e2530;
+            --border-hi:   #2b3545;
+            --text:        #b4b9c4;
+            --text-dim:    #64748b;
+            --text-mute:   #475569;
+            --text-hi:     #f8fafc;
+            --accent:      #38bdf8;
+            --accent-dim:  rgba(56, 189, 248, 0.06);
+            --accent-glow: rgba(56, 189, 248, 0.15);
             --mono: "Azeret Mono", "Fira Code", monospace;
             --sans: "Bricolage Grotesque", system-ui, sans-serif;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -54,7 +54,7 @@
                 linear-gradient(var(--text-mute) 1px, transparent 1px),
                 linear-gradient(90deg, var(--text-mute) 1px, transparent 1px);
             background-size: 60px 60px;
-            opacity: 0.18;
+            opacity: 0.15;
             pointer-events: none;
             z-index: 0;
             mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
@@ -69,7 +69,7 @@
             background-size: 200px 200px;
             pointer-events: none;
             z-index: 999;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
         /* ── Top accent rule ───────────────────────────────────────── */
@@ -77,7 +77,7 @@
             position: relative;
             height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent) 70%, transparent 100%);
-            box-shadow: 0 0 40px 0 var(--accent-glow), 0 0 80px 0 rgba(61, 255, 160, 0.07);
+            box-shadow: 0 0 40px 0 var(--accent-glow), 0 0 80px 0 rgba(56, 189, 248, 0.07);
         }
 
         /* ── Layout ────────────────────────────────────────────────── */
@@ -186,7 +186,7 @@
         .section > p {
             font-size: 1.04rem;
             color: var(--text);
-            max-width: 640px;
+            max-width: 720px;
             margin-bottom: 0.9rem;
             line-height: 1.7;
         }
@@ -201,7 +201,7 @@
         .inline-link {
             color: inherit;
             text-decoration: none;
-            border-bottom: 1px solid rgba(61, 255, 160, 0.35);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.35);
             transition: color 0.18s, border-color 0.18s;
         }
 
@@ -293,7 +293,7 @@
 
         .tag:hover {
             color: var(--accent);
-            border-color: rgba(61, 255, 160, 0.2);
+            border-color: rgba(56, 189, 248, 0.2);
             background: var(--accent-dim);
         }
 
@@ -332,7 +332,7 @@
 
         .contact-value:hover {
             color: var(--accent);
-            border-bottom-color: rgba(61, 255, 160, 0.4);
+            border-bottom-color: rgba(56, 189, 248, 0.4);
         }
 
         /* ── Buttons ───────────────────────────────────────────────── */
@@ -363,8 +363,8 @@
         }
 
         .btn-primary:hover {
-            background: #5AFFB4;
-            box-shadow: 0 0 28px var(--accent-glow), 0 4px 16px rgba(61, 255, 160, 0.2);
+            background: #7dd3fc;
+            box-shadow: 0 0 28px var(--accent-glow), 0 4px 16px rgba(56, 189, 248, 0.2);
             transform: translateY(-1px);
         }
 
@@ -428,10 +428,10 @@
     <section class="section" data-observe>
         <h2>Overview</h2>
         <p>
-            Deterministic AI Infrastructure
+            Axiom LLC engineers plan-deterministic operating system layers designed to enforce execution safety and context discipline over probabilistic language models.
         </p>
         <p>
-            Production-ready agents, retrieval pipelines, and API integration. Grounded. Reproducible. Deployment-ready.
+            By compiling natural language intents into schema-validated, declarative execution contracts, our architectures ensure that identical inputs yield strictly reproducible, bounded, and auditable tool sequences. All system components are packaged inside a single unified repository to minimize transactional overhead.
         </p>
     </section>
 
@@ -440,23 +440,23 @@
         <div class="grid" role="list">
             <div class="project" role="listitem">
                 <div class="project-num">01</div>
-                <h3>Agent Systems</h3>
-                <p>Deterministic, schema-validated execution frameworks. Natural language input translated into reproducible, auditable tool invocations.</p>
+                <h3>Plan-Deterministic Engines</h3>
+                <p>Imposing operating system discipline over language models. Our functional run loops run over compiled, schema-validated plans, ensuring reliable, step-bounded executions.</p>
             </div>
             <div class="project" role="listitem">
                 <div class="project-num">02</div>
-                <h3>LLM Integration</h3>
-                <p>Multi-model orchestration pipelines with structured output, audit trails, and bounded retry convergence.</p>
+                <h3>Safety &amp; Execution Policies</h3>
+                <p>Pre-execution contract auditing. Evaluating tool calls against strict, nested policy constraints—enforcing step caps, blocked commands, and process-isolated blast-radius limits before run initiation.</p>
             </div>
             <div class="project" role="listitem">
                 <div class="project-num">03</div>
-                <h3>Workflow Automation</h3>
-                <p>End-to-end operational pipeline design and delivery. Data transforms, system integrations, and process automation with measurable, auditable outcomes.</p>
+                <h3>In-Process Context Grounding</h3>
+                <p>Context grounding pipelines. Embedding advanced semantic chunkers, vector search interfaces, and generative retrieval systems directly into the execution path to enforce absolute grounding discipline.</p>
             </div>
             <div class="project" role="listitem">
                 <div class="project-num">04</div>
-                <h3>Infrastructure</h3>
-                <p>GCP, Docker, and Unix-aligned deployment. Security-first, minimal-dependency systems engineered for long-term production stability.</p>
+                <h3>Applied Blueprints</h3>
+                <p>Fully containerized deployment surfaces. Building and hosting transaction dashboards, secure API servers, and serverless voice interfaces on hardened Unix-aligned cloud architectures.</p>
             </div>
         </div>
     </section>
@@ -480,8 +480,6 @@
 			<span class="tag" role="listitem">REST APIs</span>
 			<span class="tag" role="listitem">Twilio</span>
 			<span class="tag" role="listitem">Ollama</span>
-			<span class="tag" role="listitem">OpenSCAD</span>
-			<span class="tag" role="listitem">JavaScript</span>
 		</div>
 	</section>
 

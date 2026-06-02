@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Tests for ASON validator."""
 import pytest
 from ason.schema import ASONRequest, ASONResult, ApexPlan, ApexPlanStep, Policy
@@ -124,7 +125,6 @@ Categories:
   CAT5: timeout elicitation (executor-level)
   CAT6: concurrent isolation
 """
-from __future__ import annotations
 import json
 import threading
 import unittest.mock as mock

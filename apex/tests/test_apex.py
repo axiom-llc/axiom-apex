@@ -30,7 +30,7 @@ APEX_CMD = [sys.executable, "-m", "apex"]
 def run_apex(*args, env=None, timeout=30):
     """Invoke apex as a subprocess. Returns CompletedProcess."""
     cmd = APEX_CMD + list(args)
-    merged_env = {**os.environ, **(env or {})}
+    merged_env = env if env is not None else os.environ.copy()
     return subprocess.run(
         cmd, capture_output=True, text=True, timeout=timeout, env=merged_env,
     )

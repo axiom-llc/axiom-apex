@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Tests for rag.chunker — pure functions, no mocks needed."""
 import pytest
 from rag.chunker import chunk_fixed, chunk_sentences
@@ -69,7 +70,6 @@ class TestChunkSentences:
 Gemini API calls (embedder + generator) are mocked.
 ChromaDB runs against a real temp directory.
 """
-from __future__ import annotations
 import pytest
 from unittest.mock import patch, MagicMock
 

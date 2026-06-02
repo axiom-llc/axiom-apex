@@ -431,7 +431,6 @@ Exit codes:
     2 — tasks.json not found or invalid
 """
 
-from __future__ import annotations
 
 import argparse
 import json

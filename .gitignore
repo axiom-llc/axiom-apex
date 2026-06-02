@@ -63,6 +63,7 @@ gcloud-service-key.json
 *.fdb_latexmk
 *.fls
 *.pdf
+*.bak
 
 # ==============================================================================
 # OPERATING SYSTEM SPECIFICS
@@ -79,7 +80,8 @@ Thumbs.db
 *.swo
 
 # ==============================================================================
-# TRANSITIONAL META RECORDS
+# DEV FILES FOR LLM INGESTION
 # ==============================================================================
 transfer.md
-tree
+tree.txt
+tts.txt

@@ -38,7 +38,6 @@ def validate(req: ASONRequest) -> ASONResult:
 
     return ASONResult(accepted=True, risk_level="none", summary="plan accepted")
 """Paranoid plan validator — audits generated plans for dangerous operations before execution."""
-from __future__ import annotations
 import json
 import re
 from apex.core.types import Plan, Halt, ToolCall

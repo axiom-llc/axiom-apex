@@ -21,6 +21,89 @@ Sentence
 from __future__ import annotations
 import re
 
+from dataclasses import dataclass
+import os
+import sys
+import types
+
+@dataclass(frozen=True)
+class Config:
+    gemini_api_key: str       # "" acceptable for store-only operations
+    chroma_path: str
+    collection_name: str
+    chunk_size: int           # words per chunk (not tokens; ~1.33x token count for English)
+    chunk_overlap: int        # word overlap between consecutive chunks
+    top_k: int
+    score_threshold: float
+    embedding_model: str
+    generation_model: str
+
+    def requires_api_key(self) -> None:
+        if not self.gemini_api_key:
+            raise ValueError(
+                "GEMINI_API_KEY is required for this operation. "
+                "Set it in the environment or pass gemini_api_key= to load_config()."
+            )
+
+
+def load_config(**overrides) -> Config:
+    def _get(field: str, env_var: str, default, cast=str):
+        return cast(overrides.get(field, os.environ.get(env_var, default)))
+
+    return Config(
+        gemini_api_key=(
+            overrides.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
+        ),
+        chroma_path=_get("chroma_path",        "RAG_CHROMA_PATH",       "~/.rag/chroma"),
+        collection_name=_get("collection_name", "RAG_COLLECTION",        "documents"),
+        chunk_size=_get("chunk_size",           "RAG_CHUNK_SIZE",        512,  int),
+        chunk_overlap=_get("chunk_overlap",     "RAG_CHUNK_OVERLAP",     64,   int),
+        top_k=_get("top_k",                     "RAG_TOP_K",             5,    int),
+        score_threshold=_get(
+            "score_threshold", "RAG_SCORE_THRESHOLD", 0.4, float
+        ),
+        embedding_model=_get(
+            "embedding_model", "RAG_EMBEDDING_MODEL", "models/text-embedding-004"
+        ),
+        generation_model=_get(
+            "generation_model", "RAG_GENERATION_MODEL", "gemini-3.1-flash-lite"
+        ),
+    )
+
+from google import genai
+from google.genai import types as genai_types
+
+class Delegator(types.ModuleType):
+    def __init__(self, name, target):
+        super().__init__(name)
+        self.target = target
+    def __getattr__(self, name):
+        if name == "genai":
+            return genai
+        if name == "types":
+            return genai_types
+        mod = sys.modules[self.target]
+        return getattr(mod, name)
+
+rag_config_mod = types.ModuleType("rag.config")
+rag_config_mod.Config = Config
+rag_config_mod.load_config = load_config
+sys.modules["rag.config"] = rag_config_mod
+
+rag_mod = types.ModuleType("rag")
+rag_mod.config = rag_config_mod
+rag_mod.chunker = Delegator("rag.chunker", "apex.core.rag")
+rag_mod.embedder = Delegator("rag.embedder", "apex.core.rag")
+rag_mod.generator = Delegator("rag.generator", "apex.core.rag")
+rag_mod.store = Delegator("rag.store", "apex.core.rag")
+rag_mod.pipeline = Delegator("rag.pipeline", "apex.core.rag")
+sys.modules["rag"] = rag_mod
+sys.modules["rag.chunker"] = rag_mod.chunker
+sys.modules["rag.embedder"] = rag_mod.embedder
+sys.modules["rag.generator"] = rag_mod.generator
+sys.modules["rag.store"] = rag_mod.store
+sys.modules["rag.pipeline"] = rag_mod.pipeline
+
 
 def chunk_fixed(text: str, chunk_size: int, overlap: int) -> list[str]:
     """Split text into overlapping fixed-size chunks (word-boundary aligned).
@@ -74,7 +157,6 @@ task_type asymmetry
     Using the wrong type measurably degrades retrieval precision.
     Both are set explicitly; do not remove them.
 """
-from __future__ import annotations
 from google import genai
 from google.genai import types
 from rag.config import Config
@@ -124,7 +206,6 @@ speculate.  The system_prompt parameter exists for domain adaptation
 (different languages, specialised instruction sets) but changing it to allow
 prior-knowledge use defeats the purpose of the pipeline.
 """
-from __future__ import annotations
 from google import genai
 from google.genai import types
 from rag.config import Config
@@ -200,7 +281,6 @@ Client caching
     thread-safe during construction.  Subsequent calls hit the cache and bypass
     the lock entirely.  Tests should call _get_client.cache_clear() in teardown.
 """
-from __future__ import annotations
 import threading
 from functools import lru_cache
 from pathlib import Path
@@ -252,7 +332,7 @@ def upsert(
     )
 
 
-def query(query_embedding: list[float], config: Config) -> list[dict]:
+def store_query(query_embedding: list[float], config: Config) -> list[dict]:
     """Return top-k chunks at or above score_threshold, sorted by relevance desc."""
     collection = _get_collection(config)
     results = collection.query(
@@ -305,7 +385,6 @@ All other modules are implementation details; callers should not import them.
 ingest() — chunk → embed → store
 query()  — embed query → retrieve → generate
 """
-from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -345,7 +424,7 @@ def ingest(
     return {"doc_id": doc_id, "chunks_stored": len(chunks)}
 
 
-def query(question: str, config: Config) -> dict:
+def pipeline_query(question: str, config: Config) -> dict:
     """Retrieve relevant chunks and generate a grounded answer.
 
     Returns:
@@ -357,7 +436,7 @@ def query(question: str, config: Config) -> dict:
         }
     """
     q_embedding = embedder.embed_query(question, config)
-    chunks = store.query(q_embedding, config)
+    chunks = store_query(q_embedding, config)
     result = generator.generate_answer(question, chunks, config)
     return {**result, "chunks": chunks}
 
@@ -417,3 +496,9 @@ def ingest_directory(
         for future in as_completed(futures):
             results.append(future.result())
     return results
+
+
+def query(target: str | list[float], config: Config) -> dict | list[dict]:
+    if isinstance(target, list):
+        return store_query(target, config)
+    return pipeline_query(target, config)

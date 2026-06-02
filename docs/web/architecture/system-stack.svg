@@ -24,7 +24,7 @@
 
   <!-- Header -->
   <text x="400" y="50" text-anchor="middle" class="title">AXIOM SYSTEM STACK ARCHITECTURE</text>
-  <text x="400" y="75" text-anchor="middle" class="subtitle">Unified Plan-Deterministic Execution Kernel &amp; Safe Boundaries [2]</text>
+  <text x="400" y="75" text-anchor="middle" class="subtitle">Unified Plan-Deterministic Execution Kernel &amp; Safe Boundaries</text>
 
   <!-- Connection Arrow Marker (refX corrected to avoid card overlapping) -->
   <defs>
@@ -37,7 +37,7 @@
   <g transform="translate(130, 100)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">1. Language Model (Planner)</text>
-    <text x="25" y="48" class="text-sub">Gemini 2.5 Flash / Local Ollama [2]</text>
+    <text x="25" y="48" class="text-sub">Gemini 3.1 Flash-Lite / Local Ollama</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#0284c7" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">PROBABILISTIC</text>
   </g>
@@ -49,7 +49,7 @@
   <g transform="translate(130, 200)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">2. Structured JSON Intent</text>
-    <text x="25" y="48" class="text-sub">Strict Pydantic Plan Schema Parsing [2]</text>
+    <text x="25" y="48" class="text-sub">Strict Pydantic Plan Schema Parsing</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#eab308" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">VALIDATION</text>
   </g>
@@ -60,7 +60,7 @@
   <g transform="translate(130, 300)">
     <rect width="540" height="65" class="card card-boundary" />
     <text x="25" y="28" class="text-label" fill="#f59e0b">3. Schema &amp; Policy Boundary</text>
-    <text x="25" y="48" class="text-sub">apex/core/validator.py (Static + LLM Audit) [2]</text>
+    <text x="25" y="48" class="text-sub">apex/core/validator.py (Static + LLM Audit)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#f59e0b" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">HARD GATEWAY</text>
   </g>
@@ -71,7 +71,7 @@
   <g transform="translate(130, 400)">
     <rect width="540" height="65" class="card card-active" />
     <text x="25" y="28" class="text-label" fill="#38bdf8">4. Deterministic Execution Kernel</text>
-    <text x="25" y="48" class="text-sub">apex/core/loop.py (Pure State transitions) [2]</text>
+    <text x="25" y="48" class="text-sub">apex/core/loop.py (Pure State transitions)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#10b981" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">DETERMINISTIC</text>
   </g>
@@ -82,7 +82,7 @@
   <g transform="translate(130, 500)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">5. Tool Isolation &amp; Callback Layer</text>
-    <text x="25" y="48" class="text-sub">apex/core/tools.py (Process-isolated sandboxes) [2]</text>
+    <text x="25" y="48" class="text-sub">apex/core/tools.py (Process-isolated sandboxes)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#4b5563" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">ISOLATED</text>
   </g>
@@ -93,7 +93,7 @@
   <g transform="translate(130, 600)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">6. Embedded Retrieval Engine (RAG)</text>
-    <text x="25" y="48" class="text-sub">apex/core/rag.py (In-process Vector Querying) [2]</text>
+    <text x="25" y="48" class="text-sub">apex/core/rag.py (In-process Vector Querying)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#4f46e5" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">CONTEXT GROUND</text>
   </g>
@@ -104,7 +104,7 @@
   <g transform="translate(130, 700)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">7. Deployment Blueprints</text>
-    <text x="25" y="48" class="text-sub">apex/examples/ (Logistics, Voice-IVR, Swarms) [2]</text>
+    <text x="25" y="48" class="text-sub">apex/examples/ (Logistics, Voice-IVR, Swarms)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#06b6d4" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#000000">APPLIED BLUEPRINT</text>
   </g>
@@ -115,7 +115,7 @@
   <g transform="translate(130, 800)">
     <rect width="540" height="65" class="card" />
     <text x="25" y="28" class="text-label">8. Public Web Registry</text>
-    <text x="25" y="48" class="text-sub">docs/web/ (Consolidated Registry &amp; Landing Page) [2]</text>
+    <text x="25" y="48" class="text-sub">docs/web/ (Consolidated Registry &amp; Landing Page)</text>
     <rect x="385" y="22" width="130" height="22" rx="4" fill="#ec4899" />
     <text x="450" y="33" text-anchor="middle" dominant-baseline="central" class="badge" fill="#ffffff">PUBLIC RECORD</text>
   </g>
@@ -123,7 +123,7 @@
   <!-- Unified Symmetrical Legend -->
   <g transform="translate(130, 890)">
     <rect width="540" height="70" rx="6" ry="6" fill="#12141c" stroke="#334155" stroke-width="1" />
-    <text x="270" y="25" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12px" fill="#9ca3af" font-weight="bold">GLOBAL INVARIANTS ENFORCED AT ALL LEVELS [2]</text>
-    <text x="270" y="48" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="10.5px" fill="#e5e7eb">schema-validated plans • deterministic transitions • max_steps=32 • process safety [2]</text>
+    <text x="270" y="25" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12px" fill="#9ca3af" font-weight="bold">GLOBAL INVARIANTS ENFORCED AT ALL LEVELS</text>
+    <text x="270" y="48" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="10.5px" fill="#e5e7eb">schema-validated plans • deterministic transitions • max_steps=32 • process safety</text>
   </g>
 </svg>

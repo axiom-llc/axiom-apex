@@ -6,7 +6,7 @@
 [![Build Status](https://img.shields.io/badge/tests-152%20%2F%20152%20passed-success.svg)](#4-testing--verification)
 [![Security Level](https://img.shields.io/badge/security-paranoid%20sandbox-red.svg)](#3-security-sandboxing-paranoid-mode)
 
-AXIOM APEX is the production-ready core execution systems engine for the AXIOM LLC ecosystem. AXIOM is a stateless, deterministic, highly parallelized runtime that coordinates multi-threaded agent swarms, automated task planning, and vector-backed RAG execution.
+Production-ready core execution systems engine for the AXIOM LLC ecosystem. APEX is a stateless, deterministic, highly parallelized runtime that coordinates multi-threaded agent swarms, RSI functionality, automated task planning, and vector-backed RAG execution.
 
 This core repository contains the runtime engine, parallel compilation and retrieval benchmarks, strict state-assertion components, and the structural templates system enabling autonomous business unit generation. All client-facing implementation briefs, interactive voice response (IVR) setups, and logistics dashboards have been decoupled and migrated to the [axiom-demos](https://github.com/axiom-llc/axiom-demos) repository.
 

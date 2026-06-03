@@ -1,4 +1,4 @@
-# AXIOM APEX — Agentic Process Executor
+# AXIOM Apex
 
 ## Enterprise-Grade Parallel Swarm Orchestrator & Deterministic Execution Kernel
 
@@ -7,13 +7,13 @@
 ![Security](https://img.shields.io/badge/security-paranoid%20sandbox-red)
 ![Architecture](https://img.shields.io/badge/architecture-plan--deterministic-cyan)
 
-AXIOM APEX is the production-grade execution kernel for the AXIOM LLC ecosystem. It provides a stateless, deterministic, and highly parallelized runtime designed to enforce absolute execution safety over probabilistic language models. By compiling natural language intents into schema-validated, declarative execution contracts, APEX ensures that identical inputs yield strictly reproducible, bounded, and auditable tool sequences.
+AXIOM Apex is the production-grade execution kernel for the AXIOM LLC ecosystem. It provides a stateless, deterministic, and highly parallelized runtime designed to enforce absolute execution safety over probabilistic language models. By compiling natural language intents into schema-validated, declarative execution contracts, Apex ensures that identical inputs yield strictly reproducible, bounded, and auditable tool sequences.
 
 ---
 
 ## 1. System Architecture & The 8-Layer Stack
 
-The AXIOM APEX architecture separates probabilistic planning from deterministic execution using a decoupled, 8-layer execution model.
+The AXIOM Apex architecture separates probabilistic planning from deterministic execution using a decoupled, 8-layer execution model.
 
 ```
        [ USER DIRECTIVE / NATURAL LANGUAGE INTENT ]
@@ -149,7 +149,7 @@ The system resolves configuration settings exclusively from the environment at s
 
 ## 4. REST API & MCP Integration
 
-AXIOM APEX exposes a low-latency, single-threaded Flask server daemon executing on port `8080`. Single-threading is strictly enforced (`threaded=False`) to prevent multi-threaded request dispatches from breaking Unix signal-level timers (`signal.alarm`).
+AXIOM Apex exposes a low-latency, single-threaded Flask server daemon executing on port `8080`. Single-threading is strictly enforced (`threaded=False`) to prevent multi-threaded request dispatches from breaking Unix signal-level timers (`signal.alarm`).
 
 ### Rest HTTP API Specifications
 
@@ -237,10 +237,10 @@ AXIOM APEX exposes a low-latency, single-threaded Flask server daemon executing 
 
 ### Model Context Protocol (MCP) Client Setup
 
-The core engine includes an MCP adapter (`apex/mcp.py`) that maps external protocol servers into native tool definitions. This allows AXIOM APEX to import tools from external servers seamlessly.
+The core engine includes an MCP adapter (`apex/mcp.py`) that maps external protocol servers into native tool definitions. This allows AXIOM Apex to import tools from external servers seamlessly.
 
 ```
- [ AXIOM APEX Engine ]                                     [ External MCP Server ]
+ [ AXIOM Apex Engine ]                                     [ External MCP Server ]
          │                                                            │
          │ 1. POST /tools/list ──────────────────────────────────────►│
          │◄─────────────────────────────────────── 2. JSON Tool List  │
@@ -253,7 +253,7 @@ The core engine includes an MCP adapter (`apex/mcp.py`) that maps external proto
 ```
 
 #### Enforcing Protocol Schemas
-1.  **Tool Discovery**: At server boot, AXIOM APEX connects to the registered servers via `POST /tools/list`, reading the JSON schemas of external tools and binding them under the unique namespace:
+1.  **Tool Discovery**: At server boot, AXIOM Apex connects to the registered servers via `POST /tools/list`, reading the JSON schemas of external tools and binding them under the unique namespace:
     ```text
     mcp__{server_name}__{raw_tool_name}
     ```
@@ -267,7 +267,7 @@ The core engine includes an MCP adapter (`apex/mcp.py`) that maps external proto
 
 ## 5. Transactional Rollback Architecture
 
-AXIOM APEX implements transactional rollback guarantees via `apex/core/rollback.py`. This ensures that when a multi-step plan encounters an execution failure, the system attempts to reverse its physical side effects automatically.
+AXIOM Apex implements transactional rollback guarantees via `apex/core/rollback.py`. This ensures that when a multi-step plan encounters an execution failure, the system attempts to reverse its physical side effects automatically.
 
 ```
  [ STEP 1: Write File ] ──────────────────────────► (Succeeds)
@@ -315,7 +315,7 @@ The rollback generator queries the SQLite `events` database for the target execu
 ```
 
 ### Safety Gating Over Rollbacks
-To prevent recursive execution loops (i.e., a rollback plan failing and triggering another rollback), AXIOM APEX injects a strict safety policy into the recovery run contract:
+To prevent recursive execution loops (i.e., a rollback plan failing and triggering another rollback), AXIOM Apex injects a strict safety policy into the recovery run contract:
 ```python
 Policy(blast_radius="local", rollback_on_failure=False)
 ```
@@ -328,7 +328,7 @@ rollback: step 4 (shell): shell side-effects unresolvable — manual review requ
 
 ## 6. Backwards Compatibility Bridge
 
-To maintain 100% test compatibility across system restructures, AXIOM APEX implements a zero-impact **Backwards Compatibility Bridge** within its verification layer (`tests/conftest.py`). 
+To maintain 100% test compatibility across system restructures, AXIOM Apex implements a zero-impact **Backwards Compatibility Bridge** within its verification layer (`tests/conftest.py`). 
 
 ```
    [ Legacy Test Suite (Imports 'ason.*') ]
@@ -366,7 +366,7 @@ This ensures that historical execution suites, third-party integrations, and ver
 
 ## 7. Context-Grounding Search Engine (RAG)
 
-AXIOM APEX embeds an in-process semantic context grounding and retrieval engine within `apex/core/rag.py` to prevent hallucination cycles during planning.
+AXIOM Apex embeds an in-process semantic context grounding and retrieval engine within `apex/core/rag.py` to prevent hallucination cycles during planning.
 
 ### Word-Level Chunking Strategies
 To maximize context window utilization, chunking boundaries are measured strictly in **words** instead of tokens. For typical English text, word count is approximately $0.75 \times$ token count, allowing a default $512$-word chunk to fit comfortably inside the context boundaries of Gemini's text-embedding models:
@@ -395,7 +395,7 @@ $$\text{Score} = 1.0 - \text{Cosine Distance}$$
 
 ## 8. Database Schema & Migration Guide
 
-AXIOM APEX automatically initializes and manages its database tracking layer inside `apex/history.py`.
+AXIOM Apex automatically initializes and manages its database tracking layer inside `apex/history.py`.
 
 ```
                 [ SERVER DAEMON / RUN INITIATION ]
@@ -453,7 +453,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 ## 9. RSI: Recursive Self-Improvement
 
-AXIOM APEX integrates a **Benchmark-Driven Self-Optimization (BDSO)** loop, referred to as the RSI (Recursive Self-Improvement) architecture. Located in `bench.py` and dispatched from `apex/rsi.py`, this allows the system to autonomously optimize its own planning and execution heuristics.
+AXIOM Apex integrates a **Benchmark-Driven Self-Optimization (BDSO)** loop, referred to as the RSI (Recursive Self-Improvement) architecture. Located in `bench.py` and dispatched from `apex/rsi.py`, this allows the system to autonomously optimize its own planning and execution heuristics.
 
 ```
                   [ START RSI CYCLE (apex rsi) ]
@@ -500,7 +500,7 @@ The self-optimization engine's target file list is restricted to `{loop.py, plan
 
 ## 10. Autonomous Business Unit Templates
 
-The `templates.json` catalog acts as a "Commercial DNA" registry, allowing the AXIOM APEX planning engine to instantly specialize into various business verticals.
+The `templates.json` catalog acts as a "Commercial DNA" registry, allowing the AXIOM Apex planning engine to instantly specialize into various business verticals.
 
 ```json
 {
@@ -567,7 +567,7 @@ When a template is loaded via `templates.py`, the core loop imports the specifie
 *   **API Keys**: `GEMINI_API_KEY` (Gemini API access)
 
 ### Local Environment Setup
-Register AXIOM APEX globally in editable mode to preserve immediate updates to the core package:
+Register AXIOM Apex globally in editable mode to preserve immediate updates to the core package:
 
 ```bash
 cd ~/c/axiom-llc/axiom-apex
@@ -575,7 +575,7 @@ pip install -e . --break-system-packages
 ```
 
 ### Minimal Working Example (CLI)
-Execute a task directly from your terminal using AXIOM APEX's plan-deterministic engine:
+Execute a task directly from your terminal using AXIOM Apex's plan-deterministic engine:
 
 ```bash
 apex run --task "write 'hello world' to /tmp/axiom-out.txt and verify its content" --paranoid
@@ -626,7 +626,7 @@ apex serve --paranoid
 
 ## 13. Containerized Orchestration (Docker)
 
-AXIOM APEX is optimized to compile and deploy within lightweight Linux containers.
+AXIOM Apex is optimized to compile and deploy within lightweight Linux containers.
 
 ### Multi-Stage Container Composition (`Dockerfile`)
 The package uses a streamlined, cached Python build stage exposing HTTP interface ports and tracking health checks:
@@ -663,7 +663,7 @@ services:
 
 ## 14. Verification & Performance Benchmarking
 
-AXIOM APEX maintains a 100% pass rate across 134 deterministic regression tests.
+AXIOM Apex maintains a 100% pass rate across 134 deterministic regression tests.
 
 ```bash
 # Execute the full verification suite
@@ -671,7 +671,7 @@ pytest tests/
 ```
 
 ### Running Automated Benchmarks
-AXIOM APEX contains a performance benchmark engine within `bench.py`. Execute the harness to run tasks defined inside `tasks.json`:
+AXIOM Apex contains a performance benchmark engine within `bench.py`. Execute the harness to run tasks defined inside `tasks.json`:
 
 ```bash
 python3 bench.py
@@ -700,7 +700,7 @@ The performance suite evaluates processing latency, token efficiency, and correc
 
 ## 15. Official Ecosystem
 
-*   **AXIOM APEX (Core Engine)**: [github.com/axiom-llc/axiom-apex](https://github.com/axiom-llc/axiom-apex)
+*   **AXIOM Apex (Core Engine)**: [github.com/axiom-llc/axiom-apex](https://github.com/axiom-llc/axiom-apex)
 *   **AXIOM Demos (Blueprints)**: [github.com/axiom-llc/axiom-demos](https://github.com/axiom-llc/axiom-demos)
 *   **AXIOM Research (Theory)**: [github.com/axiom-llc/axiom-research](https://github.com/axiom-llc/axiom-research)
 *   **AXIOM Portal (Web)**: [axiom-llc.github.io](https://axiom-llc.github.io)

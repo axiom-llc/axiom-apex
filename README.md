@@ -6,7 +6,7 @@
 [![Build Status](https://img.shields.io/badge/tests-152%20%2F%20152%20passed-success.svg)](#4-testing--verification)
 [![Security Level](https://img.shields.io/badge/security-paranoid%20sandbox-red.svg)](#3-security-sandboxing-paranoid-mode)
 
-AXIOM APEX is the production-grade core execution systems engine for the AXIOM LLC ecosystem [1]. Architected as a stateless, deterministic, and highly parallelized runtime environment, it coordinates multi-threaded agent swarms, automates complex task planning, and executes vector-backed Retrieval-Augmented Generation (RAG) operations [1].
+AXIOM APEX is the production-ready core execution systems engine for the AXIOM LLC ecosystem. AXIOM is a stateless, deterministic, highly parallelized runtime that coordinates multi-threaded agent swarms, automated task planning, and vector-backed RAG execution.
 
 This core repository contains the runtime engine, parallel compilation and retrieval benchmarks, strict state-assertion components, and the structural templates system enabling autonomous business unit generation. All client-facing implementation briefs, interactive voice response (IVR) setups, and logistics dashboards have been decoupled and migrated to the [axiom-demos](https://github.com/axiom-llc/axiom-demos) repository.
 
@@ -96,9 +96,9 @@ This catalog allows the primary execution kernel (`core/loop.py`) to instantly s
 
 ## 3. Security & Sandboxing (Paranoid Mode)
 
-To protect host infrastructure against remote code execution, pipeline tampering, and data exfiltration inside autonomous swarms, AXIOM APEX implements a low-latency sandboxing model [1]:
+To protect host infrastructure against remote code execution, pipeline tampering, and data exfiltration inside autonomous swarms, AXIOM APEX implements a low-latency sandboxing model:
 
-1.  **Strict Sanitization**: The `core/validator.py` module evaluates all planner actions against a compiled regular expression blocklist (`_BLOCK_PATTERNS`) [1].
+1.  **Strict Sanitization**: The `core/validator.py` module evaluates all planner actions against a compiled regular expression blocklist (`_BLOCK_PATTERNS`).
 2.  **Explicit Consent**: Execution parameters restrict arbitrary subprocess launches and filesystem directory traversals unless explicitly initialized in non-paranoid developer environments.
 3.  **Daemon Containment**: Swarm instances are restricted to standard working patterns:
 
@@ -116,7 +116,13 @@ apex run --paranoid
 
 The core AXIOM APEX engine enforces strict regression barriers. The test suite contains 152 deterministic verification modules covering the central state machine, concurrent swarm locks, automated policy evaluations, and stateless vector retrieval.
 
-Execute the test suite to verify installation and structural status:
+The verification suite evaluates:
+*   Memory lock integrity and state transition safety boundaries.
+*   Automated regulatory compliance scans and legal conflict scrubbing.
+*   Telephony IVR mocks and simulated multi-agent transaction workflows.
+*   Stateless RAG query routing and vector space retrieval latency.
+
+To verify system stability and execute all 152 tests, run the following command within the repository root:
 
 ```bash
 pytest tests/
@@ -131,15 +137,15 @@ pytest tests/
 
 ## 5. Standard Deployment
 
-AXIOM APEX is distributed as a lightweight, container-ready Python package [1].
+AXIOM APEX is distributed as a lightweight, container-ready Python package.
 
 ### Package Dependencies
-Defined within `pyproject.toml` [1]:
-*   `pydantic>=2.0.0` (Type coercion, schema contract enforcement) [1]
-*   `chromadb>=0.4.0` (Stateless vector cache and search) [1]
-*   `google-genai` (Direct integration with the Gemini 3.1 Flash-Lite orchestration endpoint) [1, 2]
-*   `flask` (Restful API routing layer) [1]
-*   `requests` (Secure HTTPS verification) [1]
+Defined within `pyproject.toml`:
+*   `pydantic>=2.0.0` (Type coercion, schema contract enforcement)
+*   `chromadb>=0.4.0` (Stateless vector cache and search)
+*   `google-genai` (Direct integration with the Gemini 3.1 Flash-Lite orchestration endpoint)
+*   `flask` (Restful API routing layer)
+*   `requests` (Secure HTTPS verification)
 
 ### Installation
 ```bash
@@ -159,9 +165,9 @@ docker-compose up --build
 
 ## 6. Official Repositories & Resources
 
-The AXIOM LLC ecosystem is divided into specific structural endpoints:
+The AXIOM LLC workspace is partitioned into three dedicated structural endpoints:
 
-1.  **AXIOM APEX (Core Systems Engine)**: [https://github.com/axiom-llc/axiom-apex](https://github.com/axiom-llc/axiom-apex) [1]
+1.  **AXIOM APEX (Core Engine)**: [https://github.com/axiom-llc/axiom-apex](https://github.com/axiom-llc/axiom-apex)
 2.  **AXIOM Demos (Implementation Briefs & Demos)**: [https://github.com/axiom-llc/axiom-demos](https://github.com/axiom-llc/axiom-demos)
-3.  **AXIOM Research (Theoretical Publications)**: [https://github.com/axiom-llc/axiom-research](https://github.com/axiom-llc/axiom-research) [1]
-4.  **AXIOM Portal (Static UI presentation layer)**: [https://github.com/axiom-llc/axiom-llc.github.io](https://github.com/axiom-llc/axiom-llc.github.io) [1]
+3.  **AXIOM Research (Theoretical Proofs)**: [https://github.com/axiom-llc/axiom-research](https://github.com/axiom-llc/axiom-research)
+4.  **AXIOM Portal (Static UI Core)**: [https://github.com/axiom-llc/axiom-llc.github.io](https://github.com/axiom-llc/axiom-llc.github.io)

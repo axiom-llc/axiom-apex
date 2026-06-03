@@ -1,0 +1,33 @@
+[
+  {
+    "query": "what is the refund policy?",
+    "relevant_doc_ids": [
+      "refund-policy.txt"
+    ]
+  },
+  {
+    "query": "how do I cancel my subscription?",
+    "relevant_doc_ids": [
+      "subscription-terms.txt"
+    ]
+  },
+  {
+    "query": "what data is collected about users?",
+    "relevant_doc_ids": [
+      "privacy-policy.txt"
+    ]
+  },
+  {
+    "query": "how long does shipping take?",
+    "relevant_doc_ids": [
+      "shipping-policy.txt"
+    ]
+  },
+  {
+    "query": "what payment methods are accepted?",
+    "relevant_doc_ids": [
+      "payment-terms.txt",
+      "faq.txt"
+    ]
+  }
+]

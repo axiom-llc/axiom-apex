@@ -18,8 +18,10 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
       - name: Enable delegated resource controllers
         run: |
-          sudo systemctl start user@"$(id -u)".service
-          sudo systemctl set-property user@"$(id -u)".service 'Delegate=cpu memory pids'
+          sudo install -d /run/systemd/system/user@"$(id -u)".service.d
+          printf '[Service]\nDelegate=cpu memory pids\n' | sudo tee /run/systemd/system/user@"$(id -u)".service.d/axiom-rsi.conf > /dev/null
+          sudo systemctl daemon-reload
+          sudo systemctl restart user@"$(id -u)".service
       - run: python -m pip install pytest
       - name: Real kernel boundary and controller probes
         run: python -m pytest tests/test_rsi.py tests/test_rsi_isolation.py tests/test_rsi_resources.py -k 'not test_real_apex_candidate_regressions_and_benchmark' -q
@@ -36,8 +38,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
       - name: Enable delegated resource controllers
         run: |
-          sudo systemctl start user@"$(id -u)".service
-          sudo systemctl set-property user@"$(id -u)".service 'Delegate=cpu memory pids'
+          sudo install -d /run/systemd/system/user@"$(id -u)".service.d
+          printf '[Service]\nDelegate=cpu memory pids\n' | sudo tee /run/systemd/system/user@"$(id -u)".service.d/axiom-rsi.conf > /dev/null
+          sudo systemctl daemon-reload
+          sudo systemctl restart user@"$(id -u)".service
       - name: Checkout matching RAG dependency
         uses: actions/checkout@v4
         with:

@@ -1,16 +1,18 @@
 # axiom-apex
 
-Run bounded AI-agent tasks by compiling natural language into schema-validated plans, executing explicit tool calls, and recording complete plans and tool events for inspection and replay.
+Execute bounded AI-agent tasks through explicit tool calls defined by schema-validated plans compiled from natural language, recording both fully for inspection and replay.
 
 ## Install
 
-Create an isolated environment and install development dependencies:
+Check out `axiom-rag` alongside this repository with authorized access. Create an isolated environment and install the canonical retrieval package plus development dependencies:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
+pip install ../axiom-rag -e '.[dev]'
 ```
+
+Install RAG as a regular package so isolated RSI candidates can import it without access to its source checkout.
 
 Use Python 3.11+. Set `GEMINI_API_KEY` for the default Gemini provider, or set `LLM_PROVIDER=ollama` and run a local Ollama server.
 
@@ -19,7 +21,7 @@ Use Python 3.11+. Set `GEMINI_API_KEY` for the default Gemini provider, or set `
 ```bash
 apex "write 'hello world' to /tmp/out.txt and read it back"
 apex --dry-run "write hello to /tmp/out.txt"
-apex --paranoid "..."
+apex --audit "..."
 apex --trace "..."
 apex --full-trace --trace-path /tmp/trace.jsonl "..."
 apex --interactive
@@ -98,7 +100,7 @@ apex/
     ├── tools.py        built-in tools
     ├── toolloader.py   complete runtime registry construction
     ├── memory_store.py SQLite-backed memory tools
-    ├── safety.py       paranoid plan audit
+    ├── safety.py       plan audit
     ├── swarm.py        subprocess task dispatch
     ├── trace.py        JSONL trace writer
     └── rag/            in-process RAG pipeline
@@ -118,9 +120,9 @@ Record the complete validated plan before execution mutates runtime state. Persi
 
 ## Safety
 
-Use `--paranoid` to run deterministic checks and an LLM plan audit before execution. Treat this audit as an advisory pre-execution safeguard, not a complete policy boundary.
+Use `--audit` to run deterministic checks and an LLM plan audit before execution. Treat this audit as an advisory pre-execution safeguard, not a complete policy boundary.
 
-Allow `write_file` targets only under the current home directory or `/tmp` in paranoid mode. Match resolved path boundaries rather than string prefixes.
+Allow `write_file` targets only under the current home directory or `/tmp` in audit mode. Match resolved path boundaries rather than string prefixes.
 
 Run untrusted workloads behind an external policy/rollback layer such as `axiom-ason`; `axiom-apex` does not provide transactional rollback.
 

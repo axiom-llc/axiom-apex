@@ -118,7 +118,7 @@ def main() -> None:
     parser.add_argument("--trace", action="store_true", help="Log execution steps to stderr")
     parser.add_argument("--full-trace", action="store_true", help="Write structured JSONL trace events")
     parser.add_argument("--trace-path", default=None, help="JSONL trace destination; default stderr")
-    parser.add_argument("--paranoid", action="store_true", help="Audit the plan before execution")
+    parser.add_argument("--audit", action="store_true", help="Audit the plan before execution")
     parser.add_argument("--interactive", "-i", action="store_true", help="Enter interactive prompt mode")
     parser.add_argument("--version", action="version", version=f"apex {_version()}")
     args = parser.parse_args()
@@ -129,7 +129,7 @@ def main() -> None:
             dry_run=args.dry_run,
             full_trace=args.full_trace,
             trace_path=Path(args.trace_path).expanduser() if args.trace_path else None,
-            paranoid=args.paranoid,
+            audit=args.audit,
         )
         registry = build_registry(config.db_path)
     except ValueError as exc:

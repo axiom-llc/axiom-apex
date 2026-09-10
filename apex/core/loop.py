@@ -68,19 +68,19 @@ def _finish(
 
 
 def _audit(state: State, config: Config) -> State:
-    if not config.paranoid or state.plan is None:
+    if not config.audit or state.plan is None:
         return state
     try:
         audit = audit_plan(state.plan, api_key=config.api_key)
         report = format_audit_report(audit)
         _trace(config, report)
-        _full_trace(config, {"event": "paranoid_audit", "result": audit})
+        _full_trace(config, {"event": "plan_audit", "result": audit})
         if not audit["safe"]:
             print(report, file=sys.stderr)
             return replace(state, status="ERROR")
         return state
     except Exception as exc:
-        _trace(config, f"[paranoid] audit failed: {exc}")
+        _trace(config, f"[audit] failed: {exc}")
         return replace(state, status="ERROR")
 
 

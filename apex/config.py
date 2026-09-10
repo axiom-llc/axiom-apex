@@ -12,7 +12,7 @@ class Config:
     dry_run: bool
     full_trace: bool
     trace_path: Path | None
-    paranoid: bool
+    audit: bool
 
 
 def load_config(
@@ -21,7 +21,7 @@ def load_config(
     dry_run: bool = False,
     full_trace: bool = False,
     trace_path: Path | None = None,
-    paranoid: bool = False,
+    audit: bool = False,
     require_api_key: bool = True,
 ) -> Config:
     """Resolve environment configuration and reject unsupported providers."""
@@ -43,5 +43,5 @@ def load_config(
         dry_run=dry_run,
         full_trace=full_trace,
         trace_path=trace_path,
-        paranoid=paranoid,
+        audit=audit,
     )

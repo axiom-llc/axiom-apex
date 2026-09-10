@@ -14,6 +14,7 @@ from apex.core.rag import store, pipeline
 def cfg(tmp_path):
     store._get_client.cache_clear()
     yield load_config(
+        embedding_dimension=8,
         gemini_api_key="test-key",
         chroma_path=str(tmp_path / "chroma"),
         collection_name="pipe_test",
@@ -158,3 +159,13 @@ def test_retrieval_uses_canonical_rag_implementations():
     from rag import pipeline as canonical_pipeline, store as canonical_store
     assert pipeline.ingest is canonical_pipeline.ingest
     assert store.upsert is canonical_store.upsert
+
+
+def test_canonical_boundary_rejects_unknown_collection(cfg):
+    collection = store._get_client(cfg.chroma_path).create_collection(cfg.collection_name)
+    collection.add(ids=['legacy'], documents=['preserved'], embeddings=[[0.1] * 8])
+    with pytest.raises(ValueError, match='unknown embedding provenance'):
+        pipeline.ingest('replacement', 'legacy', cfg)
+    with pytest.raises(ValueError, match='unknown embedding provenance'):
+        pipeline.query('question', cfg)
+    assert collection.get()['documents'] == ['preserved']

@@ -315,3 +315,30 @@ class TestIntegration:
         )
         assert result.returncode == 0
         assert path.read_text(encoding="utf-8") == "integration-ok"
+
+
+class TestPlanAudit:
+    def test_cli_audit_flag(self):
+        result = _run_apex('--help')
+        assert result.returncode == 0
+        assert '--audit' in result.stdout
+
+    @pytest.mark.parametrize('safe,expected', [(True, 'RUNNING'), (False, 'ERROR')])
+    def test_audit_decision_and_trace(self, safe, expected, tmp_path):
+        from dataclasses import replace
+        from apex.core.loop import _audit
+        state = replace(create_initial_state('test'), plan=Plan('test', (Halt('done'),)))
+        trace = tmp_path / 'audit.jsonl'
+        config = load_config(audit=True, full_trace=True, trace_path=trace, require_api_key=False)
+        result = {'safe': safe, 'risk_level': 'low', 'summary': 'test', 'findings': []}
+        with patch('apex.core.loop.audit_plan', return_value=result) as audit:
+            assert _audit(state, config).status == expected
+        audit.assert_called_once()
+        assert 'plan_audit' in trace.read_text()
+
+    def test_audit_failure_stops_execution(self):
+        from dataclasses import replace
+        from apex.core.loop import _audit
+        state = replace(create_initial_state('test'), plan=Plan('test', ()))
+        with patch('apex.core.loop.audit_plan', side_effect=RuntimeError('unavailable')):
+            assert _audit(state, load_config(audit=True, require_api_key=False)).status == 'ERROR'

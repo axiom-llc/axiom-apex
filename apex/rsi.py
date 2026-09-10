@@ -5,7 +5,7 @@ Each cycle:
   1. Run benchmark → compute apex_score
   2. Read own source files
   3. Generate patch via LLM
-  4. Paranoid-validate patch
+  4. Validate patch safety
   5. Apply on git branch rsi/cycle-N
   6. Re-run benchmark → compare score
   7. Report delta; human gate before merge
@@ -224,7 +224,7 @@ def _generate_patch(api_key: str, sources: str, score: float,
 
 
 # ---------------------------------------------------------------------------
-# Paranoid validation of patch
+# Patch safety validation
 # ---------------------------------------------------------------------------
 
 def _validate_patch(patch_text: str) -> bool:
@@ -370,7 +370,7 @@ def run_rsi(
                 if not patch:
                     continue
                 if not _validate_patch(patch):
-                    print(f"[rsi] candidate {ci} rejected by paranoid", flush=True)
+                    print(f"[rsi] candidate {ci} rejected by safety validation", flush=True)
                     continue
                 estimated_tokens = len(patch) // 4 + len(sources) // 4
                 governor.consume_tokens(estimated_tokens)

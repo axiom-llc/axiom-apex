@@ -12,6 +12,7 @@ def cfg(tmp_path):
     """Config pointing to a temp ChromaDB directory."""
     store._get_client.cache_clear()
     yield load_config(
+        embedding_dimension=8,
         gemini_api_key="test-key",
         chroma_path=str(tmp_path / "chroma"),
         collection_name="test_col",
@@ -78,11 +79,12 @@ class TestQuery:
         # A single 2-D-style unit vector on axis 0; an orthogonal query vector
         # has cosine similarity 0, so a high threshold must exclude it while
         # a low/negative threshold must include it.
-        chunk_embedding = [1.0, 0.0, 0.0, 0.0]
-        orthogonal_query = [0.0, 1.0, 0.0, 0.0]
+        chunk_embedding = [1.0] + [0.0] * 7
+        orthogonal_query = [0.0, 1.0] + [0.0] * 6
         store.upsert(["axis-aligned chunk"], [chunk_embedding], "doc_orth", cfg)
 
         strict_cfg = load_config(
+            embedding_dimension=8,
             gemini_api_key=cfg.gemini_api_key,
             chroma_path=cfg.chroma_path,
             collection_name=cfg.collection_name,
@@ -91,6 +93,7 @@ class TestQuery:
         assert store.store_query(orthogonal_query, strict_cfg) == []
 
         lenient_cfg = load_config(
+            embedding_dimension=8,
             gemini_api_key=cfg.gemini_api_key,
             chroma_path=cfg.chroma_path,
             collection_name=cfg.collection_name,
@@ -102,25 +105,27 @@ class TestQuery:
         assert results[0]["score"] == pytest.approx(0.0, abs=1e-6)
 
     def test_query_returns_sorted_by_score_descending(self, cfg):
-        store.upsert(["exact match"], [[1.0, 0.0, 0.0, 0.0]], "doc_high", cfg)
-        store.upsert(["partial match"], [[0.7, 0.7, 0.0, 0.0]], "doc_low", cfg)
+        store.upsert(["exact match"], [[1.0] + [0.0] * 7], "doc_high", cfg)
+        store.upsert(["partial match"], [[0.7, 0.7] + [0.0] * 6], "doc_low", cfg)
         lenient_cfg = load_config(
+            embedding_dimension=8,
             gemini_api_key=cfg.gemini_api_key,
             chroma_path=cfg.chroma_path,
             collection_name=cfg.collection_name,
             score_threshold=-1.0,
         )
-        results = store.store_query([1.0, 0.0, 0.0, 0.0], lenient_cfg)
+        results = store.store_query([1.0] + [0.0] * 7, lenient_cfg)
         assert [r["metadata"]["doc_id"] for r in results] == ["doc_high", "doc_low"]
         assert results[0]["score"] >= results[1]["score"]
 
     def test_query_empty_collection_returns_empty(self, cfg):
-        assert store.store_query([1.0, 0.0, 0.0, 0.0], cfg) == []
+        assert store.store_query([1.0] + [0.0] * 7, cfg) == []
 
     def test_query_respects_top_k(self, cfg):
         for i in range(5):
             store.upsert([f"chunk {i}"], [_fake_embedding()], f"doc_{i}", cfg)
         capped_cfg = load_config(
+            embedding_dimension=8,
             gemini_api_key=cfg.gemini_api_key,
             chroma_path=cfg.chroma_path,
             collection_name=cfg.collection_name,

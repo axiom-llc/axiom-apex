@@ -137,11 +137,11 @@ def audit_plan(plan: Plan, *, api_key: str, provider: str = "gemini") -> dict:
 
 
 def format_audit_report(audit: dict) -> str:
-    lines = [f"[paranoid] risk={audit.get('risk_level', '?')} safe={audit.get('safe')}"]
-    lines.append(f"[paranoid] {audit.get('summary', '')}")
+    lines = [f"[audit] risk={audit.get('risk_level', '?')} safe={audit.get('safe')}"]
+    lines.append(f"[audit] {audit.get('summary', '')}")
     for finding in audit.get("findings", []):
         lines.append(
-            f"[paranoid] step {finding.get('step', '?')} "
+            f"[audit] step {finding.get('step', '?')} "
             f"({finding.get('tool', '?')}): {finding.get('reason', '')}"
         )
     return "\n".join(lines)

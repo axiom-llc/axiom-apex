@@ -16,6 +16,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
+      - name: Authorize Bubblewrap namespace setup
+        run: |
+          printf 'abi <abi/4.0>,\nprofile bwrap /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo apparmor_parser -r
       - name: Enable delegated resource controllers
         run: |
           sudo install -d /run/systemd/system/user@"$(id -u)".service.d
@@ -36,6 +39,9 @@ jobs:
           python-version: '3.12'
       - name: Install isolation primitive
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
+      - name: Authorize Bubblewrap namespace setup
+        run: |
+          printf 'abi <abi/4.0>,\nprofile bwrap /usr/bin/bwrap flags=(unconfined) {\n  userns,\n}\n' | sudo apparmor_parser -r
       - name: Enable delegated resource controllers
         run: |
           sudo install -d /run/systemd/system/user@"$(id -u)".service.d

@@ -30,9 +30,28 @@ jobs:
           python-version: '3.12'
       - name: Install isolation primitive
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
+      - name: Checkout matching RAG dependency
+        uses: actions/checkout@v4
+        with:
+          repository: axiom-llc/axiom-rag
+          ref: 5366a9bbb75a432e58abb4d64dacd91d52004f03
+          path: .ci-rag
+          ssh-key: ${{ secrets.RAG_DEPLOY_KEY }}
+          persist-credentials: false
+      - name: Verify checkout credentials removed
+        run: |
+          for repo in . .ci-rag; do
+            if git -C "$repo" config --local --name-only --get-regexp 'core\.sshcommand|http\..*\.extraheader'; then
+              echo "::error::Checkout credentials remain configured"
+              exit 1
+            fi
+          done
+          test "$(git -C .ci-rag rev-parse HEAD)" = 5366a9bbb75a432e58abb4d64dacd91d52004f03
       - name: Install dependencies
         run: |
-          python -m pip install 'axiom-rag @ git+https://github.com/axiom-llc/axiom-rag.git@5366a9b' '.[dev]' build
+          python -m pip install ./.ci-rag '.[dev]' build
+          python -c "import shutil; shutil.rmtree('.ci-rag')"
+          python -m pip check
       - name: RSI regression gate
         run: python -m pytest tests/test_rsi.py -q
       - name: Offline suite including real kernel isolation probes

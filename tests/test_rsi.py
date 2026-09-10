@@ -58,6 +58,8 @@ def test_real_git_binary_patch_rejected(tmp_path, monkeypatch):
     assert not rsi._validate_patch(patch)
 
 
+# This exercises the host controller and creates child sandboxes.
+@pytest.mark.host_isolation
 @pytest.mark.parametrize("candidate_value,benchmark_exit,benchmark_score,expected", [
     (2, 0, "0.9", None),
     (1, 1, "0.9", None),
@@ -84,11 +86,13 @@ def test_candidate_requires_real_regressions_and_successful_benchmark(
     subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "baseline"], cwd=repo, check=True)
     monkeypatch.setattr(rsi, "REPO_ROOT", repo)
     monkeypatch.setattr(rsi, "BENCH_CMD", [sys.executable, "-c", f"print('{{\"apex_score\": {benchmark_score}}}'); raise SystemExit({benchmark_exit})"])
+    tasks = tmp_path / "tasks.json"
+    tasks.write_text('[]')
     patch = (
         "--- a/apex/core/loop.py\n+++ b/apex/core/loop.py\n@@ -1,2 +1,2 @@\n"
         f"-VALUE = 1\n-# baseline\n+VALUE = {candidate_value}\n+# candidate\n"
     )
-    assert rsi._run_candidate(0, patch, "unused.json", False, k=1) == expected
+    assert rsi._run_candidate(0, patch, str(tasks), False, k=1) == expected
     assert (repo / "apex/core/loop.py").read_text() == "VALUE = 1\n# baseline\n"
     worktrees = subprocess.check_output(["git", "worktree", "list", "--porcelain"], cwd=repo, text=True)
     assert worktrees.count("worktree ") == 1

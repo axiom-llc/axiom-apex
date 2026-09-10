@@ -43,6 +43,7 @@ include = ["apex*"]
 
 [tool.pytest.ini_options]
 markers = [
+    "host_isolation: real boundary probes run from the host, not recursively inside candidates",
     "integration: end-to-end tests requiring GEMINI_API_KEY",
 ]
 filterwarnings = [

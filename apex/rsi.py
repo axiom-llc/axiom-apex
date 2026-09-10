@@ -22,6 +22,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from apex._rsi_sandbox import IsolationError, run as _run_candidate_process
+
 APEX_CMD = [sys.executable, "-m", "apex"]
 BENCH_CMD = [sys.executable, "-m", "apex.bench"]
 REPO_ROOT = Path(__file__).parent.parent
@@ -88,7 +90,14 @@ def _run_candidate(
     """Require passing regressions and valid benchmark runs in a scratch worktree."""
     scratch = tempfile.mkdtemp(prefix=f"apex-rsi-cand{candidate_idx}-")
     try:
+        if not _validate_patch(patch_text):
+            return None
         _git(["worktree", "add", "--detach", scratch, "HEAD"])
+        # Admit only the selected benchmark data, never its containing host path.
+        task_data = Path(tasks_path).read_bytes()
+        with tempfile.NamedTemporaryFile(dir=scratch, suffix=".json") as task_file:
+            task_name = Path(task_file.name).name
+        Path(scratch, task_name).write_bytes(task_data)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".patch", delete=False, dir=scratch) as f:
             f.write(patch_text)
             patch_path = f.name
@@ -99,19 +108,20 @@ def _run_candidate(
         os.unlink(patch_path)
         if applied.returncode != 0:
             return None
-        validation = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests", "-m", "not integration", "-q"],
-            cwd=scratch, capture_output=True, text=True, timeout=300,
+        validation = _run_candidate_process(
+            [sys.executable, "-m", "pytest", "tests", "-m", "not integration and not host_isolation", "-q"],
+            scratch,
         )
         if validation.returncode != 0:
-            print(f"[rsi] candidate {candidate_idx} failed regression tests", file=sys.stderr)
+            print(f"[rsi] candidate {candidate_idx} failed regression tests\n"
+                  f"{validation.stdout[-4000:]}{validation.stderr[-4000:]}", file=sys.stderr)
             return None
         scores = []
         for _ in range(k):
-            cmd = BENCH_CMD + ["--tasks", tasks_path]
+            cmd = BENCH_CMD + ["--tasks", f"/work/{task_name}"]
             if mock_bench:
                 cmd.append("--mock")
-            result = subprocess.run(cmd, cwd=scratch, capture_output=True, text=True, timeout=300)
+            result = _run_candidate_process(cmd, scratch)
             if result.returncode != 0:
                 return None
             try:
@@ -310,6 +320,9 @@ def run_rsi(
     api_key: str,
 ) -> None:
     _require_clean_tree()
+    # Reject unavailable isolation before baseline execution or provider calls.
+    with tempfile.TemporaryDirectory(prefix="apex-rsi-preflight-") as scratch:
+        _run_candidate_process([sys.executable, "-c", "pass"], scratch)
     origin_branch = _current_branch()
     if origin_branch == "HEAD":
         raise RuntimeError("RSI requires a named Git branch")
@@ -407,6 +420,10 @@ def run_rsi(
                 print(f"[rsi] no improvement — branch '{branch}' retained for inspection",
                       flush=True)
 
+        except IsolationError:
+            _checkout(origin_branch)
+            _git(["branch", "-D", branch], check=False)
+            raise
         except Exception as e:
             print(f"[rsi] cycle {cycle} error: {e}", file=sys.stderr)
             _checkout(origin_branch)

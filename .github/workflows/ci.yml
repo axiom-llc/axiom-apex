@@ -16,9 +16,13 @@ jobs:
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
+      - name: Enable delegated resource controllers
+        run: |
+          sudo systemctl start user@"$(id -u)".service
+          sudo systemctl set-property user@"$(id -u)".service 'Delegate=cpu memory pids'
       - run: python -m pip install pytest
       - name: Real kernel boundary and controller probes
-        run: python -m pytest tests/test_rsi.py tests/test_rsi_isolation.py -k 'not test_real_apex_candidate_regressions_and_benchmark' -q
+        run: python -m pytest tests/test_rsi.py tests/test_rsi_isolation.py tests/test_rsi_resources.py -k 'not test_real_apex_candidate_regressions_and_benchmark' -q
   test:
     runs-on: ubuntu-22.04
     steps:
@@ -30,6 +34,10 @@ jobs:
           python-version: '3.12'
       - name: Install isolation primitive
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
+      - name: Enable delegated resource controllers
+        run: |
+          sudo systemctl start user@"$(id -u)".service
+          sudo systemctl set-property user@"$(id -u)".service 'Delegate=cpu memory pids'
       - name: Checkout matching RAG dependency
         uses: actions/checkout@v4
         with:

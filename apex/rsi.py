@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from apex._rsi_sandbox import IsolationError, run as _run_candidate_process
+from apex._rsi_sandbox import IsolationError, ResourceLimitError, run as _run_candidate_process
 
 APEX_CMD = [sys.executable, "-m", "apex"]
 BENCH_CMD = [sys.executable, "-m", "apex.bench"]
@@ -132,6 +132,9 @@ def _run_candidate(
             except (json.JSONDecodeError, KeyError, TypeError):
                 return None
         return sum(scores) / len(scores) if scores else None
+    except ResourceLimitError as exc:
+        print(f"[rsi] candidate {candidate_idx} rejected: {exc}", file=sys.stderr)
+        return None
     except subprocess.TimeoutExpired:
         print(f"[rsi] candidate {candidate_idx} validation timed out", file=sys.stderr)
         return None

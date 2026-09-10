@@ -113,20 +113,31 @@ def test_controller_termination_kills_detached_children(tmp_path, termination):
     import signal
     scratch = tmp_path / 'candidate'
     scratch.mkdir()
-    child = "import time; from pathlib import Path; Path('ready').touch(); time.sleep(2); Path('survived').touch()"
+    child = "import time; from pathlib import Path; time.sleep(2); Path('survived').touch()"
     candidate = f"import subprocess,sys,time; subprocess.Popen([sys.executable,'-c',{child!r}],start_new_session=True); time.sleep(30)"
     controller = f"from apex._rsi_sandbox import run; run([{sys.executable!r}, '-c', {candidate!r}], {str(scratch)!r})"
     process = subprocess.Popen([sys.executable, '-c', controller], stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL, start_new_session=True)
     try:
         deadline = time.monotonic() + 10
-        while not (scratch / 'ready').exists() and time.monotonic() < deadline:
+        child_pids = []
+        while not child_pids and time.monotonic() < deadline:
             assert process.poll() is None
+            for proc in Path('/proc').glob('[0-9]*'):
+                try:
+                    argv = (proc / 'cmdline').read_bytes().split(b'\0')
+                    if len(argv) >= 3 and argv[1] == b'-c' and argv[2] == child.encode():
+                        child_pids.append(proc)
+                except OSError:
+                    pass
             time.sleep(0.02)
-        assert (scratch / 'ready').exists()
+        assert child_pids, 'detached child did not start'
         process.send_signal(signal.SIGINT if termination == 'interrupt' else signal.SIGKILL)
         process.wait(timeout=5)
         time.sleep(2.3)
+        for proc in child_pids:
+            if proc.exists():
+                assert proc.joinpath('stat').read_text().split()[2] == 'Z'
         assert not (scratch / 'survived').exists()
     finally:
         if process.poll() is None:
@@ -184,5 +195,5 @@ Path(os.environ['HOME'], 'allowed').touch()
 Path('/work/allowed').touch()
 ''')
     assert result.returncode == 0, result.stderr
-    assert (scratch / 'allowed').exists()
+    assert not (scratch / 'allowed').exists()  # Writable state is private tmpfs.
     assert (scratch / '.git').read_text() == 'gitdir: synthetic-host-git-metadata'

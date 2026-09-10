@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   isolation:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,7 +26,7 @@ jobs:
       - name: Real kernel boundary and controller probes
         run: python -m pytest tests/test_rsi.py tests/test_rsi_isolation.py tests/test_rsi_resources.py -k 'not test_real_apex_candidate_regressions_and_benchmark' -q
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:

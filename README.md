@@ -226,7 +226,7 @@ plans return 400 before any tool runs. A plan requires a non-empty `goal`, typed
 and response fields are identical for both request forms. ASON 0.2+ uses this
 interface to preserve its pre-execution policy decisions.
 
-The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.3.0`
+The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.3.1`
 implementation. APEX retains its existing model defaults through its config
 adapter. Retrieval changes and regressions belong in `axiom-rag`; both packages
 use the same chunking, embedding, storage, and ingestion functions.
@@ -315,3 +315,17 @@ Persist APEX memory and history state in the `apex_data` volume. Deploy any exte
 © AXIOM LLC.
 
 Custom tools default to one execution attempt. Set `retry_safe=True` only when repeating the effect after a timeout or partial failure is safe. Shell, filesystem writes, memory writes, and MCP tools are not retried by default.
+
+### Provider boundary checks
+
+Make one generation attempt per provider call. Gemini uses a 60-second HTTP
+timeout; Ollama uses 300 seconds. Return a generic provider failure without
+recording upstream exception bodies, credentials, or prompt text. Retry explicitly
+only after considering possible completed generation and quota usage.
+
+Manual checks on 2026-09-11 exercised Gemini generation and invalid-model failure,
+plus canonical RAG generation with `gemini-3.5-flash-lite`. The local Ollama server
+accepted an explicit `OLLAMA_MODEL=gemma3:1b`; its uninstalled default `llama3`
+failed cleanly. Set `OLLAMA_MODEL` to an installed model before selecting Ollama.
+Run the existing integration tests explicitly with configured credentials; keep
+hosted CI offline.

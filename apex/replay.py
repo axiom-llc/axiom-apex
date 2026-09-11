@@ -87,8 +87,10 @@ def replay_main(argv: list[str]) -> None:
     if isinstance(parsed, Err):
         raise SystemExit(f"recorded plan is not executable: {parsed.message}")
 
-    state = run_plan(record["task"], parsed, config=config, registry=registry)
+    state = run_plan(record["task"], parsed, config=config, registry=registry, run_id=args.run_id)
     print(format_output(state))
+    if state.status != "HALTED":
+        raise SystemExit(1)
 
     if args.diff:
         live = [event for event in state.history if isinstance(event, ToolExecution)]

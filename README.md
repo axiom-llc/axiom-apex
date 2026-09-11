@@ -137,9 +137,24 @@ apex replay 42 --mode live --diff
 apex replay 42 --mode live --no-write
 ```
 
-Use `simulate` to print recorded tool events without executing anything. Use `dry` to print the recorded plan. Use `live` to validate the recorded plan against the current registry and execute that exact plan. Use `--diff` to compare live tool results with recorded results. Use `--no-write` to reject plans requiring `write_file`.
+Use `simulate` to print recorded tool events without executing anything. Use `dry` to print the recorded plan. Use `live` to validate the entire recorded plan against the current registry and recover that same run from its durable effect ledger. Completed steps return their recorded results; they do not execute again. Use `--diff` to compare recovery results (including retained successes) with recorded results. Use `--no-write` to reject plans requiring `write_file`.
 
-Treat live replay as deterministic plan replay, not deterministic external effects: files, networks, subprocesses, remote services, and time-dependent state may produce different results.
+Before tool execution, APEX commits the existing run ID, the complete accepted execution plan, a SHA-256 digest of its canonical JSON, its step count (including halt), and one `INTENT_RECORDED` row per tool call in the history SQLite database. This identifies the accepted execution; it is not an ASON policy record or proof of approval. ASON still submits only the approved plan. Every tool call is conservatively journaled, including custom and MCP tools.
+
+A committed `DISPATCHING` transition precedes entry into tool code. The normalized result and history event are committed together afterward. Recovery uses these states:
+
+| Durable state | Live recovery behavior |
+| --- | --- |
+| `INTENT_RECORDED` | Dispatch has not begun; execution may continue after complete plan validation. |
+| `DISPATCHING` | Dispatch may have occurred; block the run without retrying. |
+| `SUCCEEDED` | Reuse the recorded result without dispatch. This means the tool returned acceptable JSON, not that a remote business operation necessarily succeeded. |
+| `FAILED_UNKNOWN` | An exception, timeout, or invalid output was observed; block because an effect may still have occurred. |
+
+Any uncertain step blocks all further dispatch for that recovery. Existing bounded retries remain available only for tools explicitly marked `retry_safe`, during the original uninterrupted execution. Observed retry errors are saved before retrying; a restart never resumes an ambiguous retry loop. The plan binding is checked before recovery, and tool arguments are copied before dispatch so tool mutation cannot change the bound plan. No planner or policy audit is rerun during recovery.
+
+`GET /runs/<id>` exposes the ledger identity and effect states. Incomplete runs can be found through history even when a crash prevented the initial HTTP response; their `exit_code` remains null until execution finishes. Live replay of old history records or dry-run records without a ledger is blocked. Dry and simulate inspection remain available. Explicitly submitting a plan again creates a new run and can repeat effects; HTTP submission is not deduplicated.
+
+Tests cover abrupt process termination before and after SQLite commits and tool effects. This does not establish host-power-loss atomicity or exactly-once external effects. There is no automatic reconciliation, compensation, or multi-process recovery coordination. Keep recovery under the existing single-executor operational model and retain the same trusted tool implementations/configuration; plan identity does not pin tool code or provider state. Compensation requires an explicit approval contract plus tool-specific inverse, durable preimage, concurrency/version checks, and crash/reconciliation semantics before implementation.
 
 ## HTTP API
 

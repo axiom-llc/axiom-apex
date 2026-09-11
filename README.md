@@ -65,7 +65,7 @@ Compute `apex_score = pass_rate × speed_factor × token_efficiency`. Keep each 
 | `RAG_BASE_URL`         | `http://localhost:8000`  | Select the separate hosted RAG service used by `rag_multi_query`.                                                         |
 | `RAG_API_TOKEN`        | unset                    | Authenticate the hosted RAG service.                                                                                      |
 | `RAG_CHROMA_PATH`      | `~/.rag/chroma`          | Store the in-process RAG ChromaDB data.                                                                                   |
-| `RAG_COLLECTION`       | `documents`              | Select the in-process RAG collection.                                                                                     |
+| `RAG_COLLECTION`       | `documents-gemini-embedding-2` | Select the in-process RAG collection.                                                                                     |
 | `RAG_CHUNK_SIZE`       | `512`                    | Set words per chunk.                                                                                                      |
 | `RAG_CHUNK_OVERLAP`    | `64`                     | Set overlapping words between chunks.                                                                                     |
 | `RAG_TOP_K`            | `5`                      | Set retrieved chunk count.                                                                                                |
@@ -226,7 +226,7 @@ plans return 400 before any tool runs. A plan requires a non-empty `goal`, typed
 and response fields are identical for both request forms. ASON 0.2+ uses this
 interface to preserve its pre-execution policy decisions.
 
-The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.1.0`
+The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.3.0`
 implementation. APEX retains its existing model defaults through its config
 adapter. Retrieval changes and regressions belong in `axiom-rag`; both packages
 use the same chunking, embedding, storage, and ingestion functions.

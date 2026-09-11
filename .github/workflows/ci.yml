@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: axiom-llc/axiom-rag
-          ref: bf24ad51b22b7d0dca044ffba9b170e155461532
+          ref: aa36b47d09856e33b239e8c5806906f8e93ef74f
           path: .ci-rag
           ssh-key: ${{ secrets.RAG_DEPLOY_KEY }}
           persist-credentials: false
@@ -64,7 +64,7 @@ jobs:
               exit 1
             fi
           done
-          test "$(git -C .ci-rag rev-parse HEAD)" = bf24ad51b22b7d0dca044ffba9b170e155461532
+          test "$(git -C .ci-rag rev-parse HEAD)" = aa36b47d09856e33b239e8c5806906f8e93ef74f
       - name: Install dependencies
         run: |
           python -m pip install ./.ci-rag '.[dev]' build

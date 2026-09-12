@@ -4,7 +4,7 @@ Execute bounded AI-agent tasks through explicit tool calls defined by schema-val
 
 ## Install
 
-Check out `axiom-rag` alongside this repository with authorized access. Create an isolated environment and install the canonical retrieval package plus development dependencies:
+For local development, check out `axiom-rag` alongside this repository. Create an isolated environment and install the canonical retrieval package plus development dependencies:
 
 ```bash
 python -m venv .venv
@@ -219,6 +219,14 @@ Use `apex.core.rag.pipeline` for the in-process pipeline:
 5. Retrieve matching chunks and generate an answer constrained to retrieved context.
 
 Use `rag_multi_query` only for the separate HTTP RAG service configured by `RAG_BASE_URL`.
+
+`axiom-rag` 1.4.0 also provides a versioned HTTP storage-compatibility surface
+and the bounded `rag.http_client.Client`. APEX storage adapters have not yet
+migrated to that client: `apex.core.rag` remains an in-process integration and
+`rag_multi_query` continues to use the existing `/query` HTTP route. Do not
+assume the `/v1` storage routes protect APEX's embedded store until the explicit
+deployment mapping and caller migration are completed.
+
 
 Re-embed every existing collection after changing `RAG_EMBEDDING_MODEL`. Do not mix vectors produced by `gemini-embedding-2` with vectors from `gemini-embedding-001`, `text-embedding-004`, or any other embedding space.
 

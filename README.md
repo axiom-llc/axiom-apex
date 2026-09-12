@@ -54,7 +54,7 @@ Compute `apex_score = pass_rate × speed_factor × token_efficiency`. Keep each 
 | Variable               | Default                  | Purpose                                                                                                                   |
 | ---------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | `LLM_PROVIDER`         | `gemini`                 | Select `gemini` or `ollama`.                                                                                              |
-| `GEMINI_API_KEY`       | unset                    | Authenticate Gemini. Require it when `LLM_PROVIDER=gemini` and for Gemini-backed in-process RAG operations.               |
+| `GEMINI_API_KEY`       | unset                    | Authenticate Gemini. Require it when `LLM_PROVIDER=gemini` and for local provider/evaluator operations; HTTP RAG uses server credentials.               |
 | `GEMINI_MODEL`         | `gemini-3.8-flash`       | Select the Gemini planning and safety-audit model.                                                                        |
 | `OLLAMA_BASE_URL`      | `http://localhost:11434` | Select the Ollama API endpoint.                                                                                           |
 | `OLLAMA_MODEL`         | `llama3`                 | Select the Ollama model.                                                                                                  |
@@ -62,10 +62,10 @@ Compute `apex_score = pass_rate × speed_factor × token_efficiency`. Keep each 
 | `APEX_DB_PATH`         | `~/.apex/memory.db`      | Store key-value memory and swarm bookkeeping.                                                                             |
 | `APEX_HISTORY_DB_PATH` | `~/.apex/runs.db`        | Store run plans, metrics, and tool events.                                                                                |
 | `APEX_MCP_SERVERS`     | `[]`                     | Load MCP servers from a JSON array of `{"name", "url", "headers"?}` objects.                                              |
-| `RAG_BASE_URL`         | `http://localhost:8000`  | Select the separate hosted RAG service used by `rag_multi_query`.                                                         |
+| `RAG_BASE_URL`         | required for storage; legacy tool defaults to `http://localhost:8000` | Select the RAG service.                                                         |
 | `RAG_API_TOKEN`        | unset                    | Authenticate the hosted RAG service.                                                                                      |
-| `RAG_CHROMA_PATH`      | `~/.rag/chroma`          | Store the in-process RAG ChromaDB data.                                                                                   |
-| `RAG_COLLECTION`       | `documents-gemini-embedding-2` | Select the in-process RAG collection.                                                                                     |
+| `RAG_CHROMA_PATH`      | `~/.rag/chroma`          | Select the canonical mapped root; HTTP adapters never open it.                                                                                   |
+| `RAG_COLLECTION`       | `documents-gemini-embedding-2` | Select the authorized HTTP namespace.                                                                                     |
 | `RAG_CHUNK_SIZE`       | `512`                    | Set words per chunk.                                                                                                      |
 | `RAG_CHUNK_OVERLAP`    | `64`                     | Set overlapping words between chunks.                                                                                     |
 | `RAG_TOP_K`            | `5`                      | Set retrieved chunk count.                                                                                                |
@@ -103,10 +103,10 @@ apex/
     ├── safety.py       plan audit
     ├── swarm.py        subprocess task dispatch
     ├── trace.py        JSONL trace writer
-    └── rag/            in-process RAG pipeline
+    └── rag/            HTTP RAG adapters and local provider exports
 ```
 
-Import in-process RAG modules through `apex.core.rag`; do not depend on a synthetic top-level `rag` package.
+Import RAG modules through `apex.core.rag`; do not depend on a synthetic top-level `rag` package.
 
 ## Planning and execution
 
@@ -210,23 +210,32 @@ Namespace loaded tools as `mcp__<server>__<tool>`. Skip malformed server definit
 
 ## RAG
 
-Use `apex.core.rag.pipeline` for the in-process pipeline:
+`apex.core.rag.pipeline` and `apex.core.rag.store` use `rag.http_client.Client`
+through the shared `rag.remote` adapters (requires matching RAG 1.5.0).
+Set `RAG_BASE_URL=http://127.0.0.1:8000` explicitly for host-local storage calls.
+There is no storage-client URL fallback. Only canonical `~/.rag/chroma`, namespace
+`documents-gemini-embedding-2` and space `google-gemini / gemini-embedding-2 /
+3072 / schema 1` are mapped. Other roots/namespaces/spaces fail before dispatch.
+This host mapping does not configure Docker/infra connectivity.
 
-1. Chunk documents by fixed word windows or sentence groups.
-2. Format `gemini-embedding-2` text for asymmetric search retrieval.
-3. Embed each document chunk independently and embed queries separately.
-4. Store vectors in ChromaDB with cosine distance.
-5. Retrieve matching chunks and generate an answer constrained to retrieved context.
+File reads and ordered directory results stay local; text ingestion/query runs
+on the server using its own `GEMINI_API_KEY`. Callers do not need or forward that
+credential. Raw replacement/retrieval, delete and inspection use versioned HTTP.
+Owner handles `_get_client` and `_get_collection` are no longer exposed; remote
+create returns acknowledgement. Errors are explicit `RemoteError`, with no retry,
+redirect, local fallback or client recovery. Unknown outcome never permits replay.
 
-Use `rag_multi_query` only for the separate HTTP RAG service configured by `RAG_BASE_URL`.
+Preserve caller settings and APEX's `gemini-3.5-flash-lite` generation default;
+RAG/CLI defaults to `gemini-2.5-flash`. Server policy permits both. Loopback needs
+no bearer token; `RAG_API_TOKEN` may be sent when configured. Non-loopback server
+authentication requirements remain intact.
 
-`axiom-rag` 1.4.0 also provides a versioned HTTP storage-compatibility surface
-and the bounded `rag.http_client.Client`. APEX storage adapters have not yet
-migrated to that client: `apex.core.rag` remains an in-process integration and
-`rag_multi_query` continues to use the existing `/query` HTTP route. Do not
-assume the `/v1` storage routes protect APEX's embedded store until the explicit
-deployment mapping and caller migration are completed.
-
+`rag_multi_query` is unchanged: it uses legacy `POST /query`, its existing
+`RAG_BASE_URL` default and server generation settings. Standalone embedder/generator
+exports remain local. The evaluator intentionally imports local `rag.store` and
+retains `documents`, local embedding and existing retrieval settings. It cannot
+open the same root concurrently with its server owner; no evaluator migration or
+namespace grant is implied.
 
 Re-embed every existing collection after changing `RAG_EMBEDDING_MODEL`. Do not mix vectors produced by `gemini-embedding-2` with vectors from `gemini-embedding-001`, `text-embedding-004`, or any other embedding space.
 

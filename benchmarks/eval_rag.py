@@ -74,7 +74,7 @@ def mean_reciprocal_rank(scores: list[float]) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Retrieval — thin wrapper over apex.core.rag.store / embedder
+# Retrieval — intentional local owner-side store / embedder
 # ---------------------------------------------------------------------------
 
 def retrieve(
@@ -90,7 +90,8 @@ def retrieve(
     """
     try:
         from apex.core.rag.config import load_config
-        from apex.core.rag import embedder, store
+        from apex.core.rag import embedder
+        from rag import store  # Evaluators intentionally retain local storage.
     except ImportError as exc:
         print(f"error: could not import apex.core.rag modules — install project dependencies: {exc}", file=sys.stderr)
         sys.exit(2)

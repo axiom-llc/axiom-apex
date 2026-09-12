@@ -11,18 +11,11 @@ from apex.core.rag import store, pipeline
 
 
 @pytest.fixture()
-def cfg(tmp_path):
-    store._get_client.cache_clear()
-    yield load_config(
-        embedding_dimension=8,
-        gemini_api_key="test-key",
-        chroma_path=str(tmp_path / "chroma"),
-        collection_name="pipe_test",
-    )
-    store._get_client.cache_clear()
+def cfg(http_rag_config):
+    return http_rag_config
 
 
-def _fake_embedding(dim: int = 8) -> list[float]:
+def _fake_embedding(dim: int = 3072) -> list[float]:
     v = [0.1] * dim
     norm = sum(x**2 for x in v) ** 0.5
     return [x / norm for x in v]
@@ -156,16 +149,17 @@ class TestQuery:
 
 
 def test_retrieval_uses_canonical_rag_implementations():
-    from rag import pipeline as canonical_pipeline, store as canonical_store
+    from rag import remote as canonical_pipeline, remote as canonical_store
     assert pipeline.ingest is canonical_pipeline.ingest
     assert store.upsert is canonical_store.upsert
 
 
 def test_canonical_boundary_rejects_unknown_collection(cfg):
-    collection = store._get_client(cfg.chroma_path).create_collection(cfg.collection_name)
-    collection.add(ids=['legacy'], documents=['preserved'], embeddings=[[0.1] * 8])
-    with pytest.raises(ValueError, match='unknown embedding provenance'):
+    from rag import store as owner_store
+    collection = owner_store._get_client(cfg.chroma_path).create_collection(cfg.collection_name)
+    collection.add(ids=['legacy'], documents=['preserved'], embeddings=[[0.1] * 3072])
+    with pytest.raises(RuntimeError, match='space_mismatch'):
         pipeline.ingest('replacement', 'legacy', cfg)
-    with pytest.raises(ValueError, match='unknown embedding provenance'):
+    with pytest.raises(RuntimeError, match='space_mismatch'):
         pipeline.query('question', cfg)
     assert collection.get()['documents'] == ['preserved']

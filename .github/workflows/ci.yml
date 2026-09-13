@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: axiom-llc/axiom-rag
-          ref: 6c5d1d48469eb5319175a5b7147c3a3ec09929b0
+          ref: 42d7bda52fb70e0b724a24a9f91333f242bb3aad
           path: .ci-rag
           persist-credentials: false
       - name: Verify checkout credentials removed
@@ -63,7 +63,7 @@ jobs:
               exit 1
             fi
           done
-          test "$(git -C .ci-rag rev-parse HEAD)" = 6c5d1d48469eb5319175a5b7147c3a3ec09929b0
+          test "$(git -C .ci-rag rev-parse HEAD)" = 42d7bda52fb70e0b724a24a9f91333f242bb3aad
       - name: Install dependencies
         run: |
           python -m pip install ./.ci-rag '.[dev]' build

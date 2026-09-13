@@ -4,17 +4,40 @@ Execute bounded AI-agent tasks through explicit tool calls defined by schema-val
 
 ## Install
 
-For local development, check out `axiom-rag` alongside this repository. Create an isolated environment and install the canonical retrieval package plus development dependencies:
+Python 3.11 or 3.12 is validated. Version 3.1.1 is **unreleased**.
+Current AXIOM distribution is prepared for [GitHub Releases](https://github.com/axiom-llc/axiom-apex/releases).
+The legacy PyPI package does not provide this source architecture; do not use a
+bare `pip install axiom-apex` to obtain it.
+
+After the releases below are published, install the exact wheels in a fresh environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install ../axiom-rag -e '.[dev]'
+python -m pip install \
+  "axiom-rag @ https://github.com/axiom-llc/axiom-rag/releases/download/v1.5.0/axiom_rag-1.5.0-py3-none-any.whl" \
+  "axiom-apex @ https://github.com/axiom-llc/axiom-apex/releases/download/v3.1.1/axiom_apex-3.1.1-py3-none-any.whl"
+python -m pip check
 ```
 
-Install RAG as a regular package so isolated RSI candidates can import it without access to its source checkout.
+Supply **both** wheels in the same command: APEX requires `axiom-rag>=1.5.0`,
+and the old PyPI RAG cannot satisfy that contract. Release RAG first.
 
-Use Python 3.11+. Set `GEMINI_API_KEY` for the default Gemini provider, or set `LLM_PROVIDER=ollama` and run a local Ollama server.
+These versioned URLs are future release targets, not a claim that assets already exist.
+See [release gates and checksum verification](RELEASE.md). Third-party dependencies
+may still be downloaded from the public Python index; no AXIOM PyPI account is needed.
+
+For development before publication, run from this checkout:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install ../axiom-rag -e '.[dev]'
+```
+
+Check out matching RAG 1.5.0 source alongside APEX. Install RAG as a regular
+package so RSI candidates do not depend on access to its source checkout.
+Set `GEMINI_API_KEY` only for provider work, or select configured local Ollama.
 
 ## Run
 
@@ -124,7 +147,7 @@ Use `--audit` to run deterministic checks and an LLM plan audit before execution
 
 Allow `write_file` targets only under the current home directory or `/tmp` in audit mode. Match resolved path boundaries rather than string prefixes.
 
-Run untrusted workloads behind an external policy/rollback layer such as `axiom-ason`; `axiom-apex` does not provide transactional rollback.
+Trusted application code must enforce caller-selected policy through `axiom-ason` and prevent direct APEX bypass. Neither this integration nor APEX provides automatic transactional rollback; file compensation remains disabled fail-closed.
 
 ## Replay
 
@@ -258,7 +281,7 @@ plans return 400 before any tool runs. A plan requires a non-empty `goal`, typed
 and response fields are identical for both request forms. ASON 0.2+ uses this
 interface to preserve its pre-execution policy decisions.
 
-The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.3.1`
+The `apex.core.rag` imports delegate to the canonical `axiom-rag>=1.5.0`
 implementation. APEX retains its existing model defaults through its config
 adapter. Retrieval changes and regressions belong in `axiom-rag`; both packages
 use the same chunking, embedding, storage, and ingestion functions.
@@ -335,11 +358,11 @@ docker compose up --build
 
 Set `LLM_PROVIDER=ollama` instead of `GEMINI_API_KEY` when the container can reach the configured Ollama endpoint. Require `APEX_API_KEY` for the Compose deployment because it binds port 8080 beyond loopback.
 
-Persist APEX memory and history state in the `apex_data` volume. Deploy any external policy/rollback service separately and point it at the APEX HTTP API.
+Persist APEX memory and history state in the `apex_data` volume. Deploy the trusted policy application separately and point it at the APEX HTTP API; prevent callers from bypassing that application.
 
 ## Ecosystem
 
-* Use `axiom-ason` to enforce pre-execution policy and rollback outside APEX.
+* Use `axiom-ason` for caller-supplied pre-execution policy through a trusted application; do not infer automatic rollback.
 * Use `axiom-demos` for applied integration examples.
 * Use `axiom-research` for formal writeups.
 * Use `axiom-llc.github.io` for the project site.

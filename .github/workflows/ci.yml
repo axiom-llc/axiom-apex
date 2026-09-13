@@ -54,7 +54,6 @@ jobs:
           repository: axiom-llc/axiom-rag
           ref: 6c5d1d48469eb5319175a5b7147c3a3ec09929b0
           path: .ci-rag
-          ssh-key: ${{ secrets.RAG_DEPLOY_KEY }}
           persist-credentials: false
       - name: Verify checkout credentials removed
         run: |

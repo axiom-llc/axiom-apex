@@ -1,0 +1,127 @@
+name: Distribution
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag (vX.Y.Z); required for publication'
+        type: string
+        default: ''
+      publish:
+        description: 'Publish only after separate owner authorization and release gates'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: distribution-${{ github.ref }}-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+    env:
+      PYTHON_DOTENV_DISABLED: '1'
+      GEMINI_API_KEY: ''
+      OTEL_SDK_DISABLED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pinned build tools
+        run: python -m pip install -r scripts/build-requirements.txt
+      - name: Build exact source twice and compare
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          if [ "$PUBLISH" = true ]; then test -n "$RELEASE_TAG"; fi
+          python scripts/build-release.py dist --tag "$RELEASE_TAG"
+          python scripts/build-release.py "$RUNNER_TEMP/repeat" --tag "$RELEASE_TAG"
+          diff dist/SHA256SUMS "$RUNNER_TEMP/repeat/SHA256SUMS"
+          if python scripts/build-release.py "$RUNNER_TEMP/invalid" --tag v0.0.0; then
+            echo '::error::Mismatched version tag was accepted'
+            exit 1
+          fi
+      - name: Checkout matching RAG for unpublished-source validation
+        if: ${{ !inputs.publish }}
+        uses: actions/checkout@v4
+        with:
+          repository: axiom-llc/axiom-rag
+          ref: 6c5d1d48469eb5319175a5b7147c3a3ec09929b0
+          path: .ci-rag
+          persist-credentials: false
+      - name: Build matching RAG wheel
+        if: ${{ !inputs.publish }}
+        run: python -m build --no-isolation --wheel --outdir "$RUNNER_TEMP/rag-dist" .ci-rag
+      - name: Require published RAG before APEX release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download v1.5.0 -R axiom-llc/axiom-rag --dir "$RUNNER_TEMP/rag-dist" \
+            -p axiom_rag-1.5.0-py3-none-any.whl -p axiom_rag-1.5.0.tar.gz -p SHA256SUMS -p BUILD-INFO.json
+          cd "$RUNNER_TEMP/rag-dist"
+          sha256sum --check SHA256SUMS
+      - name: Clean wheelhouse installation outside source
+        run: |
+          set -euo pipefail
+          python -m pip download --only-binary=:all: --dest "$RUNNER_TEMP/wheelhouse" dist/*.whl "$RUNNER_TEMP"/rag-dist/*.whl
+          python -m venv "$RUNNER_TEMP/installed"
+          "$RUNNER_TEMP/installed/bin/python" -m pip install --no-index --find-links "$RUNNER_TEMP/wheelhouse" axiom-apex==3.1.1 axiom-rag==1.5.0
+          "$RUNNER_TEMP/installed/bin/python" -m pip check
+          "$RUNNER_TEMP/installed/bin/python" -m pip freeze
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/installed/bin/python" -I "$GITHUB_WORKSPACE/scripts/smoke-installed.py"
+          "$RUNNER_TEMP/installed/bin/rag"
+          "$RUNNER_TEMP/installed/bin/apex" --version
+      - name: Retain validated release assets only for authorized publication
+        if: ${{ inputs.publish && matrix.python == '3.12' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: dist/
+          retention-days: 1
+          if-no-files-found: error
+  release:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: dist
+      - name: Create release with all validated assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS
+          test "$(git rev-parse HEAD)" = "$(python -c 'import json; print(json.load(open("BUILD-INFO.json"))["revision"])')"
+          test "$RELEASE_TAG" = "v$(python -c 'import json; print(json.load(open("BUILD-INFO.json"))["version"])')"
+          gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG" \
+            --notes "Built from $(git rev-parse HEAD). See CHANGELOG.md and RELEASE.md at this tag. Verify SHA256SUMS before installation." \
+            ./*.whl ./*.tar.gz SHA256SUMS BUILD-INFO.json

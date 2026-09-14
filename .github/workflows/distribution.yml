@@ -86,7 +86,7 @@ jobs:
           "$RUNNER_TEMP/installed/bin/python" -m pip check
           "$RUNNER_TEMP/installed/bin/python" -m pip freeze
           cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/installed/bin/python" -I "$GITHUB_WORKSPACE/scripts/smoke-installed.py"
+          APEX_EXPECTED_VERSION="$APEX_VERSION" "$RUNNER_TEMP/installed/bin/python" -I "$GITHUB_WORKSPACE/scripts/smoke-installed.py"
           "$RUNNER_TEMP/installed/bin/rag"
           "$RUNNER_TEMP/installed/bin/apex" --version
       - name: Retain validated release assets only for authorized publication

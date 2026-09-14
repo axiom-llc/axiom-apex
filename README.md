@@ -4,7 +4,7 @@ Execute bounded AI-agent tasks through explicit tool calls defined by schema-val
 
 ## Install
 
-Python 3.11 or 3.12 is validated. Version 3.1.1 is **unreleased**.
+Python 3.11 or 3.12 is validated. Version 3.2.0 is **unreleased**; the latest published baseline is 3.1.1.
 Current AXIOM distribution is prepared for [GitHub Releases](https://github.com/axiom-llc/axiom-apex/releases).
 The legacy PyPI package does not provide this source architecture; do not use a
 bare `pip install axiom-apex` to obtain it.
@@ -162,7 +162,7 @@ apex replay 42 --mode live --no-write
 
 Use `simulate` to print recorded tool events without executing anything. Use `dry` to print the recorded plan. Use `live` to validate the entire recorded plan against the current registry and recover that same run from its durable effect ledger. Completed steps return their recorded results; they do not execute again. Use `--diff` to compare recovery results (including retained successes) with recorded results. Use `--no-write` to reject plans requiring `write_file`.
 
-Before tool execution, APEX commits the existing run ID, the complete accepted execution plan, a SHA-256 digest of its canonical JSON, its step count (including halt), and one `INTENT_RECORDED` row per tool call in the history SQLite database. This identifies the accepted execution; it is not an ASON policy record or proof of approval. ASON still submits only the approved plan. Every tool call is conservatively journaled, including custom and MCP tools.
+Before tool execution, APEX commits the existing run ID, the complete accepted execution plan, a SHA-256 digest of its canonical JSON, its step count (including halt), and one `INTENT_RECORDED` row per tool call in the history SQLite database. For `POST /authorized-run`, the same transaction also commits the ASON authorization identity, matching approved-plan digest, policy digest/reference, authority reference, and accepted decision. Authorization/plan mismatch fails before dispatch. Every tool call is conservatively journaled, including custom and MCP tools.
 
 A committed `DISPATCHING` transition precedes entry into tool code. The normalized result and history event are committed together afterward. Recovery uses these states:
 
@@ -173,7 +173,7 @@ A committed `DISPATCHING` transition precedes entry into tool code. The normaliz
 | `SUCCEEDED` | Reuse the recorded result without dispatch. This means the tool returned acceptable JSON, not that a remote business operation necessarily succeeded. |
 | `FAILED_UNKNOWN` | An exception, timeout, or invalid output was observed; block because an effect may still have occurred. |
 
-Any uncertain step blocks all further dispatch for that recovery. Existing bounded retries remain available only for tools explicitly marked `retry_safe`, during the original uninterrupted execution. Observed retry errors are saved before retrying; a restart never resumes an ambiguous retry loop. The plan binding is checked before recovery, and tool arguments are copied before dispatch so tool mutation cannot change the bound plan. No planner or policy audit is rerun during recovery.
+Any uncertain step blocks all further dispatch for that recovery. Existing bounded retries remain available only for tools explicitly marked `retry_safe`, during the original uninterrupted execution. Observed retry errors are saved before retrying; a restart never resumes an ambiguous retry loop. The plan binding is checked before recovery; authorized runs additionally re-check the durable authorization against that plan digest. Tool arguments are copied before dispatch so tool mutation cannot change the bound plan. No planner or policy audit is rerun during recovery.
 
 `GET /runs/<id>` exposes the ledger identity and effect states. Incomplete runs can be found through history even when a crash prevented the initial HTTP response; their `exit_code` remains null until execution finishes. Live replay of old history records or dry-run records without a ledger is blocked. Dry and simulate inspection remain available. Explicitly submitting a plan again creates a new run and can repeat effects; HTTP submission is not deduplicated.
 
@@ -199,7 +199,8 @@ Refuse an unauthenticated non-loopback bind. Run the Flask process single-thread
 | Route        | Method | Auth                         | Purpose                                                                           |
 | ------------ | ------ | ---------------------------- | --------------------------------------------------------------------------------- |
 | `/health`    | GET    | none                         | Return status and version.                                                        |
-| `/run`       | POST   | `X-Apex-Key` when configured | Execute `{"task": "..."}` or an exact `{"plan": {...}}`; return the run ID and validated plan. |
+| `/run`       | POST   | `X-Apex-Key` when configured | Execute `{"task": "..."}` or an authorization-unbound exact `{"plan": {...}}`; return the run ID and validated plan. |
+| `/authorized-run` | POST | same | Execute an exact plan only after atomically binding validated authorization metadata to its plan digest. |
 | `/runs`      | GET    | same                         | Return recent runs with `?n=20`.                                                  |
 | `/runs/<id>` | GET    | same                         | Return one run and its events.                                                    |
 | `/replay`    | POST   | same                         | Replay with `simulate`, `dry`, or `live`.                                         |

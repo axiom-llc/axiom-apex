@@ -73,3 +73,72 @@ def test_task_interface_retains_planner_dispatch(client, monkeypatch):
     monkeypatch.setattr(server, "run", run)
     assert client.post("/run", json={"task": " task "}, headers={"X-Apex-Key": "test-key"}).status_code == 200
     assert run.call_args.args == ("task",)
+
+
+def _authorization(approved, **overrides):
+    value = {
+        "authorization_id": "auth-test-1",
+        "approved_plan_digest": history.plan_digest(approved),
+        "policy_digest_or_ref": "policy-test-digest",
+        "authority_ref": "test-authority",
+        "decision": True,
+    }
+    value.update(overrides)
+    return value
+
+
+def test_authorized_plan_binds_before_execution(client, tmp_path):
+    target = tmp_path / "authorized.txt"
+    approved = plan(target)
+    authorization = _authorization(approved)
+    response = client.post(
+        "/authorized-run",
+        json={"plan": approved, "authorization": authorization},
+        headers={"X-Apex-Key": "test-key"},
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["exit_code"] == 0
+    assert data["authorization"] == authorization
+    detail = history.load_run_detail(data["run_id"])
+    assert detail["authorization"] == authorization
+    assert detail["ledger"]["plan_digest"] == authorization["approved_plan_digest"]
+    assert target.read_text() == approved["steps"][0]["args"]["content"]
+
+
+def test_authorized_plan_digest_mismatch_blocks_before_effect(client, tmp_path):
+    target = tmp_path / "must-not-exist-authorized"
+    approved = plan(target)
+    authorization = _authorization(approved, approved_plan_digest="0" * 64)
+    response = client.post(
+        "/authorized-run",
+        json={"plan": approved, "authorization": authorization},
+        headers={"X-Apex-Key": "test-key"},
+    )
+    assert response.status_code == 400
+    assert not target.exists()
+    assert history.list_runs() == []
+
+
+@pytest.mark.parametrize("body", [
+    {},
+    {"plan": {}},
+    {"authorization": {}},
+    {"plan": {}, "authorization": {}, "task": "x"},
+])
+def test_authorized_run_requires_exact_contract(client, body):
+    assert client.post(
+        "/authorized-run", json=body, headers={"X-Apex-Key": "test-key"}
+    ).status_code == 400
+
+
+def test_regular_run_rejects_authorization_metadata(client, tmp_path):
+    target = tmp_path / "must-not-exist-regular"
+    approved = plan(target)
+    response = client.post(
+        "/run",
+        json={"plan": approved, "authorization": _authorization(approved)},
+        headers={"X-Apex-Key": "test-key"},
+    )
+    assert response.status_code == 400
+    assert not target.exists()

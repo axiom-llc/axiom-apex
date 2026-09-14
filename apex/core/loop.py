@@ -100,13 +100,19 @@ def _normalize_output(tool_name: str, output) -> Ok | Err:
     return Ok(value)
 
 
-def _execute(state: State, config: Config, registry: dict[str, Tool], events: list[dict]) -> State:
+def _execute(state: State, config: Config, registry: dict[str, Tool], events: list[dict],
+             authorization: dict | None = None) -> State:
     if state.status != "RUNNING" or state.plan is None:
         return state
 
     if state.run_id is None:
         raise RecoveryBlocked("execution requires a durable run binding")
-    effects = {row["step"]: row for row in bound_effects(state.run_id, plan_to_dict(state.plan))}
+    effects = {
+        row["step"]: row
+        for row in bound_effects(
+            state.run_id, plan_to_dict(state.plan), authorization=authorization
+        )
+    }
     for row in effects.values():
         if row["state"] not in {"INTENT_RECORDED", "SUCCEEDED"}:
             raise RecoveryBlocked(
@@ -200,7 +206,8 @@ def _execute(state: State, config: Config, registry: dict[str, Tool], events: li
 
 
 def _run_prepared(task: str, state: State, config: Config, registry: dict[str, Tool],
-                  *, wall_start: float | None = None) -> State:
+                  *, wall_start: float | None = None,
+                  authorization: dict | None = None) -> State:
     wall_start = time() if wall_start is None else wall_start
     events: list[dict] = []
     _trace(
@@ -226,10 +233,18 @@ def _run_prepared(task: str, state: State, config: Config, registry: dict[str, T
         state = replace(state, plan=parsed)
     if state.run_id is None:
         state = _audit(state, config)
-        if state.status == "RUNNING" and state.plan is not None:
-            state = replace(state, run_id=begin_run(task, plan_to_dict(state.plan), state.token_count))
     try:
-        state = _execute(state, config, registry, events)
+        if state.run_id is None and state.status == "RUNNING" and state.plan is not None:
+            state = replace(
+                state,
+                run_id=begin_run(
+                    task,
+                    plan_to_dict(state.plan),
+                    state.token_count,
+                    authorization=authorization,
+                ),
+            )
+        state = _execute(state, config, registry, events, authorization=authorization)
     except RecoveryBlocked as exc:
         return replace(state, status="ERROR", history=state.history + (
             ErrorEvent("RecoveryBlocked", str(exc), time()),
@@ -252,7 +267,10 @@ def run(input_str: str, config: Config, registry: dict[str, Tool]) -> State:
 
 
 def run_plan(input_str: str, plan: Plan, config: Config, registry: dict[str, Tool],
-             *, run_id: int | None = None) -> State:
+             *, run_id: int | None = None,
+             authorization: dict | None = None) -> State:
     """Execute an exact plan, or recover its existing durable run without replanning."""
     state = replace(create_initial_state(input_str), plan=plan, run_id=run_id)
-    return _run_prepared(input_str, state, config, registry)
+    return _run_prepared(
+        input_str, state, config, registry, authorization=authorization
+    )

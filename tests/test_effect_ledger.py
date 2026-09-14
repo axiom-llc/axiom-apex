@@ -253,3 +253,68 @@ def test_tool_cannot_mutate_bound_arguments(setup):
     assert json.dumps(history.load_run(state.run_id)["plan"]) == original
     assert json.dumps(plan_to_dict(state.plan)) == original
     assert json.dumps(plan_to_dict(plan)) == original
+
+
+def test_authorization_binding_is_committed_before_dispatch(setup, monkeypatch):
+    plan, registry, calls, config = setup
+    approved = plan_to_dict(plan)
+    authorization = {
+        "authorization_id": "auth-ledger-1",
+        "approved_plan_digest": history.plan_digest(approved),
+        "policy_digest_or_ref": "policy-ledger",
+        "authority_ref": "test-authority",
+        "decision": True,
+    }
+    original = loop.dispatch_effect
+
+    def dispatch(run_id, step):
+        detail = history.load_run_detail(run_id)
+        assert detail["authorization"] == authorization
+        assert detail["ledger"]["plan_digest"] == authorization["approved_plan_digest"]
+        assert len(calls) == step
+        original(run_id, step)
+
+    monkeypatch.setattr(loop, "dispatch_effect", dispatch)
+    state = loop.run_plan("task", plan, config, registry, authorization=authorization)
+    assert state.status == "HALTED"
+    assert calls == ["one", "two"]
+
+    # Durable authorization is sufficient for same-run recovery; it is not reissued.
+    recovered = loop.run_plan("task", plan, config, registry, run_id=state.run_id)
+    assert recovered.status == "HALTED"
+    assert calls == ["one", "two"]
+
+
+def test_authorization_mismatch_blocks_before_run_creation(setup):
+    plan, registry, calls, config = setup
+    authorization = {
+        "authorization_id": "auth-bad",
+        "approved_plan_digest": "0" * 64,
+        "policy_digest_or_ref": "policy-ledger",
+        "authority_ref": "test-authority",
+        "decision": True,
+    }
+    state = loop.run_plan("task", plan, config, registry, authorization=authorization)
+    assert state.status == "ERROR"
+    assert calls == []
+    assert history.list_runs() == []
+
+
+def test_recovery_rejects_supplied_authorization_substitution(setup):
+    plan, registry, calls, config = setup
+    approved = plan_to_dict(plan)
+    authorization = {
+        "authorization_id": "auth-original",
+        "approved_plan_digest": history.plan_digest(approved),
+        "policy_digest_or_ref": "policy-ledger",
+        "authority_ref": "test-authority",
+        "decision": True,
+    }
+    run_id = history.begin_run("task", approved, 0, authorization=authorization)
+    substituted = dict(authorization, authorization_id="auth-substitute")
+    state = loop.run_plan(
+        "task", plan, config, registry, run_id=run_id, authorization=substituted
+    )
+    assert state.status == "ERROR"
+    assert calls == []
+    assert history.load_events(run_id) == []

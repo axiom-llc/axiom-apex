@@ -18,7 +18,7 @@ from apex.core.planner import parse_plan
 from apex.core.state import format_output
 from apex.core.toolloader import build_registry
 from apex.core.types import Err, ToolExecution, plan_to_dict
-from apex.history import list_runs, load_run_detail
+from apex.history import RecoveryBlocked, list_runs, load_run_detail, validate_authorization
 
 try:
     from importlib.metadata import version as _pkg_version
@@ -85,12 +85,30 @@ def health():
     return jsonify({"status": "ok", "version": _VERSION})
 
 
+def _state_response(state, authorization: dict | None = None):
+    exit_code = {"HALTED": 0, "ERROR": 1}.get(state.status, 2)
+    return jsonify(
+        {
+            "run_id": state.run_id,
+            "plan": plan_to_dict(state.plan) if state.plan else None,
+            "authorization": authorization,
+            "exit_code": exit_code,
+            "status": state.status,
+            "output": format_output(state),
+            "token_count": state.token_count,
+            "step_count": sum(isinstance(event, ToolExecution) for event in state.history),
+        }
+    )
+
+
 @app.route("/run", methods=["POST"])
 @_require_auth
 def api_run():
     body = _json_body()
     if body is None:
         return jsonify({"error": "JSON object body is required"}), 400
+    if "authorization" in body:
+        return jsonify({"error": "authorization-bound plans require /authorized-run"}), 400
     if ("task" in body) == ("plan" in body):
         return jsonify({"error": "provide exactly one of task or plan"}), 400
     if "plan" in body:
@@ -105,18 +123,36 @@ def api_run():
         if not isinstance(task, str) or not task.strip():
             return jsonify({"error": "task is required"}), 400
         state = run(task.strip(), config=_BASE_CONFIG, registry=_REGISTRY)
-    exit_code = {"HALTED": 0, "ERROR": 1}.get(state.status, 2)
-    return jsonify(
-        {
-            "run_id": state.run_id,
-            "plan": plan_to_dict(state.plan) if state.plan else None,
-            "exit_code": exit_code,
-            "status": state.status,
-            "output": format_output(state),
-            "token_count": state.token_count,
-            "step_count": sum(isinstance(event, ToolExecution) for event in state.history),
-        }
+    return _state_response(state)
+
+
+@app.route("/authorized-run", methods=["POST"])
+@_require_auth
+def api_authorized_run():
+    body = _json_body()
+    if body is None:
+        return jsonify({"error": "JSON object body is required"}), 400
+    if set(body) != {"plan", "authorization"}:
+        return jsonify({"error": "provide exactly plan and authorization"}), 400
+    if not isinstance(body["plan"], dict):
+        return jsonify({"error": "plan must be a JSON object"}), 400
+    plan = parse_plan(json.dumps(body["plan"]), _REGISTRY)
+    if isinstance(plan, Err):
+        return jsonify({"error": plan.message}), 400
+    try:
+        authorization = validate_authorization(
+            body["authorization"], plan_to_dict(plan)
+        )
+    except RecoveryBlocked as exc:
+        return jsonify({"error": str(exc)}), 400
+    state = run_plan(
+        plan.goal,
+        plan,
+        config=_BASE_CONFIG,
+        registry=_REGISTRY,
+        authorization=authorization,
     )
+    return _state_response(state, authorization)
 
 
 @app.route("/runs", methods=["GET"])

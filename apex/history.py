@@ -41,6 +41,17 @@ CREATE TABLE IF NOT EXISTS ledger_runs (
 );
 """
 
+_DDL_AUTHORIZATIONS = """
+CREATE TABLE IF NOT EXISTS authorizations (
+    run_id INTEGER PRIMARY KEY REFERENCES ledger_runs(run_id),
+    authorization_id TEXT NOT NULL,
+    approved_plan_digest TEXT NOT NULL,
+    policy_digest_or_ref TEXT NOT NULL,
+    authority_ref TEXT NOT NULL,
+    decision INTEGER NOT NULL CHECK(decision IN (0, 1))
+);
+"""
+
 _DDL_EFFECTS = """
 CREATE TABLE IF NOT EXISTS effects (
     run_id INTEGER NOT NULL REFERENCES ledger_runs(run_id),
@@ -67,6 +78,40 @@ def _json(value) -> str | None:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")) if value is not None else None
 
 
+def validate_authorization(authorization: dict, plan: dict) -> dict:
+    """Validate and normalize one authorization binding for an exact plan."""
+    if not isinstance(authorization, dict):
+        raise RecoveryBlocked("authorization must be an object")
+
+    fields = ("authorization_id", "approved_plan_digest", "policy_digest_or_ref", "authority_ref")
+    normalized = {}
+    for field in fields:
+        value = authorization.get(field)
+        if not isinstance(value, str) or not value.strip():
+            raise RecoveryBlocked(f"authorization {field} must be a non-empty string")
+        normalized[field] = value.strip()
+
+    decision = authorization.get("decision")
+    if decision is not True:
+        raise RecoveryBlocked("authorization decision must be true")
+    normalized["decision"] = True
+
+    digest = plan_digest(plan)
+    if normalized["approved_plan_digest"] != digest:
+        raise RecoveryBlocked("authorization approved plan digest mismatch")
+    return normalized
+
+
+def _authorization_dict(row: sqlite3.Row) -> dict:
+    return {
+        "authorization_id": row["authorization_id"],
+        "approved_plan_digest": row["approved_plan_digest"],
+        "policy_digest_or_ref": row["policy_digest_or_ref"],
+        "authority_ref": row["authority_ref"],
+        "decision": bool(row["decision"]),
+    }
+
+
 @contextmanager
 def _conn() -> Iterator[sqlite3.Connection]:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -79,6 +124,7 @@ def _conn() -> Iterator[sqlite3.Connection]:
     conn.execute(_DDL_RUNS)
     conn.execute(_DDL_EVENTS)
     conn.execute(_DDL_LEDGER_RUNS)
+    conn.execute(_DDL_AUTHORIZATIONS)
     conn.execute(_DDL_EFFECTS)
     try:
         yield conn
@@ -87,9 +133,11 @@ def _conn() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def begin_run(task: str, plan: dict, token_count: int) -> int:
-    """Commit the complete accepted plan and all undispatched intents together."""
+def begin_run(task: str, plan: dict, token_count: int,
+              authorization: dict | None = None) -> int:
+    """Commit plan, optional authorization, and undispatched intents atomically."""
     digest = plan_digest(plan)
+    binding = validate_authorization(authorization, plan) if authorization is not None else None
     with _conn() as conn:
         cursor = conn.execute(
             "INSERT INTO runs (task, plan_json, token_count) VALUES (?, ?, ?)",
@@ -98,6 +146,20 @@ def begin_run(task: str, plan: dict, token_count: int) -> int:
         run_id = int(cursor.lastrowid)
         conn.execute("INSERT INTO ledger_runs VALUES (?, ?, ?)",
                      (run_id, digest, len(plan["steps"])))
+        if binding is not None:
+            conn.execute(
+                "INSERT INTO authorizations "
+                "(run_id, authorization_id, approved_plan_digest, policy_digest_or_ref, "
+                "authority_ref, decision) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    run_id,
+                    binding["authorization_id"],
+                    binding["approved_plan_digest"],
+                    binding["policy_digest_or_ref"],
+                    binding["authority_ref"],
+                    1,
+                ),
+            )
         conn.executemany(
             "INSERT INTO effects (run_id, step, state) VALUES (?, ?, 'INTENT_RECORDED')",
             [(run_id, index) for index, step in enumerate(plan["steps"])
@@ -106,8 +168,9 @@ def begin_run(task: str, plan: dict, token_count: int) -> int:
     return run_id
 
 
-def bound_effects(run_id: int, plan: dict) -> list[dict]:
-    """Verify the complete binding before deciding any recovery step."""
+def bound_effects(run_id: int, plan: dict,
+                  authorization: dict | None = None) -> list[dict]:
+    """Verify plan, authorization, and effect bindings before recovery/dispatch."""
     with _conn() as conn:
         row = conn.execute(
             "SELECT plan_json, plan_digest, step_count FROM runs "
@@ -120,6 +183,23 @@ def bound_effects(run_id: int, plan: dict) -> list[dict]:
                 or plan_digest(json.loads(row["plan_json"])) != row["plan_digest"]
                 or len(plan["steps"]) != row["step_count"]):
             raise RecoveryBlocked(f"run {run_id}: approved plan binding mismatch")
+
+        auth_row = conn.execute(
+            "SELECT authorization_id, approved_plan_digest, policy_digest_or_ref, "
+            "authority_ref, decision FROM authorizations WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        if auth_row is not None:
+            stored = validate_authorization(_authorization_dict(auth_row), plan)
+            if stored["approved_plan_digest"] != row["plan_digest"]:
+                raise RecoveryBlocked(f"run {run_id}: authorization/ledger digest mismatch")
+            if authorization is not None:
+                supplied = validate_authorization(authorization, plan)
+                if supplied != stored:
+                    raise RecoveryBlocked(f"run {run_id}: authorization binding mismatch")
+        elif authorization is not None:
+            raise RecoveryBlocked(f"run {run_id}: authorization binding is missing")
+
         rows = conn.execute("SELECT * FROM effects WHERE run_id=? ORDER BY step",
                             (run_id,)).fetchall()
         expected = [i for i, step in enumerate(plan["steps"]) if step["type"] == "tool"]
@@ -254,6 +334,14 @@ def load_run_detail(run_id: int) -> dict | None:
         ledger = conn.execute("SELECT plan_digest, step_count FROM ledger_runs WHERE run_id=?",
                               (run_id,)).fetchone()
         result["ledger"] = dict(ledger) if ledger is not None else None
+        authorization = conn.execute(
+            "SELECT authorization_id, approved_plan_digest, policy_digest_or_ref, "
+            "authority_ref, decision FROM authorizations WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        result["authorization"] = (
+            _authorization_dict(authorization) if authorization is not None else None
+        )
         result["effects"] = [dict(effect) for effect in conn.execute(
             "SELECT step, state, result_json FROM effects WHERE run_id=? ORDER BY step",
             (run_id,),

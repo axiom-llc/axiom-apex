@@ -103,9 +103,10 @@ def _validate_audit(value: object) -> dict:
     return value
 
 
-def audit_plan(plan: Plan, *, api_key: str, provider: str = "gemini") -> dict:
+def audit_plan(
+    plan: Plan, *, api_key: str, provider: str = "gemini", model: str | None = None
+) -> dict:
     """Run deterministic checks, then request an LLM audit for plans that pass them."""
-    del provider  # Preserve the established signature; LLM_PROVIDER selects the active provider.
 
     static = static_audit(plan)
     if not static["safe"]:
@@ -123,6 +124,8 @@ def audit_plan(plan: Plan, *, api_key: str, provider: str = "gemini") -> dict:
     response = gemini_complete(
         _SAFETY_PROMPT + json.dumps({"goal": plan.goal, "steps": steps}, indent=2),
         api_key=api_key,
+        provider=provider,
+        model=model,
     )
     if response.get("error"):
         raise ValueError(f"Safety auditor provider failed: {response['error']}")

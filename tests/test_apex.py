@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from apex.config import Config, load_config
+from apex.config import Config, execution_profile, execution_profile_digest, load_config
 from apex.core.planner import parse_plan
 from apex.core.safety import static_audit
 from apex.core.state import create_initial_state
@@ -77,6 +77,22 @@ class TestConfig:
         monkeypatch.setenv("LLM_PROVIDER", "invalid")
         with pytest.raises(ValueError, match="Unsupported"):
             load_config(require_api_key=False)
+
+    def test_resolves_provider_model_once_and_profiles_without_secret(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("LLM_PROVIDER", "gemini")
+        monkeypatch.setenv("GEMINI_MODEL", "gemini-test")
+        monkeypatch.setenv("GEMINI_API_KEY", "secret-value")
+        monkeypatch.setenv("APEX_DB_PATH", str(tmp_path / "memory.db"))
+        config = load_config()
+        assert config.provider == "gemini"
+        assert config.model == "gemini-test"
+        profile = execution_profile(config)
+        assert profile["provider"] == "gemini"
+        assert profile["model"] == "gemini-test"
+        assert "secret-value" not in json.dumps(profile)
+        digest = execution_profile_digest(config)
+        monkeypatch.setenv("GEMINI_API_KEY", "different-secret")
+        assert execution_profile_digest(load_config()) == digest
 
     def test_cli_reports_missing_key(self):
         env = {key: value for key, value in os.environ.items() if key != "GEMINI_API_KEY"}

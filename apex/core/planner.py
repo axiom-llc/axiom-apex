@@ -170,7 +170,9 @@ def parse_plan(response_text: str, registry: dict[str, Tool]) -> Plan | Err:
 
 def generate_plan(state: State, config: Config, registry: dict[str, Tool]) -> State:
     prompt = render_prompt(state.input, registry)
-    response = gemini_complete(prompt, api_key=config.api_key)
+    response = gemini_complete(
+        prompt, api_key=config.api_key, provider=config.provider, model=config.model
+    )
     if response.get("error"):
         result: Plan | Err = Err("ProviderError", str(response["error"]))
     else:

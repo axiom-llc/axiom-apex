@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from apex.config import execution_profile, execution_profile_digest, load_config
+
 _APEX_CMD = [sys.executable, "-m", "apex"]
 _TOKEN_RE = re.compile(r"^Tokens:\s*(\d+)\s*$", re.MULTILINE)
 
@@ -143,8 +145,8 @@ def main() -> None:
         print("ERROR: tasks file must be a non-empty list of {id, prompt, ...} objects", file=sys.stderr)
         raise SystemExit(2)
 
-    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
-    if not args.mock and provider == "gemini" and not os.environ.get("GEMINI_API_KEY"):
+    config = load_config(require_api_key=not args.mock)
+    if not args.mock and config.provider == "gemini" and not config.api_key:
         print("ERROR: GEMINI_API_KEY not set. Use --mock for CI.", file=sys.stderr)
         raise SystemExit(1)
 
@@ -175,6 +177,8 @@ def main() -> None:
     output = {
         "benchmark": "apex_task_harness",
         "mock": args.mock,
+        "execution_profile": execution_profile(config),
+        "config_digest": execution_profile_digest(config),
         "task_count": len(results),
         "passed": passed,
         "failed": failed,

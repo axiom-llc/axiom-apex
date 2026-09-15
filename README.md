@@ -70,7 +70,7 @@ python -m apex.bench --tasks benchmarks/tasks.json --mock
 python -m apex.bench --tasks benchmarks/tasks.json
 ```
 
-Compute `apex_score = pass_rate × speed_factor × token_efficiency`. Keep each factor in the inclusive range `0.01..1.0`, except `pass_rate`, which may be `0.0`.
+Compute `apex_score = pass_rate × speed_factor × token_efficiency`. Keep each factor in the inclusive range `0.01..1.0`, except `pass_rate`, which may be `0.0`. Benchmark JSON also records a secret-free `apex/execution-profile-v1` object and SHA-256 `config_digest` binding the resolved provider, model, database path, and runtime flags used by the benchmark process. Provider/model selection is resolved once at startup and passed explicitly to planning and audit calls rather than re-read from the environment.
 
 ## Configure
 

@@ -21,9 +21,9 @@ def _err(message: str) -> dict:
 
 
 class GeminiProvider:
-    def __init__(self, api_key: str) -> None:
+    def __init__(self, api_key: str, model: str | None = None) -> None:
         self._api_key = api_key
-        self._model = os.environ.get("GEMINI_MODEL", _DEFAULT_GEMINI_MODEL)
+        self._model = model or os.environ.get("GEMINI_MODEL", _DEFAULT_GEMINI_MODEL)
         self.total_tokens = 0
 
     def complete(self, prompt: str) -> dict:
@@ -52,9 +52,9 @@ class GeminiProvider:
 
 
 class OllamaProvider:
-    def __init__(self) -> None:
+    def __init__(self, model: str | None = None) -> None:
         self._base = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-        self._model = os.environ.get("OLLAMA_MODEL", "llama3")
+        self._model = model or os.environ.get("OLLAMA_MODEL", "llama3")
         self.total_tokens = 0
 
     def complete(self, prompt: str) -> dict:
@@ -90,10 +90,12 @@ class OllamaProvider:
             return _err("Ollama provider request failed")
 
 
-def get_provider(api_key: str = "") -> GeminiProvider | OllamaProvider:
-    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+def get_provider(
+    api_key: str = "", *, provider: str | None = None, model: str | None = None
+) -> GeminiProvider | OllamaProvider:
+    provider = (provider or os.environ.get("LLM_PROVIDER", "gemini")).lower()
     if provider == "ollama":
-        return OllamaProvider()
+        return OllamaProvider(model=model)
     if provider == "gemini":
-        return GeminiProvider(api_key=api_key)
+        return GeminiProvider(api_key=api_key, model=model)
     raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")

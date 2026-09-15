@@ -10,5 +10,7 @@
 - Narrow release-facing metadata and ASON integration wording: recorded-plan
   execution is bounded; model generation is not deterministic, and automatic
   transactional rollback and stronger durability guarantees are not established.
+- Resolve provider/model identity once in immutable runtime configuration and
+  emit a secret-free SHA-256 execution-profile digest in benchmark evidence.
 
 Earlier implementation history remains in Git. This entry is not a publication record.

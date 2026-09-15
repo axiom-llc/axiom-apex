@@ -77,7 +77,9 @@ def _audit(state: State, config: Config) -> State:
     if not config.audit or state.plan is None:
         return state
     try:
-        audit = audit_plan(state.plan, api_key=config.api_key)
+        audit = audit_plan(
+            state.plan, api_key=config.api_key, provider=config.provider, model=config.model
+        )
         report = format_audit_report(audit)
         _trace(config, report)
         _full_trace(config, {"event": "plan_audit", "result": audit})

@@ -1,6 +1,6 @@
 # Distribution and release gates
 
-Version 3.1.1 is unreleased. This document prepares publication; it does not
+Version 3.2.0 is unreleased; version 3.1.1 was published on 2026-09-13. This document prepares publication; it does not
 authorize a tag, release, upload, or paid service.
 
 ## Decision
@@ -39,7 +39,7 @@ each Python environment. This does not promise identical hashes across arbitrary
 Python/tool versions or lock all transitive runtime dependencies. Retain a
 wheelhouse and `pip freeze`/installation report for a fully offline environment.
 
-Pass `--tag v3.1.1` only when that existing tag points to HEAD and matches
+Pass `--tag v3.2.0` only when that existing tag points to HEAD and matches
 `pyproject.toml`; mismatches fail before building. The builder never tags or publishes.
 
 ## Installation and integrity
@@ -81,7 +81,7 @@ released assets or move a released tag; use a new version for corrections.
    old tag containing the retired PyPI workflow.
 4. Verify RAG's downloadable wheel and sdist checksums, recorded commit, installed
    version, `pip check`, imports and non-provider CLI in a fresh environment.
-5. Only then, with authorization, create/push APEX `v3.1.1` at its approved commit
+5. Only then, with authorization, create/push APEX `v3.2.0` at its approved commit
    and dispatch its Distribution workflow with the same explicit publication flag.
    Its publication validation **requires the published RAG 1.5.0 assets**, verifies
    checksums, and installs both wheels in an isolated environment. Ordinary CI

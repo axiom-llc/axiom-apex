@@ -1,6 +1,12 @@
 # Changelog
 
-## [3.1.1] — Unreleased
+## [3.2.0] — Unreleased
+
+- Bind provider profile identity into validation evidence.
+- Bind effect recovery to the validated tool-registry contract.
+- Bind durable ASON authorization evidence to accepted APEX runs.
+
+## [3.1.1] — 2026-09-13
 
 - Require RAG >=1.5.0 and retain the migrated HTTP storage adapters, server-owned
   credentials and recovery, explicit target/namespace/space checks, and no retry
@@ -13,4 +19,4 @@
 - Resolve provider/model identity once in immutable runtime configuration and
   emit a secret-free SHA-256 execution-profile digest in benchmark evidence.
 
-Earlier implementation history remains in Git. This entry is not a publication record.
+Earlier implementation history remains in Git.

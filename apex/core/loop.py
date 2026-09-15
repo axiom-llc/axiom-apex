@@ -13,7 +13,8 @@ from apex.core.state import State, create_initial_state
 from apex.core.trace import write_event
 from apex.core.types import Err, ErrorEvent, Halt, Ok, Plan, Tool, ToolCall, ToolExecution, plan_to_dict
 from apex.history import (RecoveryBlocked, begin_run, bound_effects, dispatch_effect,
-                          finish_run, observe_effect, record_run)
+                          finish_run, observe_effect, record_run,
+                          tool_registry_contract_digest)
 from apex.safety import audit_plan, format_audit_report
 
 _MAX_OUTPUT_BYTES = 10_485_760
@@ -110,7 +111,10 @@ def _execute(state: State, config: Config, registry: dict[str, Tool], events: li
     effects = {
         row["step"]: row
         for row in bound_effects(
-            state.run_id, plan_to_dict(state.plan), authorization=authorization
+            state.run_id,
+            plan_to_dict(state.plan),
+            authorization=authorization,
+            registry_contract_digest=tool_registry_contract_digest(registry),
         )
     }
     for row in effects.values():
@@ -242,6 +246,7 @@ def _run_prepared(task: str, state: State, config: Config, registry: dict[str, T
                     plan_to_dict(state.plan),
                     state.token_count,
                     authorization=authorization,
+                    registry_contract_digest=tool_registry_contract_digest(registry),
                 ),
             )
         state = _execute(state, config, registry, events, authorization=authorization)

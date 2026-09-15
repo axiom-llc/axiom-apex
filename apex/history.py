@@ -41,6 +41,13 @@ CREATE TABLE IF NOT EXISTS ledger_runs (
 );
 """
 
+_DDL_REGISTRY_BINDINGS = """
+CREATE TABLE IF NOT EXISTS registry_bindings (
+    run_id INTEGER PRIMARY KEY REFERENCES ledger_runs(run_id),
+    contract_digest TEXT NOT NULL
+);
+"""
+
 _DDL_AUTHORIZATIONS = """
 CREATE TABLE IF NOT EXISTS authorizations (
     run_id INTEGER PRIMARY KEY REFERENCES ledger_runs(run_id),
@@ -71,6 +78,36 @@ class RecoveryBlocked(ValueError):
 def plan_digest(plan: dict) -> str:
     encoded = json.dumps(plan, sort_keys=True, ensure_ascii=False,
                          separators=(",", ":"), allow_nan=False)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _type_ref(value: type) -> str:
+    if not isinstance(value, type):
+        raise TypeError("tool schema entries must be concrete types")
+    return f"{value.__module__}.{value.__qualname__}"
+
+
+def tool_registry_contract_digest(registry: dict) -> str:
+    """Hash the planner-visible tool contract, not implementation code or provider state."""
+    contracts = []
+    for registry_key in sorted(registry):
+        tool = registry[registry_key]
+        contracts.append({
+            "registry_key": registry_key,
+            "name": tool.name,
+            "input_spec": {
+                key: _type_ref(value) for key, value in sorted(tool.input_spec.items())
+            },
+            "output_spec": {
+                key: _type_ref(value) for key, value in sorted(tool.output_spec.items())
+            },
+            "required": sorted(tool.required_args),
+            "retry_safe": bool(tool.retry_safe),
+        })
+    encoded = json.dumps(
+        contracts, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":"), allow_nan=False,
+    )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
@@ -124,6 +161,7 @@ def _conn() -> Iterator[sqlite3.Connection]:
     conn.execute(_DDL_RUNS)
     conn.execute(_DDL_EVENTS)
     conn.execute(_DDL_LEDGER_RUNS)
+    conn.execute(_DDL_REGISTRY_BINDINGS)
     conn.execute(_DDL_AUTHORIZATIONS)
     conn.execute(_DDL_EFFECTS)
     try:
@@ -134,8 +172,9 @@ def _conn() -> Iterator[sqlite3.Connection]:
 
 
 def begin_run(task: str, plan: dict, token_count: int,
-              authorization: dict | None = None) -> int:
-    """Commit plan, optional authorization, and undispatched intents atomically."""
+              authorization: dict | None = None,
+              registry_contract_digest: str | None = None) -> int:
+    """Commit plan, registry contract, optional authorization, and intents atomically."""
     digest = plan_digest(plan)
     binding = validate_authorization(authorization, plan) if authorization is not None else None
     with _conn() as conn:
@@ -146,6 +185,15 @@ def begin_run(task: str, plan: dict, token_count: int,
         run_id = int(cursor.lastrowid)
         conn.execute("INSERT INTO ledger_runs VALUES (?, ?, ?)",
                      (run_id, digest, len(plan["steps"])))
+        if registry_contract_digest is not None:
+            if (not isinstance(registry_contract_digest, str)
+                    or len(registry_contract_digest) != 64
+                    or any(ch not in "0123456789abcdef" for ch in registry_contract_digest)):
+                raise RecoveryBlocked("tool registry contract digest must be lowercase SHA-256")
+            conn.execute(
+                "INSERT INTO registry_bindings (run_id, contract_digest) VALUES (?, ?)",
+                (run_id, registry_contract_digest),
+            )
         if binding is not None:
             conn.execute(
                 "INSERT INTO authorizations "
@@ -169,8 +217,9 @@ def begin_run(task: str, plan: dict, token_count: int,
 
 
 def bound_effects(run_id: int, plan: dict,
-                  authorization: dict | None = None) -> list[dict]:
-    """Verify plan, authorization, and effect bindings before recovery/dispatch."""
+                  authorization: dict | None = None,
+                  registry_contract_digest: str | None = None) -> list[dict]:
+    """Verify plan, registry contract, authorization, and effects before dispatch."""
     with _conn() as conn:
         row = conn.execute(
             "SELECT plan_json, plan_digest, step_count FROM runs "
@@ -183,6 +232,20 @@ def bound_effects(run_id: int, plan: dict,
                 or plan_digest(json.loads(row["plan_json"])) != row["plan_digest"]
                 or len(plan["steps"]) != row["step_count"]):
             raise RecoveryBlocked(f"run {run_id}: approved plan binding mismatch")
+
+        if registry_contract_digest is not None:
+            registry_row = conn.execute(
+                "SELECT contract_digest FROM registry_bindings WHERE run_id=?",
+                (run_id,),
+            ).fetchone()
+            if registry_row is None:
+                raise RecoveryBlocked(
+                    f"run {run_id}: tool registry contract binding is missing"
+                )
+            if registry_row["contract_digest"] != registry_contract_digest:
+                raise RecoveryBlocked(
+                    f"run {run_id}: tool registry contract digest mismatch"
+                )
 
         auth_row = conn.execute(
             "SELECT authorization_id, approved_plan_digest, policy_digest_or_ref, "
@@ -334,6 +397,13 @@ def load_run_detail(run_id: int) -> dict | None:
         ledger = conn.execute("SELECT plan_digest, step_count FROM ledger_runs WHERE run_id=?",
                               (run_id,)).fetchone()
         result["ledger"] = dict(ledger) if ledger is not None else None
+        registry_binding = conn.execute(
+            "SELECT contract_digest FROM registry_bindings WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        result["registry_binding"] = (
+            dict(registry_binding) if registry_binding is not None else None
+        )
         authorization = conn.execute(
             "SELECT authorization_id, approved_plan_digest, policy_digest_or_ref, "
             "authority_ref, decision FROM authorizations WHERE run_id=?",

@@ -48,6 +48,9 @@ def test_binding_and_intents_are_committed_before_dispatch(setup, monkeypatch):
     assert [r["state"] for r in history.bound_effects(state.run_id, plan_to_dict(plan))] == ["SUCCEEDED"] * 2
     detail = history.load_run_detail(state.run_id)
     assert detail["ledger"] == {"plan_digest": history.plan_digest(plan_to_dict(plan)), "step_count": 3}
+    assert detail["registry_binding"] == {
+        "contract_digest": history.tool_registry_contract_digest(registry)
+    }
     assert [row["state"] for row in detail["effects"]] == ["SUCCEEDED"] * 2
 
 
@@ -138,7 +141,12 @@ def test_process_crash_and_repeated_recovery(setup, tmp_path, boundary, expected
 def test_recovery_rejects_binding_changes(setup, change):
     plan, registry, calls, config = setup
     raw = plan_to_dict(plan)
-    run_id = history.begin_run("task", raw, 0)
+    run_id = history.begin_run(
+        "task",
+        raw,
+        0,
+        registry_contract_digest=history.tool_registry_contract_digest(registry),
+    )
     if change == "args":
         raw["steps"][0]["args"] = {"label": "substitute"}
     elif change == "order":
@@ -310,11 +318,76 @@ def test_recovery_rejects_supplied_authorization_substitution(setup):
         "authority_ref": "test-authority",
         "decision": True,
     }
-    run_id = history.begin_run("task", approved, 0, authorization=authorization)
+    run_id = history.begin_run(
+        "task",
+        approved,
+        0,
+        authorization=authorization,
+        registry_contract_digest=history.tool_registry_contract_digest(registry),
+    )
     substituted = dict(authorization, authorization_id="auth-substitute")
     state = loop.run_plan(
         "task", plan, config, registry, run_id=run_id, authorization=substituted
     )
     assert state.status == "ERROR"
+    assert calls == []
+    assert history.load_events(run_id) == []
+
+
+def test_tool_registry_contract_digest_is_deterministic_and_contract_sensitive():
+    base = {
+        "effect": Tool(
+            "effect", {"label": str}, {"ok": bool},
+            lambda args: {"ok": True}, required=frozenset({"label"})
+        )
+    }
+    equivalent = {
+        "effect": Tool(
+            "effect", {"label": str}, {"ok": bool},
+            lambda args: {"ok": False}, required=frozenset({"label"})
+        )
+    }
+    assert (
+        history.tool_registry_contract_digest(base)
+        == history.tool_registry_contract_digest(equivalent)
+    )
+
+    variants = [
+        {"effect": Tool("effect", {"label": object}, {"ok": bool}, lambda args: {}, required=frozenset({"label"}))},
+        {"effect": Tool("effect", {"label": str}, {"ok": object}, lambda args: {}, required=frozenset({"label"}))},
+        {"effect": Tool("effect", {"label": str}, {"ok": bool}, lambda args: {}, required=frozenset())},
+        {"effect": Tool("effect", {"label": str}, {"ok": bool}, lambda args: {}, required=frozenset({"label"}), retry_safe=True)},
+    ]
+    base_digest = history.tool_registry_contract_digest(base)
+    assert all(history.tool_registry_contract_digest(item) != base_digest for item in variants)
+
+
+def test_recovery_rejects_tool_registry_contract_change_before_dispatch(setup):
+    plan, registry, calls, config = setup
+    state = loop.run_plan("task", plan, config, registry)
+    assert state.status == "HALTED"
+    assert calls == ["one", "two"]
+
+    changed = {
+        "effect": Tool(
+            "effect",
+            {"label": str},
+            {},
+            lambda args: calls.append("changed") or {"ok": True},
+            retry_safe=True,
+        )
+    }
+    recovered = loop.run_plan("task", plan, config, changed, run_id=state.run_id)
+    assert recovered.status == "ERROR"
+    assert "tool registry contract digest mismatch" in format_output(recovered)
+    assert calls == ["one", "two"]
+
+
+def test_registry_unbound_ledger_blocks_live_recovery(setup):
+    plan, registry, calls, config = setup
+    run_id = history.begin_run("task", plan_to_dict(plan), 0)
+    recovered = loop.run_plan("task", plan, config, registry, run_id=run_id)
+    assert recovered.status == "ERROR"
+    assert "tool registry contract binding is missing" in format_output(recovered)
     assert calls == []
     assert history.load_events(run_id) == []

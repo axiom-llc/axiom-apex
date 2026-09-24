@@ -48,7 +48,7 @@ Once separately authorized releases exist, download all assets for each required
 package using first-party `gh` (public HTTPS links work without authentication):
 
 ```bash
-gh release download v3.1.1 -R axiom-llc/axiom-apex --dir axiom-apex-dist \
+gh release download v3.2.0 -R axiom-llc/axiom-apex --dir axiom-apex-dist \
   -p '*.whl' -p '*.tar.gz' -p SHA256SUMS -p BUILD-INFO.json
 (cd axiom-apex-dist && sha256sum --check SHA256SUMS)
 gh release download v1.5.0 -R axiom-llc/axiom-rag --dir axiom-rag-dist \
@@ -56,12 +56,12 @@ gh release download v1.5.0 -R axiom-llc/axiom-rag --dir axiom-rag-dist \
 (cd axiom-rag-dist && sha256sum --check SHA256SUMS)
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install axiom-rag-dist/axiom_rag-1.5.0-py3-none-any.whl axiom-apex-dist/axiom_apex-3.1.1-py3-none-any.whl
+python -m pip install axiom-rag-dist/axiom_rag-1.5.0-py3-none-any.whl axiom-apex-dist/axiom_apex-3.2.0-py3-none-any.whl
 python -m pip check
 ```
 
 Checksums detect changed bytes relative to the downloaded manifest, not an
-independent identity guarantee. Before first publication, enable and verify
+independent identity guarantee. Before any future publication, verify
 [GitHub release immutability](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
 in repository settings; do not assume a versioned URL or tag alone is immutable.
 Future immutable releases also carry GitHub release attestations. Never replace
@@ -69,24 +69,21 @@ released assets or move a released tag; use a new version for corrections.
 
 ## Future release sequence (separate authorization required)
 
-1. Review exact RAG/APEX source SHAs, release notes and metadata. Require green
+1. Re-verify the published immutable RAG `v1.5.0` assets, exact source SHA,
+   checksums, installed version, `pip check`, imports and non-provider CLI in a
+   fresh environment.
+2. Review the exact APEX source SHA, release notes and metadata. Require green
    owning CI and Distribution checks on Python 3.11 and 3.12, matching wheel/sdist
    builds, clean installs outside checkouts, `pip check`, CLI and adapter smoke.
    APEX owning CI must retain its real kernel isolation probes.
-2. Enable/verify release immutability and confirm zero-cost repository/runner
-   eligibility. Update `Unreleased` wording/date only when actually releasing.
-3. With explicit owner authorization, create/push RAG `v1.5.0` at the approved
-   RAG commit. Dispatch `distribution.yml` from `main`, selecting that tag and
-   `publish=true`. Default `publish=false` only validates. Never publish from an
-   old tag containing the retired PyPI workflow.
-4. Verify RAG's downloadable wheel and sdist checksums, recorded commit, installed
-   version, `pip check`, imports and non-provider CLI in a fresh environment.
-5. Only then, with authorization, create/push APEX `v3.2.0` at its approved commit
-   and dispatch its Distribution workflow with the same explicit publication flag.
-   Its publication validation **requires the published RAG 1.5.0 assets**, verifies
-   checksums, and installs both wheels in an isolated environment. Ordinary CI
-   uses exact pinned RAG source while RAG remains unpublished.
-6. Verify downloadable APEX plus RAG together from outside source trees; check
+3. Verify release immutability and zero-cost repository/runner eligibility for
+   APEX. Update `Unreleased` wording/date only when actually releasing.
+4. Only with explicit owner authorization, create/push APEX `v3.2.0` at its
+   approved commit and dispatch its Distribution workflow with the explicit
+   publication flag. Its publication validation **requires the published RAG
+   1.5.0 assets**, verifies checksums, and installs both wheels in an isolated
+   environment. Ordinary CI may continue to use exact pinned RAG source.
+5. Verify downloadable APEX plus RAG together from outside source trees; check
    versions, dependency resolution, adapter behavior and CLI. Retain artifact
    hashes and source revisions as the release acceptance evidence.
 

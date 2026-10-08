@@ -1,0 +1,53 @@
+{
+  "apex_revision": "372a272e99934b3cadf69f08be95de081bfb1de1",
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "endpoint_ref": "Google Gemini API",
+  "account_ref": "private configured Gemini account; identifier withheld from public repository",
+  "host_harness": "direct APEX CLI",
+  "config_digest": {
+    "status": "UNKNOWN",
+    "reason": "validation console output did not emit a configuration digest; prior-run digest was not reused without evidence"
+  },
+  "workload_ref": "axiom-apex@372a272e99934b3cadf69f08be95de081bfb1de1:benchmarks/tasks.json",
+  "command": "APEX_RUN_FULL_BENCH=1 ~/downloads/apex-gemini-validate.sh",
+  "pass_rate": 1.0,
+  "wall_time": {
+    "benchmark_seconds": 94.401,
+    "integration_tests_seconds": 12.16
+  },
+  "token_metrics": {
+    "benchmark_total": 20256,
+    "benchmark_average_per_task": 1688.0,
+    "provider_smoke": 132,
+    "direct_dry_run": 1074,
+    "direct_execution": 922
+  },
+  "throughput_metrics": {
+    "tasks_per_minute": 7.627037849175327,
+    "apex_score": 0.98624,
+    "speed_factor": 1.0,
+    "token_efficiency": 0.9862
+  },
+  "resource_observations": {
+    "python": "3.12.9",
+    "google_genai": "1.66.0",
+    "execution": "remote Gemini inference with local APEX tool execution",
+    "apex_post_merge_revision": "372a272e99934b3cadf69f08be95de081bfb1de1",
+    "ason_post_merge_revision": "379c4833db012080aa016ac19c30f53f00e548b0"
+  },
+  "cash_cost": {
+    "exact_benchmark_cost": "not isolated; account-specific billing retained privately"
+  },
+  "failures": [],
+  "limitations": [
+    "Configuration digest was not emitted by the validation output and is recorded as UNKNOWN rather than inferred.",
+    "Exact per-run cash cost is not isolated; account-specific billing, quota, usage, identifiers, and credentials are retained privately.",
+    "Acceptance applies to this exact APEX revision, Gemini model, SDK version, direct host harness, and 12-task workload; materially different profiles require separate validation.",
+    "This direct Gemini benchmark does not exercise ASON authorization; durable ASON-to-APEX binding is supported by separate cross-repository authorization/recovery and integration tests.",
+    "The durable authority_ref binding provides provenance at the trusted application boundary; it is not a cryptographic attestation of human or Harness authority.",
+    "Host-harness nesting through Codex, AGY, or OpenCode remains unmeasured."
+  ],
+  "result": "ACCEPT",
+  "verified_at": "2026-09-14T18:40:16-04:00"
+}

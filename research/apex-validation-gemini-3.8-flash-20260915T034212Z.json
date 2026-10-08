@@ -1,0 +1,72 @@
+{
+  "apex_revision": "67696d661d5084cb2cb4aa641835e725dbb6f75f",
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "endpoint_ref": "Google Gemini API",
+  "account_ref": "private configured Gemini account; identifier withheld from public repository",
+  "host_harness": "direct APEX CLI",
+  "config_digest": "430069bf67aaaf9aa1c45ac665a94d714213422de9a5c30e7431dfd2d262c3de",
+  "workload_ref": "axiom-apex@67696d661d5084cb2cb4aa641835e725dbb6f75f:benchmarks/tasks.json",
+  "command": "credential-injected provider smoke + live integration/direct execution + python -m apex.bench --tasks benchmarks/tasks.json --timeout 90",
+  "pass_rate": 1.0,
+  "wall_time": {
+    "benchmark_seconds": 100.725,
+    "integration_tests_seconds": 17.07
+  },
+  "token_metrics": {
+    "benchmark_total": 20190,
+    "provider_smoke": 107,
+    "direct_dry_run": 1331,
+    "direct_execution": 896
+  },
+  "throughput_metrics": {
+    "tasks_per_minute": 7.148175725986597,
+    "apex_score": 0.98635,
+    "speed_factor": 1.0,
+    "token_efficiency": 0.9863
+  },
+  "resource_observations": {
+    "python": "3.12.9",
+    "google_genai": "1.66.0",
+    "execution": "remote Gemini inference with local APEX tool execution",
+    "execution_profile": {
+      "schema": "apex/execution-profile-v1",
+      "provider": "gemini",
+      "model": "gemini-3.8-flash",
+      "db_path": "/home/u/.apex/memory.db",
+      "trace": false,
+      "dry_run": false,
+      "full_trace": false,
+      "trace_path": null,
+      "audit": false
+    },
+    "live_provider_smoke": "PASS",
+    "live_integration_tests": "2/2 PASS",
+    "direct_dry_run": "PASS",
+    "direct_execution": "PASS",
+    "source_equivalence": "Live acceptance ran on the modified working tree immediately before commit; the tree was committed without source changes and the repository was clean afterward."
+  },
+  "cash_cost": {
+    "exact_run_cost": "not isolated from account billing",
+    "note": "Gemini API inference was explicitly authorized by the owner; no cost amount is inferred from quota or billing status."
+  },
+  "failures": [
+    {
+      "attempt": "initial full benchmark",
+      "result": "11/12",
+      "task": "multi_step_chain",
+      "boundary": "pre-planning provider request",
+      "tool_effect_dispatched": false,
+      "followup": "A clean full rerun passed 12/12; the transient provider failure did not reproduce."
+    }
+  ],
+  "limitations": [
+    "Acceptance is scoped to this exact APEX revision, Gemini model, SDK version, execution profile digest, direct host harness, and 12-task workload.",
+    "The first full benchmark attempt observed one redacted provider failure before planning; the clean rerun passed 12/12, so provider availability is not deterministic.",
+    "Exact per-run cash cost is not isolated from account billing.",
+    "The execution-profile digest binds the benchmark process configuration, not remote provider state or tool implementation code.",
+    "This validation does not establish exactly-once external effects, host-power-loss atomicity, independent assurance, or production deployment readiness."
+  ],
+  "result": "ACCEPT",
+  "verified_at": "2026-09-14T23:42:12-04:00"
+}

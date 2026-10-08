@@ -1,0 +1,44 @@
+{
+  "apex_revision": "0fa8ffc92d09d13821b4ae0d041ecebf7c94236d",
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "endpoint_ref": "Google Gemini API",
+  "account_ref": "account-specific identity omitted from public repository",
+  "host_harness": "direct APEX CLI",
+  "config_digest": "sha256:5710e16102008fd2a659b96ae271a43a711f40d17eea857212a9bdf8b6743aad",
+  "workload_ref": "axiom-apex@0fa8ffc92d09d13821b4ae0d041ecebf7c94236d:benchmarks/tasks.json",
+  "command": "historical validation harness; local path omitted",
+  "pass_rate": 1,
+  "wall_time": {
+    "benchmark_seconds": 91.247,
+    "integration_tests_seconds": 14.68
+  },
+  "token_metrics": {
+    "benchmark_total": 21721,
+    "benchmark_average_per_task": 1810.0833333333333,
+    "provider_smoke": 128,
+    "direct_dry_run": 1454,
+    "direct_execution": 1036
+  },
+  "throughput_metrics": {
+    "tasks_per_minute": 7.890670926167983,
+    "apex_score": 0.983798,
+    "speed_factor": 1,
+    "token_efficiency": 0.9838
+  },
+  "resource_observations": {
+    "python": "3.12.9",
+    "google_genai": "1.66.0",
+    "execution": "historical direct APEX CLI with remote Gemini inference"
+  },
+  "cash_cost": "not isolated; account-specific billing, quota, usage, and renewal state are intentionally omitted from this public artifact",
+  "failures": [],
+  "limitations": [
+    "Acceptance applies to this exact APEX revision, Gemini model, SDK version, direct host harness, and 12-task workload; materially different profiles require separate validation.",
+    "Host-harness nesting through Codex, AGY, or OpenCode remains unmeasured.",
+    "Account-specific identity, credentials, billing, quota, usage, and renewal state are intentionally excluded from this public artifact.",
+    "Historical host-local execution evidence is retained only as provenance and is not an eligible current AXIOM execution route."
+  ],
+  "result": "ACCEPT",
+  "verified_at": "2026-09-14T17:13:37-04:00"
+}

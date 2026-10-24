@@ -5,11 +5,15 @@ Execute bounded AI-agent tasks through explicit tool calls defined by schema-val
 ## Install
 
 Python 3.11 or 3.12 is validated. Version 3.2.0 is **unreleased**; the latest published baseline is 3.1.1.
-Current AXIOM distribution is prepared for [GitHub Releases](https://github.com/axiom-llc/axiom-apex/releases).
+Published distributions are available through [GitHub Releases](https://github.com/axiom-llc/axiom-apex/releases).
 The legacy PyPI package does not provide this source architecture; do not use a
 bare `pip install axiom-apex` to obtain it.
 
-After the releases below are published, install the exact wheels in a fresh environment:
+### Published baseline: APEX 3.1.1 + RAG 1.5.0
+
+Install these existing release wheels in a fresh environment. This installs APEX
+3.1.1, not the current 3.2.0 source; it does not satisfy ASON 0.3.0's
+`axiom-apex>=3.2.0` requirement.
 
 ```bash
 python -m venv .venv
@@ -21,13 +25,15 @@ python -m pip check
 ```
 
 Supply **both** wheels in the same command: APEX requires `axiom-rag>=1.5.0`,
-and the old PyPI RAG cannot satisfy that contract. Release RAG first.
+and the old PyPI RAG cannot satisfy that contract. RAG 1.5.0 is already published.
 
-These versioned URLs are future release targets, not a claim that assets already exist.
-See [release gates and checksum verification](RELEASE.md). Third-party dependencies
+Both URLs above target published release assets.
+See [checksum verification and the future 3.2.0 release gates](RELEASE.md). Third-party dependencies
 may still be downloaded from the public Python index; no AXIOM PyPI account is needed.
 
-For development before publication, run from this checkout:
+### Current source: APEX 3.2.0
+
+For the current source and ASON 0.3.0 integration, run from this checkout:
 
 ```bash
 python -m venv .venv

@@ -37,6 +37,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Standard-library recovery demo
+        run: python tests/test_recovery_demo.py
       - name: Install isolation primitive
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bubblewrap
       - name: Authorize Bubblewrap namespace setup
@@ -84,3 +86,4 @@ jobs:
           cd /tmp
           python -c 'from apex._rsi_sandbox import run; from apex import rsi'
           apex --version
+

@@ -1,0 +1,15 @@
+APEX / durable recovery demo
+Real subprocess crashes. Temporary SQLite ledger. No network or API key.
+
+1. Crash after the first result is committed
+Ledger after crash: SUCCEEDED -> INTENT_RECORDED
+Recovery: HALTED | effects: first, second
+Repeat recovery: HALTED | additional effects: 0
+
+2. Crash after an effect, before its result is committed
+Ledger after crash: DISPATCHING -> INTENT_RECORDED
+Recovery: BLOCKED | effects: first
+Repeat recovery: BLOCKED | additional effects: 0
+
+PASS: no duplicate effects; ambiguous recovery refused.
+Scope: these process-crash scenarios; not exactly-once external delivery.

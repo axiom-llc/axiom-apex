@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="505" viewBox="0 0 1080 505" role="img" aria-labelledby="title desc">
+<title id="title">APEX recovery demonstration</title>
+<desc id="desc">Actual demo output. A committed successful effect is reused; an ambiguous effect blocks recovery. Both repeat attempts produce zero additional effects.</desc>
+<rect width="1080" height="505" rx="14" fill="#002b36"/>
+<circle cx="28" cy="26" r="6" fill="#dc322f"/><circle cx="49" cy="26" r="6" fill="#b58900"/><circle cx="70" cy="26" r="6" fill="#859900"/>
+<text x="98" y="32" fill="#93a1a1" font-family="monospace" font-size="16">python3 examples/recovery.py</text>
+<text x="28" y="78" fill="#93a1a1" font-family="monospace" font-size="20">APEX / durable recovery demo</text>
+<text x="28" y="105" fill="#93a1a1" font-family="monospace" font-size="20">Real subprocess crashes. Temporary SQLite ledger. No network or API key.</text>
+<text x="28" y="132" fill="#93a1a1" font-family="monospace" font-size="20"></text>
+<text x="28" y="159" fill="#2aa198" font-family="monospace" font-size="20">1. Crash after the first result is committed</text>
+<text x="28" y="186" fill="#93a1a1" font-family="monospace" font-size="20">Ledger after crash: SUCCEEDED -&gt; INTENT_RECORDED</text>
+<text x="28" y="213" fill="#859900" font-family="monospace" font-size="20">Recovery: HALTED | effects: first, second</text>
+<text x="28" y="240" fill="#93a1a1" font-family="monospace" font-size="20">Repeat recovery: HALTED | additional effects: 0</text>
+<text x="28" y="267" fill="#93a1a1" font-family="monospace" font-size="20"></text>
+<text x="28" y="294" fill="#2aa198" font-family="monospace" font-size="20">2. Crash after an effect, before its result is committed</text>
+<text x="28" y="321" fill="#93a1a1" font-family="monospace" font-size="20">Ledger after crash: DISPATCHING -&gt; INTENT_RECORDED</text>
+<text x="28" y="348" fill="#b58900" font-family="monospace" font-size="20">Recovery: BLOCKED | effects: first</text>
+<text x="28" y="375" fill="#b58900" font-family="monospace" font-size="20">Repeat recovery: BLOCKED | additional effects: 0</text>
+<text x="28" y="402" fill="#93a1a1" font-family="monospace" font-size="20"></text>
+<text x="28" y="429" fill="#859900" font-family="monospace" font-size="20">PASS: no duplicate effects; ambiguous recovery refused.</text>
+<text x="28" y="456" fill="#93a1a1" font-family="monospace" font-size="20">Scope: these process-crash scenarios; not exactly-once external delivery.</text>
+</svg>

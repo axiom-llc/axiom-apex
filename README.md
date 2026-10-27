@@ -1,6 +1,6 @@
 # APEX
 
-**An AI-agent runtime that records the plan before acting—and stops recovery when an effect is uncertain.**
+**A bounded agent runtime for SI-oriented engineering: recorded plans, validated tool execution, and fail-closed recovery when an effect is uncertain.**
 
 APEX turns a natural-language task or an explicit plan into schema-validated,
 bounded tool calls. A SQLite effect ledger records dispatch and observed results,

@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "axiom-apex"
 version = "3.2.0"
-description = "AI agent runtime — schema-validated recorded plans and bounded tool execution"
+description = "Bounded agent runtime — schema-validated recorded plans and controlled tool execution"
 authors = [{ name = "AXIOM LLC", email = "axiom.co@proton.me" }]
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
-keywords = ["ai", "agent", "llm", "automation", "deterministic", "gemini"]
+keywords = ["si", "ai", "agent", "llm", "automation", "deterministic", "gemini"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",

@@ -1,0 +1,12 @@
+[project]
+name = "axiom-ason"
+version = "0.3.0"
+description = "ASON — Autonomous Security Optimization Network"
+authors = [{name = "AXIOM LLC"}]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = ["axiom-apex>=3.2.0", "pydantic>=2"]
+
+[project.scripts]
+ason = "ason.__main__:main"

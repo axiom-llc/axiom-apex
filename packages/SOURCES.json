@@ -1,0 +1,333 @@
+{
+  "schema": "axiom/platform-source-import-v1",
+  "imported_at": "2026-10-29",
+  "packages": [
+    "ason",
+    "harness",
+    "api"
+  ],
+  "sources": [
+    {
+      "destination": "packages/ason/.github/workflows/ci.yml",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": ".github/workflows/ci.yml",
+      "git_blob_sha": "db5a9b6ea10881ecce5c2355a776617334cecc97",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/.gitignore",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": ".gitignore",
+      "git_blob_sha": "099b5b1ad3632d0794fef5c6de1b93283d7c1943",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/Dockerfile",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "Dockerfile",
+      "git_blob_sha": "baf3c5550c12a7cce434ad4dd2822810e52cba8c",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/Dockerfile.dockerignore",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "Dockerfile.dockerignore",
+      "git_blob_sha": "a122e48590397617a5eb1ebb2e3fce835131c67f",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/LICENSE",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "LICENSE",
+      "git_blob_sha": "8aa9ee2f4fc41dfb480d572995d44522e439ccc8",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/README.md",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "README.md",
+      "git_blob_sha": "d637923de25cfc05eff173c3b24fc913bb41bb37",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/__init__.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/__init__.py",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/__main__.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/__main__.py",
+      "git_blob_sha": "29c50702af315159df55b7c0d814140f3a48d236",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/executor.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/executor.py",
+      "git_blob_sha": "11251b372d7eecb546fe0172177a8481a557ce43",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/rollback.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/rollback.py",
+      "git_blob_sha": "9e209b42028efd209cd1d83664df06b2171e2b80",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/schema.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/schema.py",
+      "git_blob_sha": "753ecf7d625db4a1fad398f2505dbda991a61c33",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/__init__.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/__init__.py",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/test_adversarial.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/test_adversarial.py",
+      "git_blob_sha": "403aa4398b69745a7061a90975b3d6e7cf03682d",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/test_apex_integration.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/test_apex_integration.py",
+      "git_blob_sha": "64d6dd2ec96c8c6434c637ce69162ddd0597a1b5",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/test_executor.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/test_executor.py",
+      "git_blob_sha": "bc4bd31389bdf6ffdc6a9dee4c7979d5f514eee0",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/test_rollback.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/test_rollback.py",
+      "git_blob_sha": "628e310b5dbbd7a7759e10edb510312a12844be8",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/tests/test_validator.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/tests/test_validator.py",
+      "git_blob_sha": "1aa506d5b8a608c9126a63f40b38c94efc866239",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/ason/validator.py",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "ason/validator.py",
+      "git_blob_sha": "45d6c33ca8d86ab05f25af25df94526226229eaa",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/ason/pyproject.toml",
+      "repository": "axiom-llc/axiom-ason",
+      "revision": "9945b299da3f83900204b673256a32648c51f19e",
+      "path": "pyproject.toml",
+      "git_blob_sha": "a9fb9b01a9b2ea16df1f3dda79d744fe95935e46",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/.gitignore",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": ".gitignore",
+      "git_blob_sha": "ddbb4e90318acafa6bb4ad709f0301b92bb42d11",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/LICENSE",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "LICENSE",
+      "git_blob_sha": "8aa9ee2f4fc41dfb480d572995d44522e439ccc8",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/Makefile",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "Makefile",
+      "git_blob_sha": "a08340c127de9d07cd479339ee1acc47841f4a74",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/README.md",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "README.md",
+      "git_blob_sha": "5ee1a644c9ce4102c6c4e1fe498058d2752d61e9",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/axiom_harness/__init__.py",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "axiom_harness/__init__.py",
+      "git_blob_sha": "958bdeb5310ff3beee1ce24c24ae9fe7fe8bb1cd",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/axiom_harness/harness.py",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "axiom_harness/harness.py",
+      "git_blob_sha": "685e31eea85878a01db05ea2767e9d8552f25c19",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/pyproject.toml",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "pyproject.toml",
+      "git_blob_sha": "dd9c5d9ff27b130155e8b7c965cb787e6f764aaf",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/harness/scripts/verify.sh",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "scripts/verify.sh",
+      "git_blob_sha": "21f78dd23d1eee2cf1eb63bfeea80b030bcea6c0",
+      "mode": "100755"
+    },
+    {
+      "destination": "packages/harness/tests/test_harness.py",
+      "repository": "axiom-llc/axiom-harness",
+      "revision": "21700303c64d96f10f84a81dfba5b66f51cda10a",
+      "path": "tests/test_harness.py",
+      "git_blob_sha": "c7f676bd5b66475fe271bd35f1c724bd66d997d2",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/.github/workflows/ci.yml",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": ".github/workflows/ci.yml",
+      "git_blob_sha": "22bf00e467c2a69891ce5bd7752fd7b168a22c66",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/.gitignore",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": ".gitignore",
+      "git_blob_sha": "e96b09067e28ad0083f5eef4248cf4ff8e450e2e",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/LICENSE",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "LICENSE",
+      "git_blob_sha": "3d7892acefd8190d40b1a4379fd60f55766600a9",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/README.md",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "README.md",
+      "git_blob_sha": "31f1d6b90869d85ae684050df451ce2f5b7d8963",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/api_framework/__init__.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "api_framework/__init__.py",
+      "git_blob_sha": "de1b1c3938f4f0a1f8cf4828286cbed86f858bca",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/api_framework/client.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "api_framework/client.py",
+      "git_blob_sha": "e5cf0ea6bf3d34dd31c67c0cd7922015fea484f6",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/example_usage.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "example_usage.py",
+      "git_blob_sha": "4287c541f5eeebbe0159b8efdcb9549fe909eabf",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/gemini_client/__init__.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "gemini_client/__init__.py",
+      "git_blob_sha": "0068bb450058ac40d37abde6a64eb60028bf659f",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/gemini_client/client.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "gemini_client/client.py",
+      "git_blob_sha": "5fc416a84bf258f3a46a396e44f8c67d3785a022",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/pyproject.toml",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "pyproject.toml",
+      "git_blob_sha": "70138165fc498388fd4fc9396ca1c51a6bead862",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/tests/__init__.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "tests/__init__.py",
+      "git_blob_sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "mode": "100644"
+    },
+    {
+      "destination": "packages/api/tests/test_api_framework.py",
+      "repository": "axiom-llc/axiom-api",
+      "revision": "d0799ba03ab94d1a689bd6795840cdf4478bf2c9",
+      "path": "tests/test_api_framework.py",
+      "git_blob_sha": "f5319e0d25fc09b9e5d6ef70e46c6b3773f297fd",
+      "mode": "100644"
+    }
+  ],
+  "history": "Original source repositories retain full Git history; this import preserves exact file blobs and immutable source revision references.",
+  "licenses": "Each package retains its source LICENSE."
+}

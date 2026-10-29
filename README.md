@@ -1,6 +1,6 @@
 # APEX
 
-**A bounded agent runtime for SI-oriented engineering: recorded plans, validated tool execution, and fail-closed recovery when an effect is uncertain.**
+**Advanced AI execution infrastructure: durable plans, policy-bound tool execution, crash recovery and controlled replay.**
 
 APEX turns a natural-language task or an explicit plan into schema-validated,
 bounded tool calls. A SQLite effect ledger records dispatch and observed results,
@@ -11,6 +11,10 @@ so recovery can reuse completed work without asking a model to reconstruct it.
 [![License: MIT](https://img.shields.io/badge/license-MIT-859900)](LICENSE)
 
 [Try the demo](#try-the-recovery-demo) · [How it works](#how-it-works) · [Install](#install) · [Documentation](#documentation)
+
+## Integrated platform
+
+[ASON, Harness and API](packages/) bring policy enforcement, durable orchestration and HTTP transport into this workspace as separately installable packages. [Provenance](packages/SOURCES.json) pins their original source revisions; [platform CI](.github/workflows/platform.yml) validates installation and integration.
 
 ## Why APEX
 

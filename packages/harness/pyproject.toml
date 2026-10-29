@@ -1,0 +1,16 @@
+[project]
+name = "axiom-harness"
+version = "0.1.0"
+description = "Durable bounded operational task orchestration primitives for AXIOM"
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "AXIOM LLC" }]
+dependencies = []
+
+[tool.setuptools]
+packages = ["axiom_harness"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

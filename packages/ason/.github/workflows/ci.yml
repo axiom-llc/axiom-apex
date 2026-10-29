@@ -1,0 +1,60 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: axiom-ason
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: axiom-llc/axiom-rag
+          ref: main
+          path: axiom-rag
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: axiom-llc/axiom-apex
+          ref: main
+          path: axiom-apex
+          persist-credentials: false
+      - name: Record revisions and verify credential cleanup
+        run: |
+          for repo in axiom-rag axiom-apex axiom-ason; do
+            echo "$repo $(git -C "$repo" rev-parse HEAD)"
+            if git -C "$repo" config --local --name-only --get-regexp 'core\.sshcommand|http\..*\.extraheader'; then
+              echo "::error::Checkout credentials remain configured in $repo"
+              exit 1
+            fi
+          done
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build and install matching dependency wheels
+        run: |
+          python -m pip install setuptools wheel pytest
+          python -m pip wheel --no-deps --no-build-isolation -w wheelhouse ./axiom-rag ./axiom-apex ./axiom-ason
+          python -m pip install wheelhouse/*.whl
+          python -m pip check
+      - name: Verify installed packages and entry point
+        working-directory: ${{ runner.temp }}
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          import ason, apex, rag
+          for package in (rag, apex, ason):
+              assert Path(package.__file__).resolve().is_relative_to(Path(sys.prefix).resolve()), package.__file__
+          PY
+          ason
+          python -m compileall -q "$GITHUB_WORKSPACE/axiom-ason/ason"
+      - name: Test installed ASON against real APEX
+        working-directory: ${{ runner.temp }}
+        run: python -m pytest --import-mode=importlib "$GITHUB_WORKSPACE/axiom-ason/ason/tests" -q

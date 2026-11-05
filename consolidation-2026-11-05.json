@@ -1,0 +1,40 @@
+{
+  "schema": "axiom/retired-source-map-v1",
+  "sources": [
+    {
+      "name": "axiom-ason",
+      "target": "axiom-apex",
+      "prefix": "packages/ason",
+      "sha": "02d7746c9203a4782de4e39a38feea0cba041293",
+      "import": false,
+      "files": 19,
+      "differences": [
+        "README.md"
+      ],
+      "exact_tree": false,
+      "history": "source main is an ancestor; all branch/tag tips namespaced"
+    },
+    {
+      "name": "axiom-api",
+      "target": "axiom-apex",
+      "prefix": "packages/api",
+      "sha": "9eac9b88914634ebb33ff648e8444aae5234b64a",
+      "import": false,
+      "files": 12,
+      "differences": [
+        "README.md"
+      ],
+      "exact_tree": false,
+      "history": "source main is an ancestor; all branch/tag tips namespaced"
+    },
+    {
+      "name": "axiom-harness",
+      "target": "axiom-apex",
+      "prefix": "packages/harness",
+      "sha": "0a729179bfd86ae3b09c9c2781aa120ae17cf9ed",
+      "import": false,
+      "history": "retained only in private source repository",
+      "files": 9
+    }
+  ]
+}

@@ -36,6 +36,28 @@ and recovery-aware integrations. Natural-language planning remains model-depende
 the execution and recovery rules are explicit. APEX is not an exactly-once delivery
 system or a general-purpose sandbox for arbitrary tools.
 
+## Parallel task execution (swarm)
+
+APEX can run independent tasks concurrently in subprocess batches, helping reduce
+turnaround time when work can be split into separate jobs. Configure the maximum
+number of workers, optionally approve each batch before dispatch, and inspect
+SQLite task-status records and reported worker failures.
+
+```bash
+apex swarm --tasks tasks.json --workers 4 --human-loop
+```
+
+Each worker runs through the APEX execution engine, with its plan validation,
+execution records and conservative recovery rules. These are worker-level
+capabilities; the swarm runner does not provide coordinated swarm-wide recovery.
+
+Workers execute assigned tasks independently. Inter-agent communication, shared
+planning and collaborative coordination are not implemented. Actual speed and
+cost depend on the workload and provider limits; use tasks that do not conflict
+over shared resources.
+
+See the [development guide](docs/development.md) for the swarm CLI reference.
+
 ## Try the recovery demo
 
 **No API key, model server, package installation or network access is needed after

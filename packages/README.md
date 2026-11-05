@@ -1,6 +1,6 @@
 # AXIOM Platform Packages
 
-APEX integrates advanced AI execution, policy enforcement, durable orchestration and HTTP transport in one engineering workspace.
+APEX integrates advanced SI execution, policy enforcement, durable orchestration and HTTP transport in one engineering workspace.
 
 | Package | Responsibility | Version |
 | --- | --- | --- |
@@ -28,3 +28,9 @@ python -m pytest packages/api/tests -q
 ```
 
 The [platform workflow](../.github/workflows/platform.yml) builds and installs matching wheels and runs the packages outside source directories. APEX remains the execution owner; ASON owns plan policy, Harness owns task orchestration and RAG owns storage.
+
+## Repository retirement — November 5, 2026
+
+ASON, Harness and API source repositories are archived. Canonical development, issues, package tests and integration belong in this workspace. All source code/configuration/tests/license files match their imported packages; only intentional README routing text differs. Keep the three installation/import boundaries separate inside APEX.
+
+Original public ASON/API ancestry and branch/tag tips are retained here. Original private Harness history stays in its private source archive; only the previously vetted generic package is public. Existing source URLs and releases remain available for compatibility. See [retired source map](../consolidation-2026-11-05.json).

@@ -480,7 +480,7 @@ def run_rsi(
         "review_required": True,
     }, indent=2))
     if accepted:
-        print("[rsi] human review required; no merge or release performed", flush=True)
+        print("[rsi] human review required; no merge or release performed", file=sys.stderr, flush=True)
 
 
 # ---------------------------------------------------------------------------

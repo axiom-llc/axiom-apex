@@ -158,8 +158,17 @@ def test_real_apex_candidate_regressions_and_benchmark(tmp_path, monkeypatch):
     source.write_text(source.read_text() + '\n# Valid RSI candidate smoke probe.\n')
     patch = subprocess.check_output(['git', 'diff'], cwd=repo, text=True)
     monkeypatch.setattr(rsi, 'REPO_ROOT', repo)
-    score = rsi._run_candidate(0, patch, str(repo / 'benchmarks/tasks.json'), True, k=1)
-    assert score is not None and 0 <= score <= 1
+    # Both source baseline and patched candidate run the *real* offline benchmark
+    # inside the same kernel-enforced sandbox; no mock/provider score is accepted.
+    baseline = rsi._run_bench(str(repo / 'benchmarks/tasks.json'), False, k=1)
+    evidence = {}
+    score = rsi._run_candidate(0, patch, str(repo / 'benchmarks/tasks.json'),
+                               False, k=1, evidence=evidence)
+    assert baseline["p50_ms"] > 0 and baseline["p95_ms"] > 0
+    assert score is not None and 0 < score <= 1
+    assert evidence["dataset"] == "train"
+    assert evidence["samples"] == 1
+    assert evidence["p50_ms"] > 0 and evidence["p95_ms"] > 0
 
 
 def test_runtime_readonly_privileges_and_unix_socket(tmp_path):

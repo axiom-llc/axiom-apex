@@ -4,7 +4,7 @@
 
 ## RSI experiment
 
-Run RSI from a clean source checkout with development dependencies installed (`pip install -e ".[dev]"`); its regression gate requires pytest. Use a working tree you can discard or review. Let each cycle benchmark a baseline, ask the configured LLM provider for candidate unified diffs, use Git’s patch parser to reject candidates outside the allowed files, binary changes, file creation/deletion, renames/copies, mode changes, or blocked shell patterns, require each candidate to pass offline regression tests before benchmarking in a scratch worktree, and commit the selected candidate to `rsi/cycle-N`.
+Run RSI from a clean source checkout with development dependencies installed (`pip install -e ".[dev]"`); its regression gate requires pytest. Use a working tree you can discard or review. Let each cycle benchmark a baseline, ask the configured LLM provider for candidate unified diffs, use Git’s patch parser to reject candidates outside the allowed files, binary changes, file creation/deletion, renames/copies, mode changes, or blocked shell patterns, require each candidate to pass offline regression tests before benchmarking in a scratch worktree, and commit verified improvements to unique cumulative `rsi/<run>/cycle-N` branches, keeping `main` unchanged.
 
 Candidate tests and each benchmark invocation have a 300-second timeout. Failed tests, failed benchmark processes, and invalid/non-finite scores are ineligible for selection. Candidate regressions and benchmarks share a Linux Bubblewrap boundary; install Bubblewrap 0.9+ with `--size` support (for example, `sudo apt-get install bubblewrap` on Ubuntu 24.04) and enable unprivileged user namespaces. Isolation setup failures abort RSI with a diagnostic; there is no unrestricted fallback.
 
@@ -35,3 +35,9 @@ CPU quota bounds aggregate rate, not exclusive CPU access; the wall timeout boun
 
 Do not auto-merge RSI branches. Review every candidate manually. Keep `apex/core/safety.py` outside the patchable set.
 
+
+## Verified cumulative RSI admission (November 2026)
+
+`apex rsi` benchmarks both the current candidate baseline and isolated patches using the same Linux Bubblewrap/cgroup boundary, without network or provider credentials. The `apex.rsi_offline_bench` fixture measures actual plan-JSON extraction and tool-output normalization on separate fixed train and holdout inputs; it does **not** represent whole-agent performance or live model behavior. The older provider-dependent `apex.bench` remains a separate product benchmark and cannot score sandboxed candidates. `--mock-bench` is rejected for any RSI commit. Candidate patches are limited to the two runtime source files covered by the offline fixture.
+
+A candidate is admitted only after full offline regressions and three valid baseline/candidate samples in both cohorts, with median runtime improvement >=1ms **and** >=2%, no p95 regression over 10%, improved composite score, and no missing/malformed/nonfinite measurements. Every cycle remeasures its actual cumulative source parent. A new unique branch preserves each accepted improvement; the next generation inherits that branch. A cycle with no material eligible improvement stops without committing. No automated merge, deployment, or additional authority is granted. Token budget is conservatively estimated from prompt/source size; actual provider token accounting and cost are not available, and no exact billed savings are claimed. Reproducible regression tests use a deterministic two-generation fixture; live provider patch generation and production gains remain separately unverified.

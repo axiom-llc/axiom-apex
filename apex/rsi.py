@@ -13,8 +13,12 @@ Each cycle:
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
+import shutil
+import statistics
+import uuid
 import subprocess
 import sys
 import tempfile
@@ -25,14 +29,13 @@ from typing import Any
 from apex._rsi_sandbox import IsolationError, ResourceLimitError, run as _run_candidate_process
 
 APEX_CMD = [sys.executable, "-m", "apex"]
-BENCH_CMD = [sys.executable, "-m", "apex.bench"]
+BENCH_CMD = [sys.executable, "-m", "apex.rsi_offline_bench"]
 REPO_ROOT = Path(__file__).parent.parent
 
 # Source files eligible for RSI patching
 RSI_SOURCE_FILES = [
     "apex/core/loop.py",
     "apex/core/planner.py",
-    "apex/llm.py",
 ]
 
 
@@ -85,7 +88,8 @@ def _apply_patch(patch_text: str) -> bool:
 
 
 def _run_candidate(
-    candidate_idx: int, patch_text: str, tasks_path: str, mock_bench: bool, k: int = 3
+    candidate_idx: int, patch_text: str, tasks_path: str, mock_bench: bool,
+    k: int = 3, *, dataset: str = "train", evidence: dict | None = None,
 ) -> float | None:
     """Require passing regressions and valid benchmark runs in a scratch worktree."""
     scratch = tempfile.mkdtemp(prefix=f"apex-rsi-cand{candidate_idx}-")
@@ -117,21 +121,39 @@ def _run_candidate(
                   f"{validation.stdout[-4000:]}{validation.stderr[-4000:]}", file=sys.stderr)
             return None
         scores = []
+        observed = []
         for _ in range(k):
             cmd = BENCH_CMD + ["--tasks", f"/work/{task_name}"]
             if mock_bench:
                 cmd.append("--mock")
+            if dataset != "train":
+                cmd.extend(["--dataset", dataset])
             result = _run_candidate_process(cmd, scratch)
             if result.returncode != 0:
                 return None
             try:
-                score = json.loads(result.stdout)["apex_score"]
-                if type(score) not in (int, float) or not 0 <= score <= 1:
+                payload = json.loads(result.stdout)
+                score = payload["apex_score"]
+                if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1:
                     return None
-                scores.append(score)
+                if evidence is not None:
+                    if payload.get("benchmark") != "apex-rsi-offline-v1" or payload.get("dataset") != dataset or payload.get("mock") is not False or payload.get("passed") is not True:
+                        return None
+                    p50, p95 = payload.get("p50_ms"), payload.get("p95_ms")
+                    if any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in (p50, p95)):
+                        return None
+                    observed.append((float(p50), float(p95)))
+                scores.append(float(score))
             except (json.JSONDecodeError, KeyError, TypeError):
                 return None
-        return sum(scores) / len(scores) if scores else None
+        if scores and evidence is not None:
+            evidence.update({
+                "apex_score": statistics.median(scores),
+                "p50_ms": statistics.median(v[0] for v in observed),
+                "p95_ms": statistics.median(v[1] for v in observed),
+                "dataset": dataset, "samples": len(observed),
+            })
+        return statistics.median(scores) if scores else None
     except ResourceLimitError as exc:
         print(f"[rsi] candidate {candidate_idx} rejected: {exc}", file=sys.stderr)
         return None
@@ -140,6 +162,7 @@ def _run_candidate(
         return None
     finally:
         _git(["worktree", "remove", "--force", scratch], check=False)
+        shutil.rmtree(scratch, ignore_errors=True)
 
 
 def _commit_cycle(cycle: int, score_before: float, score_after: float) -> None:
@@ -152,16 +175,60 @@ def _commit_cycle(cycle: int, score_before: float, score_after: float) -> None:
 # Bench wrapper
 # ---------------------------------------------------------------------------
 
-def _run_bench(tasks_path: str, mock: bool = False) -> dict[str, Any]:
-    cmd = BENCH_CMD + ["--tasks", tasks_path]
+def _run_bench(tasks_path: str, mock: bool = False, *, dataset: str = "train", k: int = 3) -> dict:
+    """Benchmark the current pinned HEAD inside the same offline boundary as candidates.
+
+    No provider calls or host-side scoring. Missing, failed and mock measurements
+    cannot be used to authorize RSI.
+    """
     if mock:
-        cmd.append("--mock")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+        raise RuntimeError("mock benchmarks cannot establish an RSI baseline")
+    scratch = tempfile.mkdtemp(prefix="apex-rsi-baseline-")
     try:
-        # bench writes JSON to stdout
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return {"apex_score": 0.0, "error": result.stderr[:512]}
+        _git(["worktree", "add", "--detach", scratch, "HEAD"])
+        task_name = "rsi-tasks.json"
+        Path(scratch, task_name).write_bytes(Path(tasks_path).read_bytes())
+        samples = []
+        for _ in range(k):
+            cmd = BENCH_CMD + ["--tasks", f"/work/{task_name}", "--dataset", dataset]
+            result = _run_candidate_process(cmd, scratch)
+            if result.returncode != 0:
+                raise RuntimeError("baseline benchmark failed")
+            payload = json.loads(result.stdout)
+            score = payload.get("apex_score")
+            p50, p95 = payload.get("p50_ms"), payload.get("p95_ms")
+            if (payload.get("benchmark") != "apex-rsi-offline-v1"
+                or payload.get("dataset") != dataset or payload.get("mock") is not False
+                or payload.get("passed") is not True
+                or any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in (p50, p95))
+                or type(score) not in (int, float) or not math.isfinite(score) or not 0 < score <= 1):
+                raise RuntimeError("invalid or incomplete baseline benchmark")
+            samples.append(payload)
+        return {
+            "apex_score": statistics.median(row["apex_score"] for row in samples),
+            "p50_ms": statistics.median(row["p50_ms"] for row in samples),
+            "p95_ms": statistics.median(row["p95_ms"] for row in samples),
+            "dataset": dataset, "samples": len(samples),
+        }
+    finally:
+        _git(["worktree", "remove", "--force", scratch], check=False)
+        shutil.rmtree(scratch, ignore_errors=True)
+
+
+def _material_gain(baseline: dict, candidate: dict, *, min_ms: float = 1.0,
+                   min_fraction: float = 0.02, max_p95_regression: float = 0.10) -> bool:
+    """A materially faster median with bounded tail, without metric substitution."""
+    if baseline.get("dataset") != candidate.get("dataset"):
+        return False
+    try:
+        before, after = float(baseline["p50_ms"]), float(candidate["p50_ms"])
+        tail_before, tail_after = float(baseline["p95_ms"]), float(candidate["p95_ms"])
+        return (all(math.isfinite(x) and x > 0 for x in (before, after, tail_before, tail_after))
+                and before - after >= max(min_ms, min_fraction * before)
+                and tail_after <= tail_before * (1 + max_p95_regression)
+                and candidate["apex_score"] > baseline["apex_score"])
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -322,123 +389,98 @@ def run_rsi(
     mock_bench: bool,
     api_key: str,
 ) -> None:
+    """Bounded cumulative candidate optimization; main remains unchanged."""
+    if mock_bench:
+        raise RuntimeError("mock benchmark cannot authorize an RSI change")
     _require_clean_tree()
-    # Reject unavailable isolation before baseline execution or provider calls.
     with tempfile.TemporaryDirectory(prefix="apex-rsi-preflight-") as scratch:
         _run_candidate_process([sys.executable, "-c", "pass"], scratch)
     origin_branch = _current_branch()
     if origin_branch == "HEAD":
         raise RuntimeError("RSI requires a named Git branch")
-    governor = CycleGovernor(
-        max_cycles=cycles,
-        budget_tokens=budget_tokens,
-        max_wall_seconds=3600.0,
-    )
-
-    print(f"[rsi] starting on branch '{origin_branch}'", flush=True)
-    print(f"[rsi] cycles={cycles} budget_tokens={budget_tokens}", flush=True)
-
-    # Baseline score
-    baseline = _run_bench(tasks_path, mock=mock_bench)
-    score = baseline.get("apex_score", 0.0)
-    print(f"[rsi] baseline apex_score={score:.6f}", flush=True)
-
+    governor = CycleGovernor(max_cycles=cycles, budget_tokens=budget_tokens,
+                             max_wall_seconds=3600.0)
+    run_tag = f"{_git(['rev-parse', '--short', 'HEAD']).stdout.strip()}-{uuid.uuid4().hex[:8]}"
+    parent_branch = origin_branch
+    accepted = []
     results_log: list[dict] = []
 
     for cycle in range(1, cycles + 1):
         ok, reason = governor.check(cycle)
         if not ok:
-            print(f"[rsi] governor halt: {reason}", flush=True)
+            results_log.append({"cycle": cycle, "outcome": "STOP_BUDGET", "reason": reason})
             break
-
-        branch = f"rsi/cycle-{cycle}"
-        print(f"\n[rsi] === cycle {cycle} / {cycles} ===", flush=True)
-
-        # Create branch
-        _checkout(origin_branch)
+        _checkout(parent_branch)
+        branch = f"rsi/{run_tag}/cycle-{cycle}"
         _create_branch(branch)
-
+        keep = False
         try:
+            baseline = _run_bench(tasks_path, dataset="train")
+            holdout_baseline = _run_bench(tasks_path, dataset="holdout")
             sources = _read_sources()
-            remaining = governor.tokens_remaining()
-
-            # Multi-candidate: generate N=3 patches, score each in isolation
-            N_CANDIDATES = 3
             candidates = []
-            for ci in range(N_CANDIDATES):
-                patch = _generate_patch(api_key, sources, score, remaining)
-                if not patch:
+            for ci in range(3):
+                # Estimated tokens are admission accounting only, never provider-billed usage.
+                estimated_prompt_tokens = len(sources.encode("utf-8")) // 4 + 1024
+                if governor.tokens_remaining() < estimated_prompt_tokens:
+                    break
+                patch = _generate_patch(api_key, sources, baseline["apex_score"],
+                                        governor.tokens_remaining())
+                governor.consume_tokens(estimated_prompt_tokens)
+                if not patch or not _validate_patch(patch):
                     continue
-                if not _validate_patch(patch):
-                    print(f"[rsi] candidate {ci} rejected by safety validation", flush=True)
+                metrics: dict = {}
+                candidate_score = _run_candidate(ci, patch, tasks_path, False,
+                                                 evidence=metrics)
+                if candidate_score is None or not _material_gain(baseline, metrics):
                     continue
-                estimated_tokens = len(patch) // 4 + len(sources) // 4
-                governor.consume_tokens(estimated_tokens)
-                cand_score = _run_candidate(ci, patch, tasks_path, mock_bench, k=3)
-                if cand_score is None:
-                    continue
-                print(f"[rsi] candidate {ci} score={cand_score:.6f}", flush=True)
-                candidates.append((cand_score, patch, estimated_tokens))
-
+                candidates.append((candidate_score, patch, metrics))
             if not candidates:
-                print(f"[rsi] no valid candidates — skipping cycle", flush=True)
-                _checkout(origin_branch)
-                _git(["branch", "-D", branch])
-                continue
+                results_log.append({"cycle": cycle, "outcome": "NO_MATERIAL_CANDIDATE"})
+                break
 
-            best_score, best_patch, best_tokens = max(candidates, key=lambda item: item[0])
-            print(f"[rsi] best candidate score={best_score:.6f} "
-                  f"(from {len(candidates)} candidates)", flush=True)
-
-            # Apply best patch to working tree
-            if not _apply_patch(best_patch):
-                print(f"[rsi] best patch apply failed — skipping cycle", flush=True)
-                _checkout(origin_branch)
-                _git(["branch", "-D", branch])
-                continue
-
-            new_score = best_score
-            delta = new_score - score
-
-            print(f"[rsi] score: {score:.6f} -> {new_score:.6f}  delta={delta:+.6f}",
-                  flush=True)
-
-            _commit_cycle(cycle, score, new_score)
-
-            results_log.append({
-                "cycle": cycle,
-                "branch": branch,
-                "score_before": score,
-                "score_after": new_score,
-                "delta": delta,
-                "tokens_used": best_tokens,
-            })
-
-            if new_score > score:
-                score = new_score
-                print(f"[rsi] improvement on branch '{branch}'", flush=True)
-                print(f"[rsi] HUMAN REVIEW REQUIRED before merging '{branch}' -> '{origin_branch}'",
-                      flush=True)
-            else:
-                print(f"[rsi] no improvement — branch '{branch}' retained for inspection",
-                      flush=True)
-
+            # Holdout is separately executed on the patched scratch worktree.
+            candidates.sort(key=lambda row: (-row[0], row[2]["p95_ms"]))
+            for best_score, best_patch, train_metrics in candidates:
+                holdout_metrics: dict = {}
+                holdout_score = _run_candidate(99, best_patch, tasks_path, False,
+                                               dataset="holdout", evidence=holdout_metrics)
+                if holdout_score is None or not _material_gain(holdout_baseline, holdout_metrics):
+                    continue
+                if not _apply_patch(best_patch):
+                    continue
+                _commit_cycle(cycle, baseline["apex_score"], best_score)
+                keep = True
+                parent_branch = branch
+                accepted.append(branch)
+                results_log.append({
+                    "cycle": cycle, "outcome": "ACCEPTED_REVIEW_REQUIRED",
+                    "branch": branch, "train_baseline": baseline,
+                    "train_candidate": train_metrics, "holdout_baseline": holdout_baseline,
+                    "holdout_candidate": holdout_metrics,
+                    "token_budget_type": "estimated_only",
+                })
+                break
+            if not keep:
+                results_log.append({"cycle": cycle, "outcome": "HOLDOUT_REJECTED"})
+                break
         except IsolationError:
-            _checkout(origin_branch)
-            _git(["branch", "-D", branch], check=False)
             raise
-        except Exception as e:
-            print(f"[rsi] cycle {cycle} error: {e}", file=sys.stderr)
-            _checkout(origin_branch)
-            _git(["branch", "-D", branch], check=False)
-
         finally:
             _checkout(origin_branch)
+            if not keep:
+                _git(["branch", "-D", branch], check=False)
 
-    print(f"\n[rsi] complete. wall={governor.wall_elapsed():.1f}s "
-          f"tokens_used={governor.budget_tokens - governor.tokens_remaining()}",
-          flush=True)
-    print(json.dumps({"rsi_results": results_log}, indent=2))
+    print(json.dumps({
+        "rsi_results": results_log, "accepted_branches": accepted,
+        "origin_unchanged": origin_branch,
+        "estimated_tokens_used": governor.budget_tokens - governor.tokens_remaining(),
+        "provider_tokens_and_cost": None,
+        "elapsed_seconds": round(governor.wall_elapsed(), 3),
+        "review_required": True,
+    }, indent=2))
+    if accepted:
+        print("[rsi] human review required; no merge or release performed", flush=True)
 
 
 # ---------------------------------------------------------------------------

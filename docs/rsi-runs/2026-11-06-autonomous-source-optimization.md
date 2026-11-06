@@ -71,3 +71,31 @@ Exact hosted CI command/configuration is in [`.github/workflows/ci.yml`](../../.
 The source rule search terminates at a **fixed point of its two eligible transformations**, not mathematical convergence of arbitrary future candidate code. A second-level model that invents new beneficial transformation rules, independently evaluates them, measures sustained production benefits, learns from failures, and safely applies improvements is not demonstrated.
 
 Do not promote lab-selected runtime optimization commits to production solely because these benchmark tests passed. The next decision requires independently observed representative APEX call volume and externally fixed acceptance, measured p50/p95/CPU/RSS under the real operator workload, an explicit horizon for amortizing total evaluation overhead, and verified positive net machine-time after regression and cash costs. Only then can source optimization be approved as **net operational benefit** rather than a reproducible laboratory speedup.
+
+## Independent reconstruction and actual fixed point on optimized source
+
+The source-only reconstruction of both selected planner transformations is
+[review-only PR #7](https://github.com/axiom-llc/axiom-apex/pull/7);
+its two cumulative commits are `5660410cba524037880fb96d19114b1a0b227ff3`
+and `8e3026684b2702983c4d651b3f133d6d271f75ca`.
+These are separately reconstructed review commits, not the ephemeral original
+CI local commits. The [PR CI run
+42162840230](https://github.com/axiom-llc/axiom-apex/actions/runs/42162840230)
+passed 206 offline tests, 29 focused tests and 51 isolation tests. Running
+the actual source-derived optimizer against this already-optimized checkout
+produced **zero generated candidates, zero accepted, and
+`CONVERGED_NO_CANDIDATES`** in 0.007 s. The source PR remains unmerged:
+operator-workload ROI and independent production acceptance are not established.
+
+## Fail-closed ROI provenance correction
+
+The [ROI provenance hardening PR #8](https://github.com/axiom-llc/axiom-apex/pull/8)
+merged as `08fde4e99090ac9059ebcf32c916c9a159116233`.
+A former optional caller-supplied workload count could be mislabeled
+`MEASURED_NET_POSITIVE` despite having no independent origin.
+It now accepts **scenario** rounds only, reports hypothetical
+scenario arithmetic separately, and always retains
+`observed_real_workload_rounds = null` and
+`realized_operational_roi = UNVERIFIED`. Native APEX CI passed
+206 tests, 29 focused tests and 51 isolation tests on the correction.
+No caller-supplied scenario is evidence of actual production benefit.

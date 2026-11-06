@@ -166,7 +166,7 @@ def _run_candidate(
 
 
 def _commit_cycle(cycle: int, score_before: float, score_after: float) -> None:
-    _git(["add", "-A"])
+    _git(["add", "--", *RSI_SOURCE_FILES])
     _git(["commit", "-m",
           f"rsi: cycle-{cycle} score {score_before:.6f} -> {score_after:.6f}"])
 
@@ -357,7 +357,7 @@ class CycleGovernor:
         self.budget_tokens = budget_tokens
         self.max_wall_seconds = max_wall_seconds
         self._tokens_used = 0
-        self._wall_start = time.time()
+        self._wall_start = time.monotonic()
 
     def tokens_remaining(self) -> int:
         return max(0, self.budget_tokens - self._tokens_used)
@@ -366,7 +366,7 @@ class CycleGovernor:
         self._tokens_used += n
 
     def wall_elapsed(self) -> float:
-        return time.time() - self._wall_start
+        return time.monotonic() - self._wall_start
 
     def check(self, cycle: int) -> tuple[bool, str]:
         if cycle > self.max_cycles:
@@ -422,7 +422,8 @@ def run_rsi(
             for ci in range(3):
                 # Estimated tokens are admission accounting only, never provider-billed usage.
                 estimated_prompt_tokens = len(sources.encode("utf-8")) // 4 + 1024
-                if governor.tokens_remaining() < estimated_prompt_tokens:
+                if (governor.tokens_remaining() < estimated_prompt_tokens
+                    or governor.wall_elapsed() > governor.max_wall_seconds):
                     break
                 patch = _generate_patch(api_key, sources, baseline["apex_score"],
                                         governor.tokens_remaining())
@@ -442,6 +443,8 @@ def run_rsi(
             # Holdout is separately executed on the patched scratch worktree.
             candidates.sort(key=lambda row: (-row[0], row[2]["p95_ms"]))
             for best_score, best_patch, train_metrics in candidates:
+                if governor.wall_elapsed() > governor.max_wall_seconds:
+                    break
                 holdout_metrics: dict = {}
                 holdout_score = _run_candidate(99, best_patch, tasks_path, False,
                                                dataset="holdout", evidence=holdout_metrics)

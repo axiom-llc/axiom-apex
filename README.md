@@ -111,7 +111,7 @@ demonstrate these process-crash cases, not host-power-loss guarantees.
 
 ```mermaid
 flowchart TD
-    Task["Natural-language task"] --> Planner["Gemini or Ollama planner"]
+    Task["Natural-language task"] --> Planner["Gemini, ChatGPT or Ollama planner"]
     Planner --> Validate["Validate exact plan and tool schemas"]
     Plan["Caller-supplied plan"] --> Validate
     Validate --> Ledger["Commit plan, registry binding and intents"]
@@ -169,7 +169,8 @@ remaining 3.2.0 release gates. This README update does not publish a release.
 
 ## Run
 
-For natural-language planning, configure Gemini with `GEMINI_API_KEY`, or set
+For natural-language planning, configure Gemini with `GEMINI_API_KEY`, the OpenAI Responses API with
+`LLM_PROVIDER=chatgpt` and `OPENAI_API_KEY` (separately billed), or set
 `LLM_PROVIDER=ollama` and `OLLAMA_MODEL` to a model installed on your reachable
 Ollama server. See [configuration](docs/configuration.md) for all settings.
 

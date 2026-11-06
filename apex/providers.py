@@ -1,5 +1,6 @@
-"""Provider abstraction layer for Gemini and Ollama."""
+"""Provider abstraction layer for Gemini, Ollama and ChatGPT."""
 import os
+from apex.chatgpt import ChatGPTProvider
 from typing import Protocol, runtime_checkable
 
 _DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
@@ -92,10 +93,12 @@ class OllamaProvider:
 
 def get_provider(
     api_key: str = "", *, provider: str | None = None, model: str | None = None
-) -> GeminiProvider | OllamaProvider:
+) -> GeminiProvider | OllamaProvider | ChatGPTProvider:
     provider = (provider or os.environ.get("LLM_PROVIDER", "gemini")).lower()
     if provider == "ollama":
         return OllamaProvider(model=model)
     if provider == "gemini":
         return GeminiProvider(api_key=api_key, model=model)
+    if provider in {"chatgpt", "openai"}:
+        return ChatGPTProvider(api_key=api_key, model=model)
     raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")

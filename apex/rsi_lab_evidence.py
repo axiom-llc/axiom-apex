@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 
 
-def evaluate(data: dict, *, observed_rounds: int | None = None) -> dict:
+def evaluate(data: dict, *, scenario_rounds: int | None = None) -> dict:
     passes = [r for r in data.get("rsi_results", [])
               if r.get("outcome") == "ACCEPTED_REVIEW_REQUIRED"]
     if not passes:
@@ -23,13 +23,12 @@ def evaluate(data: dict, *, observed_rounds: int | None = None) -> dict:
         or saved_ms <= 0 or elapsed <= 0):
         raise ValueError("no valid aggregate independent positive improvement")
     break_even_rounds = math.ceil(1000 * elapsed / saved_ms)
-    if observed_rounds is not None and (type(observed_rounds) is not int or observed_rounds <= 0):
-        raise ValueError("observed production rounds must be positive")
-    net_s = (observed_rounds * saved_ms / 1000 - elapsed
-             if observed_rounds is not None else None)
+    if scenario_rounds is not None and (type(scenario_rounds) is not int or scenario_rounds <= 0):
+        raise ValueError("scenario rounds must be a positive integer")
+    net_s = (scenario_rounds * saved_ms / 1000 - elapsed
+             if scenario_rounds is not None else None)
     return {
-        "status": ("LAB_IMPROVEMENT_ROI_UNVERIFIED" if observed_rounds is None else
-                   "MEASURED_NET_POSITIVE" if net_s > 0 else "MEASURED_NET_NEGATIVE"),
+        "status": "LAB_IMPROVEMENT_ROI_UNVERIFIED",
         "generator": data["generator"],
         "accepted_generations": len(passes),
         "initial_holdout_p50_ms": initial["p50_ms"],
@@ -45,9 +44,15 @@ def evaluate(data: dict, *, observed_rounds: int | None = None) -> dict:
         "full_evaluation_overhead_seconds": elapsed,
         "amortization_break_even_rounds": break_even_rounds,
         "amortization_break_even_operations": work_units * break_even_rounds,
-        "observed_real_workload_rounds": observed_rounds,
-        "observed_net_machine_seconds": net_s,
-        "realized_operational_roi": "UNVERIFIED" if observed_rounds is None else "OBSERVATION_SCOPED_ONLY",
+        "observed_real_workload_rounds": None,
+        "observed_net_machine_seconds": None,
+        "scenario_workload_rounds": scenario_rounds,
+        "scenario_net_machine_seconds": net_s,
+        "scenario_net_status": (
+            "NOT_EVALUATED" if net_s is None else
+            "HYPOTHETICAL_POSITIVE" if net_s > 0 else "HYPOTHETICAL_NEGATIVE"
+        ),
+        "realized_operational_roi": "UNVERIFIED",
         "provider_calls": data["provider_calls"],
         "provider_cost_usd": 0 if data["provider_calls"] == 0 else None,
         "github_actions_cost_usd": None,
@@ -58,9 +63,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("results", type=Path)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--observed-rounds", type=int)
+    parser.add_argument("--scenario-rounds", type=int,
+                        help="unverified workload scenario; never counts as observed ROI")
     args = parser.parse_args()
-    result = evaluate(json.loads(args.results.read_text()), observed_rounds=args.observed_rounds)
+    result = evaluate(json.loads(args.results.read_text()), scenario_rounds=args.scenario_rounds)
     text = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:
         args.output.write_text(text)

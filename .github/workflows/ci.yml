@@ -76,6 +76,7 @@ jobs:
       - name: Offline suite including real kernel isolation probes
         run: python -m pytest tests -m 'not integration' -q
       - name: Autonomous RSI experiment (local branches only; no model)
+        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'rsi/')
         timeout-minutes: 16
         shell: bash
         run: |
@@ -106,7 +107,7 @@ jobs:
           git checkout -
           git diff --exit-code
       - name: Retain autonomous RSI evidence artifact
-        if: always()
+        if: always() && github.event_name == 'pull_request' && startsWith(github.head_ref, 'rsi/')
         uses: actions/upload-artifact@v4
         with:
           name: rsi-lab-${{ github.run_id }}

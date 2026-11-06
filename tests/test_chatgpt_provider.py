@@ -1,6 +1,6 @@
 """Offline adapter and planner-to-ledger integration coverage."""
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -21,7 +21,7 @@ def response(text, *, status="completed", tokens=7):
 def fake_http(body):
     stream = Mock()
     stream.read.return_value = body
-    context = Mock()
+    context = MagicMock()
     context.__enter__ = Mock(return_value=stream)
     context.__exit__ = Mock(return_value=None)
     return context

@@ -30,17 +30,21 @@ def load_config(
 ) -> Config:
     """Resolve environment configuration and reject unsupported providers."""
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
-    if provider not in {"gemini", "ollama"}:
+    if provider not in {"gemini", "ollama", "chatgpt", "openai"}:
         raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")
 
-    model = (
-        os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
-        if provider == "gemini"
-        else os.environ.get("OLLAMA_MODEL", "llama3")
-    )
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if require_api_key and provider == "gemini" and not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable not set")
+    models = {
+        "gemini": ("GEMINI_MODEL", "gemini-3.8-flash"),
+        "ollama": ("OLLAMA_MODEL", "llama3"),
+        "chatgpt": ("OPENAI_MODEL", "chat-latest"),
+        "openai": ("OPENAI_MODEL", "chat-latest"),
+    }
+    model_var, default_model = models[provider]
+    model = os.environ.get(model_var, default_model)
+    key_var = "OPENAI_API_KEY" if provider in {"chatgpt", "openai"} else "GEMINI_API_KEY"
+    api_key = os.environ.get(key_var, "")
+    if require_api_key and provider != "ollama" and not api_key:
+        raise ValueError(f"{key_var} environment variable not set")
 
     db_path = Path(
         os.environ.get("APEX_DB_PATH", str(Path.home() / ".apex" / "memory.db"))

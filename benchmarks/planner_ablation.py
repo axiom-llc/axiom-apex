@@ -86,7 +86,7 @@ def _fixtures() -> tuple[dict[str, Tool], list[str]]:
         value = json.dumps({"goal": "review-" + str(idx), "steps": steps},
                            separators=(",", ":"))
         if idx % 5 == 0:
-            value = "\`\`\`json\n" + value + "\n\`\`\`"
+            value = "```json\n" + value + "\n```"
         cases.append(value)
     cases += [
         "not json", "{\"goal\":", "[]", "{\"goal\": 3, \"steps\": []}",
@@ -104,6 +104,9 @@ def _quality(modules: dict, registry: dict, cases: list[str]) -> dict:
     accepted = sum(isinstance(x, Plan) for x in expected)
     if not errors or not accepted:
         raise AssertionError("test corpus lacks both accepted and rejected plans")
+    fenced = [case for case in cases if case.startswith("```")]
+    if len(fenced) < 10 or not isinstance(baseline["_extract_json"](fenced[0]), dict):
+        raise AssertionError("fenced JSON fixture parsing is not exercised")
     for name in MODES[1:]:
         variant = modules[name]
         if ([variant["parse_plan"](case, registry) for case in cases] != expected
@@ -208,7 +211,9 @@ def measure(base: str, current: str, *, trials: int = 20,
     for mode in MODES[1:]:
         row = primary[mode]
         delta = base_measure["wall_p50_ms"] - row["wall_p50_ms"]
-        min_gain = max(1, .05 * base_measure["wall_p50_ms"])
+        # The older RSI 1 ms gate was calibrated to 19,000 operations.
+        # Retain that per-operation floor when using 450-operation batches.
+        min_gain = max(operations / 19000, .05 * base_measure["wall_p50_ms"])
         passes = (delta >= min_gain
                   and row["wall_p95_ms"] <= 1.10 * base_measure["wall_p95_ms"]
                   and row["cpu_p50_ms"] <= 1.05 * base_measure["cpu_p50_ms"]
@@ -226,6 +231,17 @@ def measure(base: str, current: str, *, trials: int = 20,
     combined_gain = admission["cumulative"]["p50_saved_ms_per_fixed_round"]
     marginal_decoder = primary["baseline"]["wall_p50_ms"] - primary["decoder"]["wall_p50_ms"]
     marginal_type_on_decoder = primary["decoder"]["wall_p50_ms"] - primary["cumulative"]["wall_p50_ms"]
+    marginal_floor = max(operations / 19000,
+                         .02 * primary["decoder"]["wall_p50_ms"])
+    sequential_type_accepted = (
+        marginal_type_on_decoder >= marginal_floor
+        and primary["cumulative"]["wall_p95_ms"] <= 1.10 * primary["decoder"]["wall_p95_ms"]
+        and primary["cumulative"]["cpu_p50_ms"] <= 1.05 * primary["decoder"]["cpu_p50_ms"]
+        and memory["cumulative"] <= 1.10 * memory["decoder"]
+    )
+    admission["cumulative"]["accepted"] &= sequential_type_accepted
+    admission["cumulative"]["sequential_type_map_accepted"] = sequential_type_accepted
+    admission["cumulative"]["sequential_type_map_gain_ms"] = marginal_type_on_decoder
     return {
         "schema": "axiom-apex/planner-ablation-v1",
         "baseline_sha": hashlib.sha256(base.encode()).hexdigest(),

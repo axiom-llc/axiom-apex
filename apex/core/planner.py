@@ -12,6 +12,16 @@ from apex.core.types import Err, ErrorEvent, Halt, Plan, PlanGeneration, Tool, T
 from apex.llm import gemini_complete
 
 _MAX_STEPS = 32
+_RSI_TYPE_NAMES = {
+    str: "string",
+    int: "integer",
+    float: "number",
+    bool: "boolean",
+    dict: "object",
+    list: "array",
+    object: "any JSON value",
+}
+_RSI_JSON_DECODER = json.JSONDecoder()
 
 
 def _load_prompt() -> str:
@@ -19,15 +29,7 @@ def _load_prompt() -> str:
 
 
 def _type_name(value_type: type) -> str:
-    return {
-        str: "string",
-        int: "integer",
-        float: "number",
-        bool: "boolean",
-        dict: "object",
-        list: "array",
-        object: "any JSON value",
-    }.get(value_type, value_type.__name__)
+    return _RSI_TYPE_NAMES.get(value_type, value_type.__name__)
 
 
 def _describe_tool(tool: Tool) -> str:
@@ -68,7 +70,7 @@ def _extract_json(response_text: str) -> Any:
     start = text.find("{")
     if start < 0:
         raise ValueError("No JSON object found in response")
-    data, _ = json.JSONDecoder().raw_decode(text[start:])
+    data, _ = _RSI_JSON_DECODER.raw_decode(text[start:])
     return data
 
 

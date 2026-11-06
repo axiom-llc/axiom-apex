@@ -12,6 +12,7 @@ from apex.core.types import Err, ErrorEvent, Halt, Plan, PlanGeneration, Tool, T
 from apex.llm import gemini_complete
 
 _MAX_STEPS = 32
+_RSI_JSON_DECODER = json.JSONDecoder()
 
 
 def _load_prompt() -> str:
@@ -68,7 +69,7 @@ def _extract_json(response_text: str) -> Any:
     start = text.find("{")
     if start < 0:
         raise ValueError("No JSON object found in response")
-    data, _ = json.JSONDecoder().raw_decode(text[start:])
+    data, _ = _RSI_JSON_DECODER.raw_decode(text[start:])
     return data
 
 

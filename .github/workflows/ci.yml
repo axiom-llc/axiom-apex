@@ -33,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 8
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -75,6 +76,18 @@ jobs:
         run: python -m pytest tests/test_rsi.py tests/test_rsi_autonomous.py -q
       - name: Offline suite including real kernel isolation probes
         run: python -m pytest tests -m 'not integration' -q
+      - name: Independently benchmark planner candidate ablations
+        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'rsi/lab-verified-planner')
+        run: |
+          python -m benchmarks.planner_ablation --baseline-ref 3d9109cf786b0b64a9eeaa2f4c2b2b59983d4ded --trials 20 --operations 450 --output "$RUNNER_TEMP/planner-ablation.json"
+      - name: Preserve independent planner performance evidence
+        if: always() && github.event_name == 'pull_request' && startsWith(github.head_ref, 'rsi/lab-verified-planner')
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-ablation-${{ github.run_id }}
+          path: ${{ runner.temp }}/planner-ablation.json
+          retention-days: 90
+          if-no-files-found: warn
       - name: Autonomous RSI experiment (local branches only; no model)
         if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'rsi/')
         timeout-minutes: 16

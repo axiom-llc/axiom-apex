@@ -142,7 +142,15 @@ def _run_candidate(
                     p50, p95 = payload.get("p50_ms"), payload.get("p95_ms")
                     if any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in (p50, p95)):
                         return None
-                    observed.append((float(p50), float(p95)))
+                    cpu_ms, peak_rss, units = (payload.get("cpu_ms"),
+                                                payload.get("peak_rss_kib"),
+                                                payload.get("work_units_per_round"))
+                    if (any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0
+                            for x in (cpu_ms, peak_rss))
+                        or type(units) is not int or units <= 0):
+                        return None
+                    observed.append((float(p50), float(p95), float(cpu_ms),
+                                     float(peak_rss), units))
                 scores.append(float(score))
             except (json.JSONDecodeError, KeyError, TypeError):
                 return None
@@ -152,6 +160,9 @@ def _run_candidate(
                 "p50_ms": statistics.median(v[0] for v in observed),
                 "p95_ms": statistics.median(v[1] for v in observed),
                 "dataset": dataset, "samples": len(observed),
+                "cpu_ms": statistics.median(row[2] for row in observed),
+                "peak_rss_kib": max(row[3] for row in observed),
+                "work_units_per_round": observed[0][4],
             })
         return statistics.median(scores) if scores else None
     except ResourceLimitError as exc:
@@ -201,6 +212,10 @@ def _run_bench(tasks_path: str, mock: bool = False, *, dataset: str = "train", k
                 or payload.get("dataset") != dataset or payload.get("mock") is not False
                 or payload.get("passed") is not True
                 or any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in (p50, p95))
+                or any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0
+                       for x in (payload.get("cpu_ms"), payload.get("peak_rss_kib")))
+                or type(payload.get("work_units_per_round")) is not int
+                or payload["work_units_per_round"] <= 0
                 or type(score) not in (int, float) or not math.isfinite(score) or not 0 < score <= 1):
                 raise RuntimeError("invalid or incomplete baseline benchmark")
             samples.append(payload)
@@ -209,6 +224,9 @@ def _run_bench(tasks_path: str, mock: bool = False, *, dataset: str = "train", k
             "p50_ms": statistics.median(row["p50_ms"] for row in samples),
             "p95_ms": statistics.median(row["p95_ms"] for row in samples),
             "dataset": dataset, "samples": len(samples),
+            "cpu_ms": statistics.median(row["cpu_ms"] for row in samples),
+            "peak_rss_kib": max(row["peak_rss_kib"] for row in samples),
+            "work_units_per_round": samples[0]["work_units_per_round"],
         }
     finally:
         _git(["worktree", "remove", "--force", scratch], check=False)
@@ -227,6 +245,21 @@ def _material_gain(baseline: dict, candidate: dict, *, min_ms: float = 1.0,
                 and before - after >= max(min_ms, min_fraction * before)
                 and tail_after <= tail_before * (1 + max_p95_regression)
                 and candidate["apex_score"] > baseline["apex_score"])
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
+def _resource_guard(baseline: dict, candidate: dict) -> bool:
+    """Fail closed on CPU >5%, RSS >10%, or mismatched work volume."""
+    try:
+        for key, limit in (("cpu_ms", 1.05), ("peak_rss_kib", 1.10)):
+            before, after = baseline[key], candidate[key]
+            if (type(before) not in (int, float) or type(after) not in (int, float)
+                or not math.isfinite(before) or not math.isfinite(after)
+                or before <= 0 or after <= 0 or after > before * limit):
+                return False
+        return (baseline["work_units_per_round"] ==
+                candidate["work_units_per_round"])
     except (KeyError, TypeError, ValueError):
         return False
 

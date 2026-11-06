@@ -421,13 +421,17 @@ def run_rsi(
     tasks_path: str,
     mock_bench: bool,
     api_key: str,
+    *, generator: str = "llm",
 ) -> None:
     """Bounded cumulative candidate optimization; main remains unchanged."""
+    if generator not in {"llm", "rules"}:
+        raise ValueError("unsupported RSI generator")
     if mock_bench:
         raise RuntimeError("mock benchmark cannot authorize an RSI change")
     _require_clean_tree()
     with tempfile.TemporaryDirectory(prefix="apex-rsi-preflight-") as scratch:
         _run_candidate_process([sys.executable, "-c", "pass"], scratch)
+    origin_revision = _git(["rev-parse", "HEAD"]).stdout.strip()
     origin_branch = _current_branch()
     if origin_branch == "HEAD":
         raise RuntimeError("RSI requires a named Git branch")
@@ -437,51 +441,76 @@ def run_rsi(
     parent_branch = origin_branch
     accepted = []
     results_log: list[dict] = []
+    generated_count = 0
+    tested_count = 0
+    stop_reason = "MAX_CYCLES"
 
     for cycle in range(1, cycles + 1):
         ok, reason = governor.check(cycle)
         if not ok:
             results_log.append({"cycle": cycle, "outcome": "STOP_BUDGET", "reason": reason})
+            stop_reason = "BUDGET"
             break
         _checkout(parent_branch)
+        rules = []
+        if generator == "rules":
+            from apex.rsi_candidate_rules import generate
+            rules = generate(REPO_ROOT)
+            if not rules:
+                results_log.append({"cycle": cycle, "outcome": "CONVERGED_NO_CANDIDATES"})
+                stop_reason = "CONVERGED_NO_CANDIDATES"
+                break
         branch = f"rsi/{run_tag}/cycle-{cycle}"
         _create_branch(branch)
         keep = False
         try:
             baseline = _run_bench(tasks_path, dataset="train")
             holdout_baseline = _run_bench(tasks_path, dataset="holdout")
-            sources = _read_sources()
+            sources = _read_sources() if generator == "llm" else ""
             candidates = []
             for ci in range(3):
-                # Estimated tokens are admission accounting only, never provider-billed usage.
-                estimated_prompt_tokens = len(sources.encode("utf-8")) // 4 + 1024
-                if (governor.tokens_remaining() < estimated_prompt_tokens
-                    or governor.wall_elapsed() > governor.max_wall_seconds):
+                if governor.wall_elapsed() > governor.max_wall_seconds:
                     break
-                patch = _generate_patch(api_key, sources, baseline["apex_score"],
-                                        governor.tokens_remaining())
-                governor.consume_tokens(estimated_prompt_tokens)
+                if generator == "rules":
+                    if ci >= len(rules):
+                        break
+                    patch, rule_id = rules[ci].patch, rules[ci].rule
+                else:
+                    estimated_prompt_tokens = len(sources.encode("utf-8")) // 4 + 1024
+                    if governor.tokens_remaining() < estimated_prompt_tokens:
+                        break
+                    patch = _generate_patch(api_key, sources, baseline["apex_score"],
+                                            governor.tokens_remaining())
+                    governor.consume_tokens(estimated_prompt_tokens)
+                    rule_id = "llm"
+                generated_count += 1
                 if not patch or not _validate_patch(patch):
                     continue
                 metrics: dict = {}
+                tested_count += 1
                 candidate_score = _run_candidate(ci, patch, tasks_path, False,
                                                  evidence=metrics)
-                if candidate_score is None or not _material_gain(baseline, metrics):
+                if (candidate_score is None
+                    or not _material_gain(baseline, metrics)
+                    or not _resource_guard(baseline, metrics)):
                     continue
-                candidates.append((candidate_score, patch, metrics))
+                candidates.append((candidate_score, patch, metrics, rule_id))
             if not candidates:
                 results_log.append({"cycle": cycle, "outcome": "NO_MATERIAL_CANDIDATE"})
+                stop_reason = "NO_MATERIAL_IMPROVEMENT"
                 break
 
             # Holdout is separately executed on the patched scratch worktree.
             candidates.sort(key=lambda row: (-row[0], row[2]["p95_ms"]))
-            for best_score, best_patch, train_metrics in candidates:
+            for best_score, best_patch, train_metrics, rule_id in candidates:
                 if governor.wall_elapsed() > governor.max_wall_seconds:
                     break
                 holdout_metrics: dict = {}
                 holdout_score = _run_candidate(99, best_patch, tasks_path, False,
                                                dataset="holdout", evidence=holdout_metrics)
-                if holdout_score is None or not _material_gain(holdout_baseline, holdout_metrics):
+                if (holdout_score is None
+                    or not _material_gain(holdout_baseline, holdout_metrics)
+                    or not _resource_guard(holdout_baseline, holdout_metrics)):
                     continue
                 if not _apply_patch(best_patch):
                     continue
@@ -491,7 +520,9 @@ def run_rsi(
                 accepted.append(branch)
                 results_log.append({
                     "cycle": cycle, "outcome": "ACCEPTED_REVIEW_REQUIRED",
-                    "branch": branch, "train_baseline": baseline,
+                    "branch": branch, "candidate_rule": rule_id,
+                    "commit": _git(["rev-parse", "HEAD"]).stdout.strip(),
+                    "train_baseline": baseline,
                     "train_candidate": train_metrics, "holdout_baseline": holdout_baseline,
                     "holdout_candidate": holdout_metrics,
                     "token_budget_type": "estimated_only",
@@ -499,6 +530,7 @@ def run_rsi(
                 break
             if not keep:
                 results_log.append({"cycle": cycle, "outcome": "HOLDOUT_REJECTED"})
+                stop_reason = "HOLDOUT_REJECTED"
                 break
         except IsolationError:
             raise
@@ -509,6 +541,10 @@ def run_rsi(
 
     print(json.dumps({
         "rsi_results": results_log, "accepted_branches": accepted,
+        "origin_revision": origin_revision, "generator": generator,
+        "provider_calls": 0 if generator == "rules" else None,
+        "generated_candidates": generated_count,
+        "tested_candidates": tested_count, "stop_reason": stop_reason,
         "origin_unchanged": origin_branch,
         "estimated_tokens_used": governor.budget_tokens - governor.tokens_remaining(),
         "provider_tokens_and_cost": None,
@@ -533,7 +569,9 @@ def rsi_main(argv: list[str]) -> None:
     parser.add_argument("--tasks", default="benchmarks/tasks.json",
                         help="Benchmark tasks.json path")
     parser.add_argument("--mock-bench", action="store_true",
-                        help="Use mock benchmark (no real apex calls)")
+                        help="Mock only, never eligible for RSI")
+    parser.add_argument("--generator", choices=("llm", "rules"), default="llm",
+                        help="Model-generated or bounded provider-free code search")
     args = parser.parse_args(argv)
     if args.cycles <= 0:
         parser.error("--cycles must be greater than 0")
@@ -542,7 +580,7 @@ def rsi_main(argv: list[str]) -> None:
 
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if (
-        not api_key
+        args.generator == "llm" and not api_key
         and os.environ.get("LLM_PROVIDER", "gemini").lower() == "gemini"
     ):
         print("ERROR: GEMINI_API_KEY not set", file=sys.stderr)
@@ -554,4 +592,5 @@ def rsi_main(argv: list[str]) -> None:
         tasks_path=args.tasks,
         mock_bench=args.mock_bench,
         api_key=api_key,
+        generator=args.generator,
     )

@@ -94,6 +94,9 @@ def test_cumulative_two_generation_git_branches(tmp_path, monkeypatch, capsys):
     output = json.loads(capsys.readouterr().out)
     branches = output["accepted_branches"]
     assert len(branches) == 2
+    assert len(output["candidate_attempts"]) == 6
+    assert sum(r["status"] == "ACCEPTED_LOCAL_COMMIT" for r in output["candidate_attempts"]) == 2
+    assert all(len(r["patch_sha256"]) == 64 for r in output["candidate_attempts"])
     assert output["rsi_results"][1]["train_baseline"]["p50_ms"] == 90
     assert subprocess.check_output(["git", "-C", str(repo), "show", "main:apex/core/loop.py"], text=True) == "VALUE = 0\n"
     assert subprocess.check_output(["git", "-C", str(repo), "show", f"{branches[0]}:apex/core/loop.py"], text=True) == "VALUE = 1\n"

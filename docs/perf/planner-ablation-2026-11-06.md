@@ -12,7 +12,7 @@ recovered owner labor.
 
 ## Reproducible paired experiment
 
-- Source candidate: [PR #7](https://github.com/axiom-llc/axiom-apex/pull/7), verified Git head `07eed7d923bde148a01ceada39d91d3cb6ddedf7`.
+- Source candidate: [PR #7](https://github.com/axiom-llc/axiom-apex/pull/7), measured implementation revision `07eed7d923bde148a01ceada39d91d3cb6ddedf7`.
 - Pinned baseline commit `3d9109cf786b0b64a9eeaa2f4c2b2b59983d4ded`. The baseline planner source SHA-256 is `5aef53cbb1d4e292349400443e3260ac41da02f787f352b54310f9c3a804e721`. The optimized source SHA-256 is `13cdc31cf153c87a7f3bed8ab7ad5d4fbe75dedb75b831ff36a888da26404b23`.
 - Script: [`benchmarks/planner_ablation.py`](../../benchmarks/planner_ablation.py) in this PR, using no additional installed dependencies.
 - Four variants built from the exact same baseline: unchanged, cached decoder only, hoisted type lookup only, and both cumulatively. Each executes the real APEX `parse_plan`, `_describe_tool` and `render_prompt` functions, not replayed predetermined latency scores.
@@ -45,19 +45,20 @@ Each value is a measured median or measured p95 in milliseconds unless stated.
 The ablation itself consumed **1.567 s** including mode compilation, warmup,
 quality checks, both cohorts, and allocation measurement. At the observed
 0.872351 ms batch speedup, evaluation amortizes after **1,796** repeated
-450-operation batches (808,200 operations), **conditional on comparable future
+450-operation batches (808,200 parser calls, plus accompanying tool descriptions), **conditional on comparable future
 runtime workloads**.
 
 The full GitHub Actions run wall time was **119 s** (04:54:30–04:56:29 UTC).
 Conservatively allocating all of it to the optimization increases break-even
-to **136,413** equivalent batches (61,385,850 operations); this includes
+to **136,413** equivalent batches (61,385,850 parser calls, plus accompanying tool descriptions); this includes
 regular existing regression/packaging/runner overhead and is not billed CI
 usage. GitHub Actions cash billing was not available. Provider/model calls
 added by this benchmark: zero. No external purchases or persistent workers
 were authorized.
 
-The source changes add only two immutable module-level lookup objects and
-remove repeated decoder and dictionary allocations. At runtime they require
+The source changes add two reusable module-level objects (a JSON decoder and a
+dictionary), used without mutation by the planner; they remove repeated
+per-call decoder and dictionary allocations. At runtime they require
 no extra network calls, API quota, background scheduling, or configuration.
 Measured performance gains persist per qualifying future invocation, but
 actual production invocation volume, latency dominated by model calls,

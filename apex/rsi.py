@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import hashlib
 import os
 import re
 import shutil
@@ -441,6 +442,7 @@ def run_rsi(
     parent_branch = origin_branch
     accepted = []
     results_log: list[dict] = []
+    candidate_attempts: list[dict] = []
     generated_count = 0
     tested_count = 0
     stop_reason = "MAX_CYCLES"
@@ -484,17 +486,29 @@ def run_rsi(
                     governor.consume_tokens(estimated_prompt_tokens)
                     rule_id = "llm"
                 generated_count += 1
+                attempt = {
+                    "cycle": cycle, "index": ci, "generator_rule": rule_id,
+                    "parent_revision": _git(["rev-parse", "HEAD"]).stdout.strip(),
+                    "patch_sha256": hashlib.sha256((patch or "").encode()).hexdigest(),
+                    "status": "GENERATED",
+                }
+                candidate_attempts.append(attempt)
                 if not patch or not _validate_patch(patch):
+                    attempt["status"] = "INVALID_OR_EMPTY_PATCH"
                     continue
                 metrics: dict = {}
                 tested_count += 1
                 candidate_score = _run_candidate(ci, patch, tasks_path, False,
                                                  evidence=metrics)
-                if (candidate_score is None
-                    or not _material_gain(baseline, metrics)
-                    or not _resource_guard(baseline, metrics)):
+                attempt["train_metrics"] = metrics or None
+                if candidate_score is None:
+                    attempt["status"] = "REGRESSION_OR_BENCHMARK_REJECTED"
                     continue
-                candidates.append((candidate_score, patch, metrics, rule_id))
+                if not _material_gain(baseline, metrics) or not _resource_guard(baseline, metrics):
+                    attempt["status"] = "TRAIN_MEASUREMENT_REJECTED"
+                    continue
+                attempt["status"] = "TRAIN_ADMISSIBLE"
+                candidates.append((candidate_score, patch, metrics, rule_id, attempt))
             if not candidates:
                 results_log.append({"cycle": cycle, "outcome": "NO_MATERIAL_CANDIDATE"})
                 stop_reason = "NO_MATERIAL_IMPROVEMENT"
@@ -502,19 +516,24 @@ def run_rsi(
 
             # Holdout is separately executed on the patched scratch worktree.
             candidates.sort(key=lambda row: (-row[0], row[2]["p95_ms"]))
-            for best_score, best_patch, train_metrics, rule_id in candidates:
+            for best_score, best_patch, train_metrics, rule_id, attempt in candidates:
                 if governor.wall_elapsed() > governor.max_wall_seconds:
                     break
                 holdout_metrics: dict = {}
                 holdout_score = _run_candidate(99, best_patch, tasks_path, False,
                                                dataset="holdout", evidence=holdout_metrics)
+                attempt["holdout_metrics"] = holdout_metrics or None
                 if (holdout_score is None
                     or not _material_gain(holdout_baseline, holdout_metrics)
                     or not _resource_guard(holdout_baseline, holdout_metrics)):
+                    attempt["status"] = "HOLDOUT_MEASUREMENT_REJECTED"
                     continue
                 if not _apply_patch(best_patch):
+                    attempt["status"] = "PATCH_APPLICATION_REJECTED"
                     continue
                 _commit_cycle(cycle, baseline["apex_score"], best_score)
+                attempt["status"] = "ACCEPTED_LOCAL_COMMIT"
+                attempt["accepted_commit"] = _git(["rev-parse", "HEAD"]).stdout.strip()
                 keep = True
                 parent_branch = branch
                 accepted.append(branch)
@@ -541,6 +560,7 @@ def run_rsi(
 
     print(json.dumps({
         "rsi_results": results_log, "accepted_branches": accepted,
+        "candidate_attempts": candidate_attempts,
         "origin_revision": origin_revision, "generator": generator,
         "provider_calls": 0 if generator == "rules" else None,
         "generated_candidates": generated_count,

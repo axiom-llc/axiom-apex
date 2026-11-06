@@ -80,8 +80,12 @@ def test_ledger_fails_closed_without_verified_production_volume():
     assert roi["status"] == "LAB_IMPROVEMENT_ROI_UNVERIFIED"
     assert roi["realized_operational_roi"] == "UNVERIFIED"
     assert roi["amortization_break_even_rounds"] == 3000
-    assert evaluate(sample, observed_rounds=2000)["status"] == "MEASURED_NET_NEGATIVE"
-    assert evaluate(sample, observed_rounds=4000)["status"] == "MEASURED_NET_POSITIVE"
+    negative = evaluate(sample, scenario_rounds=2000)
+    positive = evaluate(sample, scenario_rounds=4000)
+    assert negative["scenario_net_status"] == "HYPOTHETICAL_NEGATIVE"
+    assert positive["scenario_net_status"] == "HYPOTHETICAL_POSITIVE"
+    assert negative["realized_operational_roi"] == positive["realized_operational_roi"] == "UNVERIFIED"
+    assert negative["observed_real_workload_rounds"] is None
 
 
 @pytest.mark.host_isolation

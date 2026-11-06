@@ -72,9 +72,49 @@ jobs:
           python -c "import shutil; shutil.rmtree('.ci-rag')"
           python -m pip check
       - name: RSI regression gate
-        run: python -m pytest tests/test_rsi.py -q
+        run: python -m pytest tests/test_rsi.py tests/test_rsi_autonomous.py -q
       - name: Offline suite including real kernel isolation probes
         run: python -m pytest tests -m 'not integration' -q
+      - name: Autonomous RSI experiment (local branches only; no model)
+        timeout-minutes: 16
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "AXIOM RSI CI"
+          git config user.email "rsi-ci@users.noreply.github.com"
+          git checkout -b rsi-ci-baseline
+          python -m apex rsi --generator rules --cycles 4 --budget-tokens 200000 > "$RUNNER_TEMP/rsi-lab.json"
+          python -m apex.rsi_lab_evidence "$RUNNER_TEMP/rsi-lab.json" --output "$RUNNER_TEMP/rsi-roi.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads((Path(os.environ["RUNNER_TEMP"])/"rsi-lab.json").read_text())
+          roi = json.loads((Path(os.environ["RUNNER_TEMP"])/"rsi-roi.json").read_text())
+          assert data["generator"] == "rules"
+          assert data["provider_calls"] == 0
+          assert data["stop_reason"] in {"CONVERGED_NO_CANDIDATES",
+              "NO_MATERIAL_IMPROVEMENT", "HOLDOUT_REJECTED", "BUDGET", "MAX_CYCLES"}
+          print("RSI_RESULT " + json.dumps({
+              "accepted_generations": len(data["accepted_branches"]),
+              "generated_candidates": data["generated_candidates"],
+              "tested_candidates": data["tested_candidates"],
+              "stop_reason": data["stop_reason"],
+              "full_evaluation_overhead_seconds": data["elapsed_seconds"],
+              "roi": roi,
+          }, sort_keys=True))
+          PY
+          git checkout -
+          git diff --exit-code
+      - name: Retain autonomous RSI evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsi-lab-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/rsi-lab.json
+            ${{ runner.temp }}/rsi-roi.json
+          retention-days: 90
+          if-no-files-found: warn
       - name: Compile and build
         run: |
           python -m compileall -q apex benchmarks tests

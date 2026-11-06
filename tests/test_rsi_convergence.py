@@ -71,7 +71,9 @@ def test_cumulative_two_generation_git_branches(tmp_path, monkeypatch, capsys):
     def baseline(tasks, mock=False, *, dataset="train", k=3):
         value = int((repo / "apex/core/loop.py").read_text().split("=")[1])
         return {"dataset": dataset, "p50_ms": 100 - value * 10,
-                "p95_ms": 120 - value * 10, "apex_score": 0.5 + value * 0.1}
+                "p95_ms": 120 - value * 10, "apex_score": 0.5 + value * 0.1,
+                "cpu_ms": 90 - value * 10, "peak_rss_kib": 16000,
+                "work_units_per_round": 19000}
     monkeypatch.setattr(rsi, "_run_bench", baseline)
     def patch(api_key, sources, score, budget):
         value = int((repo / "apex/core/loop.py").read_text().split("=")[1])
@@ -81,7 +83,9 @@ def test_cumulative_two_generation_git_branches(tmp_path, monkeypatch, capsys):
         value = int((repo / "apex/core/loop.py").read_text().split("=")[1]) + 1
         if evidence is not None:
             evidence.update({"dataset": dataset, "p50_ms": 100-value*10,
-                            "p95_ms": 120-value*10, "apex_score": .5+value*.1})
+                            "p95_ms": 120-value*10, "apex_score": .5+value*.1,
+                            "cpu_ms": 90-value*10, "peak_rss_kib": 16000,
+                            "work_units_per_round": 19000})
         return .5+value*.1
     monkeypatch.setattr(rsi, "_run_candidate", candidate)
     tasks = tmp_path / "tasks.json"

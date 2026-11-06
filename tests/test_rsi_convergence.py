@@ -30,6 +30,32 @@ def test_mock_cannot_authorize_rsi(tmp_path, monkeypatch):
         rsi.run_rsi(1, 20000, str(tmp_path / "tasks.json"), True, "")
 
 
+def test_no_material_candidate_stops_without_git_effects(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "repo"
+    (repo / "apex/core").mkdir(parents=True)
+    (repo / "apex/core/loop.py").write_text("VALUE = 0\n")
+    (repo / "apex/core/planner.py").write_text("pass\n")
+    subprocess.run(["git", "init", "-b", "main", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=RSI Test", "-c",
+                    "user.email=test@example.invalid", "commit", "-qm", "fixture"], check=True)
+    before = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True)
+    monkeypatch.setattr(rsi, "REPO_ROOT", repo)
+    monkeypatch.setattr(rsi, "_run_candidate_process", lambda *a, **kw: type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(rsi, "_run_bench", lambda *a, dataset="train", **kw: {
+        "dataset": dataset, "p50_ms": 100, "p95_ms": 120, "apex_score": .5})
+    monkeypatch.setattr(rsi, "_generate_patch", lambda *a: None)
+    tasks = tmp_path / "tasks.json"
+    tasks.write_text("[]")
+    rsi.run_rsi(3, 10000, str(tasks), False, "")
+    out = json.loads(capsys.readouterr().out)
+    assert out["accepted_branches"] == []
+    assert out["rsi_results"][0]["outcome"] == "NO_MATERIAL_CANDIDATE"
+    after = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True)
+    assert before == after
+    assert subprocess.check_output(["git", "-C", str(repo), "branch", "--list", "rsi/*"]) == b""
+
+
 def test_cumulative_two_generation_git_branches(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     (repo / "apex/core").mkdir(parents=True)

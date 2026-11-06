@@ -6,8 +6,10 @@
 
 | Variable               | Default                  | Purpose                                                                                                                   |
 | ---------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `LLM_PROVIDER`         | `gemini`                 | Select `gemini` or `ollama`.                                                                                              |
+| `LLM_PROVIDER`         | `gemini`                 | Select `gemini`, `ollama`, or `chatgpt` (`openai` alias).                                                                                              |
 | `GEMINI_API_KEY`       | unset                    | Authenticate Gemini. Require it when `LLM_PROVIDER=gemini` and for local provider/evaluator operations; HTTP RAG uses server credentials.               |
+| `OPENAI_API_KEY`       | unset                    | Authenticate the separately billed OpenAI Responses API.                                                    |
+| `OPENAI_MODEL`         | `chat-latest`            | Select the OpenAI planning model.                                                                          |
 | `GEMINI_MODEL`         | `gemini-3.8-flash`       | Select the Gemini planning and safety-audit model.                                                                        |
 | `OLLAMA_BASE_URL`      | `http://localhost:11434` | Select the Ollama API endpoint.                                                                                           |
 | `OLLAMA_MODEL`         | `llama3`                 | Select the Ollama model.                                                                                                  |
@@ -28,3 +30,5 @@
 
 Reject unsupported `LLM_PROVIDER` values during startup. Validate RAG chunk sizes, overlap, retrieval count, score threshold, and collection name before use.
 
+
+ChatGPT planning uses `LLM_PROVIDER=chatgpt`, `OPENAI_API_KEY` and the Responses API. A ChatGPT subscription does not grant API credentials or API billing entitlement. Configure a provider spending limit before enabling live requests. Existing exact-plan `/authorized-run` execution is independent of the selected planning provider.

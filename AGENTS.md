@@ -1,0 +1,5 @@
+# AXIOM repository agent policy
+
+## Engineering machine-efficiency evaluation — P0
+
+This repository inherits the [canonical AXIOM machine-efficiency standard](https://github.com/axiom-llc/axiom-director/blob/main/docs/machine-efficiency-policy.md) for engineering PRs, performance reports, automation and optimization. Comparable, quality-equivalent measurements of latency, execution duration, throughput, processing cycles, resource utilization or automation performance establish legitimate machine-side improvements without requiring actual/net operator-time verification, human-attendance logs or full lifecycle-cost figures. Record the source revisions, workload, sample size, before/after values, units, known overhead, confidence and limitations. Missing human or economic information never invalidates measured machine gains. Prohibit regenerated requirements that downgrade quantified machine evidence because owner-time observations are absent. Preserve repository-owned implementation, safety, privacy and authorization rules; this instruction grants no new execution privileges.
